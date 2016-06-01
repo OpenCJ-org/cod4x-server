@@ -41,7 +41,9 @@ script:
 deploy:
   provider: releases
   api_key: "${GITHUB_TOKEN}"
-  file: "bin/cod4x18_dedrun"
+  file: 
+    - "bin/cod4x18_dedrun"
+    - "plugins/antispam/antispam.so"
   skip_cleanup: true
   on:
     tags: true
