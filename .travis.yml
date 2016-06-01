@@ -35,3 +35,13 @@ script:
 #  - ./plugins/censor/makedll32
 #  - ./plugins/clan-tag-protection/makedll32
 #  - ./plugins/cpptest/makedll32
+
+  - cd ..
+
+deploy:
+  provider: releases
+  api_key: "${GITHUB_TOKEN}"
+  file: "bin/cod4x18_dedrun"
+  skip_cleanup: true
+  on:
+    tags: true
