@@ -295,7 +295,7 @@ tcpServer_t tcpServer;
 
 void NET_InitDNS();
 void NET_ShutdownDNS();
-qboolean NET_ResolveBlocking(const char *domain, struct sockaddr_storage *outaddr, sa_family_t family);
+qboolean NET_ResolveBlocking(const char *domain, struct sockaddr_storage *outaddr, sa_family_t family, char* errormessage1k);
 
 
 /*
@@ -422,18 +422,6 @@ __optimize3 __regparm3 static void SockadrToNetadr( struct sockaddr *s, netadr_t
 }
 
 
-static struct addrinfo *SearchAddrInfo(struct addrinfo *hints, sa_family_t family)
-{
-	while(hints)
-	{
-		if(hints->ai_family == family)
-			return hints;
-
-		hints = hints->ai_next;
-	}
-
-	return NULL;
-}
 
 /*
 =============
@@ -443,6 +431,7 @@ Sys_StringToSockaddr
 static qboolean Sys_StringToSockaddrNoDNS(const char* s, struct sockaddr *sadr, int sadr_len, sa_family_t family)
 {
 	char ptonaddr[32];
+	char *ifstring;
 	struct sockaddr_storage sadrstore;
 	struct sockaddr_in *sin = (struct sockaddr_in *)&sadrstore;
 	struct sockaddr_in6 *sin6 = (struct sockaddr_in6 *)&sadrstore;
@@ -455,10 +444,19 @@ static qboolean Sys_StringToSockaddrNoDNS(const char* s, struct sockaddr *sadr, 
 	{
 		 if(Q_CountChar(s, ':') > 1)
 		 {
-			 ptonfamily = AF_INET6;
+			ptonfamily = AF_INET6;
 		 }else{
-			 ptonfamily = AF_INET;
+			ptonfamily = AF_INET;
 		 }
+	}
+	if(ptonfamily == AF_INET6)
+	{
+		ifstring = strchr(s, '%');
+		if(ifstring)
+		{
+			*ifstring = '\0';
+			++ifstring;
+		}
 	}
 
 	if(inet_pton(ptonfamily, s, &ptonaddr ) > 0)
@@ -467,6 +465,14 @@ static qboolean Sys_StringToSockaddrNoDNS(const char* s, struct sockaddr *sadr, 
 		{
 			memcpy(&sin6->sin6_addr, ptonaddr, sizeof(sin6->sin6_addr));
 			sin6->sin6_family = AF_INET6;
+			if(ifstring)
+			{
+#ifdef _WIN32
+				sin6->sin6_scope_id = atoi(ifstring);
+#else
+				sin6->sin6_scope_id = if_nametoindex(ifstring);
+#endif
+			}
 		}else if(ptonfamily == AF_INET){
 			memcpy(&sin->sin_addr, ptonaddr, sizeof(sin->sin_addr)); 
 			sin->sin_family = AF_INET;
@@ -483,7 +489,21 @@ static qboolean Sys_StringToSockaddrNoDNS(const char* s, struct sockaddr *sadr, 
 
 
 
-#if 1
+#if 0
+static struct addrinfo *SearchAddrInfo(struct addrinfo *hints, sa_family_t family)
+{
+	while(hints)
+	{
+		if(hints->ai_family == family)
+			return hints;
+
+		hints = hints->ai_next;
+	}
+
+	return NULL;
+}
+
+
 static qboolean Sys_StringToSockaddr(const char *s, struct sockaddr *sadr, int sadr_len, sa_family_t family)
 {
 	struct addrinfo hints;
@@ -547,12 +567,12 @@ static qboolean Sys_StringToSockaddr(const char *s, struct sockaddr *sadr, int s
 
 	return qfalse;
 }
-#endif
-#if 0
+#else
 static qboolean Sys_StringToSockaddr(const char *s, struct sockaddr *sadr, int sadr_len, sa_family_t family)
 {
 	int retval;
 	char ptonaddr[32];
+	char errormsg[1024];
 	struct sockaddr_storage sadrstore;
 	struct sockaddr_in *sin = (struct sockaddr_in *)&sadrstore;
 	struct sockaddr_in6 *sin6 = (struct sockaddr_in6 *)&sadrstore;
@@ -583,10 +603,12 @@ static qboolean Sys_StringToSockaddr(const char *s, struct sockaddr *sadr, int s
 		}
 		return qtrue;
 	}
-	Com_Printf("DNS_Resolving %s\n", s);
 
-	retval = NET_ResolveBlocking(s, &sadrstore ,family);
-
+	retval = NET_ResolveBlocking(s, &sadrstore ,family, errormsg);
+	if(errormsg[0])
+	{
+		Com_PrintError("DNS: %s\n", errormsg);
+	}
 	memcpy(sadr, &sadrstore, sadr_len);
 
 	//If we got here it is most likely a name which has to be resolved
@@ -3668,6 +3690,7 @@ extern int	dns_poll(struct dns *);
  */
 struct query {
 	struct llhead	link;		/* Link				*/
+	enum dns_error	error;
 	time_t		expire;		/* Time when this query expire	*/
 	uint16_t	tid;		/* UDP DNS transaction ID	*/
 	uint16_t	qtype;		/* Query type			*/
@@ -3750,7 +3773,8 @@ int GetDNSAddresses(struct sockaddr_storage *sin, int maxcount)
 	FILE	*fp;
 	char	line[512];
 	char*	linep;
-	int		i;
+	char*	lineend;
+	int	i;
 
 	i = 0;
 
@@ -3778,6 +3802,14 @@ int GetDNSAddresses(struct sockaddr_storage *sin, int maxcount)
 			{
 				++linep;
 			}
+			//Remove garbage characters from linened
+			lineend = linep;
+			while(isprint(*lineend))
+			{
+				++lineend;
+			}
+			*lineend = '\0';
+
 			if(Sys_StringToSockaddrNoDNS(linep, (struct sockaddr*)&sin[i], sizeof(struct sockaddr_storage), AF_UNSPEC))
 			{
 				i++;
@@ -3852,8 +3884,8 @@ struct dns* dns_init(void)
 		return (NULL);
 
 
-	dns->sock = NET_IPSocket(NULL, 1230, &err, qfalse);
-	dns->sock6 = NET_IP6Socket(NULL, 1230, &boundif, &err, qfalse);
+	dns->sock = NET_IPSocket(NULL, 0, &err, qfalse);
+	dns->sock6 = NET_IP6Socket(NULL, 0, &boundif, &err, qfalse);
 
 	if(dns->sock == INVALID_SOCKET && dns->sock6 == INVALID_SOCKET)
 		return (NULL);
@@ -3991,19 +4023,8 @@ void dns_cancel(struct dns *dns, const void *context)
 	}
 }
 
-static void call_user(struct dns *dns, struct query *query, enum dns_error error)
+static void move_querytocache(struct dns *dns, struct query *query)
 {
-	struct dns_cb_data	cbd;
-
-	cbd.context	= query->ctx;
-	cbd.query_type	= (enum dns_query_type) query->qtype;
-	cbd.error	= error;
-	cbd.name	= query->name;
-	cbd.addr	= query->addr;
-	cbd.addr_len	= query->addrlen;
-
-	query->callback(&cbd);
-
 	/* Move query to cache */
 	LL_DEL(&query->link);
 	LL_ADD(&dns->cached, &query->link);
@@ -4016,46 +4037,92 @@ static void call_user(struct dns *dns, struct query *query, enum dns_error error
 }
 
 /*
- * Queue the resolution
+ * Queue the resolution or get result
  */
-void dns_queue(struct dns *dns, void *ctx, const char *name, enum dns_query_type qtype, dns_callback_t callback)
+int dns_getorqueue(struct dns *dns, struct dns_cb_data *cbd, const char *name, enum dns_query_type qtype)
 {
 	struct query	*query;
 	struct header	*header;
+	void*		ctx = NULL;
 	int		i, z, n, name_len;
 	char		pkt[DNS_PACKET_LEN], *p;
 	const char 	*s;
 	time_t		now = time(NULL);
-	struct dns_cb_data cbd;
+	struct llhead	*lp, *tmp;
 
+	Sys_EnterCriticalSection(CRIT_RESOLVE);
+
+	/* Adding our query to the cache if it is already received */
+	dns_poll(dns);
+	
 	/* XXX Search the cache first */
 	if ((query = find_cached_query(dns, qtype, name)) != NULL) {
 		query->ctx = ctx;
-		call_user(dns, query, DNS_OK);
+
+		cbd->context = query->ctx;
+		cbd->query_type = (enum dns_query_type) query->qtype;
+		cbd->error = query->error;
+		cbd->name = query->name;
+		cbd->addr = query->addr;
+		cbd->addr_len = query->addrlen;
+
+		if (query->expire < now || query->error > DNS_DOES_NOT_EXIST) {
+			destroy_query(query);
+			dns->num_cached--;
+		}
+		Sys_LeaveCriticalSection(CRIT_RESOLVE);
+		return qtrue;
+	}
+
+	/* Cleanup cached queries */
+	LL_FOREACH_SAFE(&dns->cached, lp, tmp)
+	{
+		query = LL_ENTRY(lp, struct query, link);
 		if (query->expire < now) {
 			destroy_query(query);
 			dns->num_cached--;
 		}
-		return;
 	}
+
+	/* Cleanup expired active queries and see if we have this query already on the list */
+	LL_FOREACH_SAFE(&dns->active, lp, tmp)
+	{
+		query = LL_ENTRY(lp, struct query, link);
+
+		if (query->expire < now) {
+			query->addrlen = 0;
+			query->error = DNS_TIMEOUT;
+			query->expire += 30; //Hold it for 30 more seconds in cache to make this available to get
+			move_querytocache(dns, query);
+			break;
+		}
+		if(query->ctx == ctx && query->qtype == qtype && Q_stricmp(name, query->name) == 0)
+		{
+			/* This query is already in the queue */
+			Sys_LeaveCriticalSection(CRIT_RESOLVE);
+			return qfalse;
+		}
+	}
+
 
 	/* Allocate new query */
 	if ((query = (struct query *) calloc(1, sizeof(*query))) == NULL) {
-		(void) memset(&cbd, 0, sizeof(cbd));
-		cbd.error = DNS_ERROR;
-		callback(&cbd);
-		return;
+		(void) memset(cbd, 0, sizeof(*cbd));
+		cbd->error = DNS_ERROR;
+		Sys_LeaveCriticalSection(CRIT_RESOLVE);
+		return qtrue;
 	}
 
 	/* Init query structure */
 	query->ctx	= ctx;
 	query->qtype	= (uint16_t) qtype;
 	query->tid	= ++dns->tid;
-	query->callback	= callback;
+	query->callback	= NULL;
 	query->expire	= now + DNS_QUERY_TIMEOUT;
-	for (p = query->name; *name &&
-	    p < query->name + sizeof(query->name) - 1; name++, p++)
+	for (p = query->name; *name && p < query->name + sizeof(query->name) - 1; name++, p++)
+	{
 		*p = tolower(*name);
+	}
 	*p = '\0';
 	name = query->name;
 
@@ -4121,14 +4188,18 @@ void dns_queue(struct dns *dns, void *ctx, const char *name, enum dns_query_type
 	}
 	if (!success)
 	{
-		memset(&cbd, 0, sizeof(cbd));
-		cbd.error = DNS_ERROR;
-		callback(&cbd);
+		memset(cbd, 0, sizeof(*cbd));
+		cbd->error = DNS_ERROR;
 		free(query);
+		Sys_LeaveCriticalSection(CRIT_RESOLVE);
+		return qtrue;
 	}else{
 		LL_TAIL(&dns->active, &query->link);
 	}
+	Sys_LeaveCriticalSection(CRIT_RESOLVE);
+	return qfalse;
 }
+
 
 static void parse_udp(struct dns *dns, const unsigned char *pkt, int len)
 {
@@ -4152,7 +4223,8 @@ static void parse_udp(struct dns *dns, const unsigned char *pkt, int len)
 	/* Received 0 answers */
 	if (header->nanswers == 0) {
 		q->addrlen = 0;
-		call_user(dns, q, DNS_DOES_NOT_EXIST);
+		q->error = DNS_DOES_NOT_EXIST;
+		move_querytocache(dns, q);
 		return;
 	}
 
@@ -4198,14 +4270,14 @@ static void parse_udp(struct dns *dns, const unsigned char *pkt, int len)
 		p += 12;
 
 		if (p + dlen <= e) {
+			q->error = DNS_OK;
 			/* Add to the cache */
 			(void) memcpy(&ttl, p - 6, sizeof(ttl));
 			q->expire = time(NULL) + (time_t) ntohl(ttl);
 
 			/* Call user */
 			if (q->qtype == DNS_MX_RECORD) {
-				fetch((uint8_t *) header, p + 2,
-				    len, name, sizeof(name) - 1);
+				fetch((uint8_t *) header, p + 2, len, name, sizeof(name) - 1);
 				p = (const unsigned char *) name;
 				dlen = strlen(name);
 			}
@@ -4213,7 +4285,7 @@ static void parse_udp(struct dns *dns, const unsigned char *pkt, int len)
 			if (q->addrlen > sizeof(q->addr))
 				q->addrlen = sizeof(q->addr);
 			(void) memcpy(q->addr, p, q->addrlen);
-			call_user(dns, q, DNS_OK);
+			move_querytocache(dns, q);
 		}
 	}
 }
@@ -4233,13 +4305,9 @@ static qboolean dns_responsefromvalidsource(struct dns *dns, netadr_t* from)
 
 int dns_poll(struct dns *dns)
 {
-	struct llhead		*lp, *tmp;
-	struct query		*query;
 	int			n, num_packets = 0;
 	unsigned char		pkt[DNS_PACKET_LEN];
-	time_t			now;
 	netadr_t		from;
-	now = time(NULL);
 
 	/* Check our socket for new stuff */
 	if(dns->sock6 != INVALID_SOCKET)
@@ -4273,26 +4341,6 @@ int dns_poll(struct dns *dns)
 		}
 	}
 
-	/* Cleanup expired active queries */
-	LL_FOREACH_SAFE(&dns->active, lp, tmp) {
-		query = LL_ENTRY(lp, struct query, link);
-
-		if (query->expire < now) {
-			query->addrlen = 0;
-			call_user(dns, query, DNS_TIMEOUT);
-			destroy_query(query);
-		}
-	}
-
-	/* Cleanup cached queries */
-	LL_FOREACH_SAFE(&dns->cached, lp, tmp) {
-		query = LL_ENTRY(lp, struct query, link);
-		if (query->expire < now) {
-			destroy_query(query);
-			dns->num_cached--;
-		}
-	}
-
 	return (num_packets);
 }
 
@@ -4314,59 +4362,27 @@ void NET_ShutdownDNS()
 	}
 }
 
-typedef struct
-{
-	enum dns_error status;
-	enum dns_query_type qtype;
-	char name[1024];
-	struct sockaddr_storage addr;
-}dnsResolveStatus_t;
 
-static void dns_cb(struct dns_cb_data *cbd)
-{
-	dnsResolveStatus_t* status = cbd->context;
-
-	status->status = cbd->error;
-	status->qtype = cbd->query_type;
-	strncpy(status->name, cbd->name, sizeof(status->name));
-
-	memset(&status->addr, 0, sizeof(status->addr));
-	struct sockaddr_in6 *sin6 = (struct sockaddr_in6 *)&status->addr;
-	struct sockaddr_in *sin = (struct sockaddr_in *)&status->addr;
-
-	if(cbd->error == DNS_OK) {
-		switch (cbd->query_type) {
-		case DNS_A_RECORD:
-			sin->sin_family = AF_INET;
-			memcpy(&sin->sin_addr, cbd->addr, sizeof(sin->sin_addr));
-			break;
-		case DNS_AAAA_RECORD:
-			sin6->sin6_family = AF_INET6;
-			memcpy(&sin6->sin6_addr, cbd->addr, sizeof(sin6->sin6_addr));
-			break;
-		case DNS_MX_RECORD:
-			strncpy(status->name, (char*)cbd->addr, sizeof(status->name));
-			break;
-		default:
-			Com_Error(ERR_FATAL, "Unexpected DNS query type: %u\n", cbd->query_type);
-			/* NOTREACHED */
-			break;
-		}
-	}
-
-}
-
-
-qboolean NET_ResolveBlocking(const char *domain, struct sockaddr_storage *outaddr, sa_family_t family)
+qboolean NET_ResolveInternal(const char *domain, struct sockaddr_storage *outaddr, sa_family_t family, qboolean nonblocking, char* errormessage1k)
 {
 	enum dns_query_type	qtype;
 	fd_set			set;
 	int			highestfd = 0;
 	struct timeval		tv = {5, 0};
-	dnsResolveStatus_t resolvstatus;
+	int r;
+	qboolean		resolvestatus;
+	struct dns_cb_data cbd;
 
-	if(h_dns == NULL)
+	if(errormessage1k)
 	{
+		errormessage1k[0] = '\0';
+	}
+	if(h_dns == NULL || outaddr == NULL)
+	{
+		if(errormessage1k)
+		{
+			Q_strncpyz(errormessage1k, "DNS resolver is not initialized", 1024);
+		}
 		return qfalse;
 	}
 
@@ -4375,49 +4391,108 @@ qboolean NET_ResolveBlocking(const char *domain, struct sockaddr_storage *outadd
 	else
 		qtype = DNS_A_RECORD;
 
-	resolvstatus.status = DNS_ERROR;
+	int att = 0;
 
-	dns_queue(h_dns, &resolvstatus, domain, qtype, dns_cb);
-
-	/* Select on resolver socket */
-	FD_ZERO(&set);
-	if(h_dns->sock != INVALID_SOCKET)
+	while(!(resolvestatus = dns_getorqueue(h_dns, &cbd, domain, qtype)) && !nonblocking)
 	{
-		FD_SET(h_dns->sock, &set);
-		if(h_dns->sock > highestfd)
+			/* Select on resolver socket */
+		FD_ZERO(&set);
+		if(h_dns->sock != INVALID_SOCKET)
 		{
-			highestfd = h_dns->sock;
+			FD_SET(h_dns->sock, &set);
+			if(h_dns->sock > highestfd)
+			{
+				highestfd = h_dns->sock;
+			}
 		}
-	}
-	if(h_dns->sock6 != INVALID_SOCKET)
-	{
-		FD_SET(h_dns->sock6, &set);
-		if(h_dns->sock6 > highestfd)
+		if(h_dns->sock6 != INVALID_SOCKET)
 		{
-			highestfd = h_dns->sock6;
+			FD_SET(h_dns->sock6, &set);
+			if(h_dns->sock6 > highestfd)
+			{
+				highestfd = h_dns->sock6;
+			}
 		}
-	}
-	if (select(highestfd + 1, &set, NULL, NULL, &tv) == 1)
-	{
-		dns_poll(h_dns);
+		r = select(highestfd + 1, &set, NULL, NULL, &tv);
+		if(r < 1)
+		{
+			if(errormessage1k)
+			{
+				Com_sprintf(errormessage1k, 1024, "Query timeout for [%s]", cbd.name);
+			}
+			return qfalse;
+		}
+		++att;
 	}
 
-	switch(resolvstatus.status)
+	if(nonblocking && !resolvestatus)
+	{
+		return qfalse; //Takes some more time
+	}
+
+	memset(outaddr, 0, sizeof(struct sockaddr_storage));
+	struct sockaddr_in6 *sin6 = (struct sockaddr_in6 *)outaddr;
+	struct sockaddr_in *sin = (struct sockaddr_in *)outaddr;
+
+	switch(cbd.error)
 	{
 		case DNS_TIMEOUT:
-			Com_Printf("Query timeout for [%s]\n", resolvstatus.name);
+			if(errormessage1k)
+			{
+				Com_sprintf(errormessage1k, 1024, "Query timeout for [%s]", cbd.name);
+			}
 			break;
 		case DNS_DOES_NOT_EXIST:
-			Com_Printf("No such address: [%s]\n", resolvstatus.name);
+			if(errormessage1k)
+			{
+				Com_sprintf(errormessage1k, 1024, "No such address: [%s]", cbd.name);
+			}
 			break;
 		case DNS_ERROR:
-			Com_Printf("System error occured\n");
+			if(errormessage1k)
+			{
+				Com_sprintf(errormessage1k, 1024, "DNS resolver system error");
+			}
 			break;
 		case DNS_OK:
-			Com_Printf("Resolved: [%s]\n", resolvstatus.name);
-			memcpy(outaddr, &resolvstatus.addr, sizeof(*outaddr));
+			switch (cbd.query_type) {
+			case DNS_A_RECORD:
+				sin->sin_family = AF_INET;
+				memcpy(&sin->sin_addr, cbd.addr, sizeof(sin->sin_addr));
+				break;
+			case DNS_AAAA_RECORD:
+				sin6->sin6_family = AF_INET6;
+				memcpy(&sin6->sin6_addr, cbd.addr, sizeof(sin6->sin6_addr));
+				break;
+			case DNS_MX_RECORD:
+//				strncpy(name, (char*)cbd.addr, sizeof(name));
+				break;
+			default:
+				Com_Error(ERR_FATAL, "Unexpected DNS query type: %u\n", cbd.query_type);
+				/* NOTREACHED */
+				break;
+			}
+/*
+			if(outaddr->ss_family == AF_INET)
+			{
+				inet_ntop(AF_INET, &sin->sin_addr, addrstr, sizeof(addrstr));
+			}else{
+				inet_ntop(AF_INET6, &sin6->sin6_addr, addrstr, sizeof(addrstr));
+			}
+*/
 			return qtrue;
 	}
 	return qfalse;
 
+}
+
+
+qboolean NET_ResolveNonBlocking(const char *domain, struct sockaddr_storage *outaddr, sa_family_t family, char* errormessage1k)
+{
+	return NET_ResolveInternal(domain, outaddr, family, qtrue, errormessage1k);
+}
+
+qboolean NET_ResolveBlocking(const char *domain, struct sockaddr_storage *outaddr, sa_family_t family, char* errormessage1k)
+{
+	return NET_ResolveInternal(domain, outaddr, family, qfalse, errormessage1k);
 }
