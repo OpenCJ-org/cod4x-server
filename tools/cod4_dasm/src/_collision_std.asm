@@ -14,6 +14,7 @@
 	extern dFree
 	extern _ZN6dxGeomC2EP7dxSpaceiP6dxBody
 	extern _Unwind_Resume
+	extern _ZN6dxGeom8AABBTestEPS_Pf
 
 ;Exports of collision_std:
 	global ray_sphere_helper
@@ -4882,16 +4883,18 @@ dGeomBoxGetLengths:
 	ret
 
 
-;Zero initialized global or static variables of collision_std:
-SECTION .bss
-
-
 ;Initialized global or static variables of collision_std:
 SECTION .data
 
 
 ;Initialized constant data of collision_std:
 SECTION .rdata
+;VTable for dxBox:
+_ZTV5dxBox: dd 0x0, 0x3b4e60, _ZN5dxBoxD1Ev, _ZN5dxBoxD0Ev, _ZN5dxBox11computeAABBEv, _ZN6dxGeom8AABBTestEPS_Pf, 0x0, 0x0, 0x0, 0x0
+
+
+;Zero initialized global or static variables of collision_std:
+SECTION .bss
 
 
 ;All cstrings:

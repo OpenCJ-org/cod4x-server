@@ -6559,16 +6559,16 @@ Phys_CollideOrientedBrushModelWithTriangleList_10:
 	ret
 
 
-;Zero initialized global or static variables of phys_coll_boxbrush:
-SECTION .bss
-
-
 ;Initialized global or static variables of phys_coll_boxbrush:
 SECTION .data
 
 
 ;Initialized constant data of phys_coll_boxbrush:
 SECTION .rdata
+
+
+;Zero initialized global or static variables of phys_coll_boxbrush:
+SECTION .bss
 
 
 ;All cstrings:

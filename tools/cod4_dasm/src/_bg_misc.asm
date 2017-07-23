@@ -22,7 +22,6 @@
 	extern Mantle_RegisterDvars
 	extern Perks_RegisterDvars
 	extern pmoveHandlers
-	extern g_clients
 	extern AngleVectors
 	extern vectopitch
 	extern floorf
@@ -1372,7 +1371,7 @@ BG_CheckProneValid:
 	cmp dword [ebp+0x34], 0x1
 	sbb esi, esi
 	xor si, si
-	add esi, g_clients+0xb9e11
+	add esi, 0x820011
 	cmp byte [ebp+0x24], 0x0
 	jz BG_CheckProneValid_10
 BG_CheckProneValid_130:
@@ -1598,7 +1597,7 @@ BG_CheckProneValid_230:
 	ret
 BG_CheckProneValid_10:
 	movss xmm0, dword [ebp+0x10]
-	xorps xmm0, [singleClientEvents+0x60]
+	xorps xmm0, [_data16_80000000]
 	movss [ebp-0x24], xmm0
 	movss [ebp-0x20], xmm0
 	mov dword [ebp-0x1c], 0x0
@@ -1680,7 +1679,7 @@ BG_CheckProneValid_80:
 	addss xmm2, xmm0
 	sqrtss xmm1, xmm2
 	movaps xmm0, xmm1
-	xorps xmm0, [singleClientEvents+0x60]
+	xorps xmm0, [_data16_80000000]
 	ucomiss xmm0, [_float_0_00000000]
 	jb BG_CheckProneValid_160
 	movss xmm2, dword [_float_1_00000000]
@@ -3710,6 +3709,21 @@ BG_AddPredictableEventToPlayerstate_10:
 	ret
 
 
+;Initialized global or static variables of bg_misc:
+SECTION .data
+entityTypeNames: dd _cstring_general, _cstring_player, _cstring_corpse, _cstring_item, _cstring_missle, _cstring_invisible_entity, _cstring_scriptmover, _cstring_sound_blend, _cstring_fx, _cstring_loop_fx, _cstring_primary_light, _cstring_mg42, _cstring_helicopter, _cstring_plane, _cstring_vehicle, _cstring_vehicle_collmap, _cstring_vehicle_corpse, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0
+bg_soundRoomTypes: dd _cstring_generic, _cstring_paddedcell, _cstring_room, _cstring_bathroom, _cstring_livingroom, _cstring_stoneroom, _cstring_auditorium, _cstring_concerthall, _cstring_cave, _cstring_arena, _cstring_hangar, _cstring_carpetedhallway, _cstring_hallway, _cstring_stonecorridor, _cstring_alley, _cstring_forest, _cstring_city, _cstring_mountains, _cstring_quarry, _cstring_plain, _cstring_parkinglot, _cstring_sewerpipe, _cstring_underwater, _cstring_drugged, _cstring_dizzy, _cstring_psychotic, 0x0
+bg_ShockScreenTypeNames: dd _cstring_blurred, _cstring_flashed, _cstring_none, 0x0, 0x0
+bgShockDvarNames: dd _cstring_bg_shock_screent, _cstring_bg_shock_screenb, _cstring_bg_shock_screenb1, _cstring_bg_shock_screenf, _cstring_bg_shock_screenf1, _cstring_bg_shock_viewkic, _cstring_bg_shock_viewkic1, _cstring_bg_shock_viewkic2, _cstring_bg_shock_soundlo, _cstring_bg_shock_soundlo1, _cstring_bg_shock_sounden, _cstring_bg_shock_sounden1, _cstring_bg_shock_sound, _cstring_bg_shock_soundfa, _cstring_bg_shock_soundfa1, _cstring_bg_shock_soundlo2, _cstring_bg_shock_soundlo3, _cstring_bg_shock_soundro, _cstring_bg_shock_sounddr, _cstring_bg_shock_soundwe, _cstring_bg_shock_soundmo, _cstring_bg_shock_lookcon, _cstring_bg_shock_lookcon1, _cstring_bg_shock_lookcon2, _cstring_bg_shock_lookcon3, _cstring_bg_shock_lookcon4, _cstring_bg_shock_movemen, 0x0, 0x0, 0x0, 0x0, 0x0
+eventnames: dd _cstring_ev_none, _cstring_ev_foliage_sound, _cstring_ev_stop_weapon_s, _cstring_ev_sound_alias, _cstring_ev_sound_alias_a, _cstring_ev_stopsounds, _cstring_ev_stance_force_, _cstring_ev_stance_force_1, _cstring_ev_stance_force_2, _cstring_ev_item_pickup, _cstring_ev_ammo_pickup, _cstring_ev_noammo, _cstring_ev_emptyclip, _cstring_ev_empty_offhand, _cstring_ev_reset_ads, _cstring_ev_reload, _cstring_ev_reload_from_e, _cstring_ev_reload_start, _cstring_ev_reload_end, _cstring_ev_reload_start_, _cstring_ev_reload_addamm, _cstring_ev_raise_weapon, _cstring_ev_first_raise_w, _cstring_ev_putaway_weapo, _cstring_ev_weapon_alt, _cstring_ev_pullback_weap, _cstring_ev_fire_weapon, _cstring_ev_fire_weapon_l, _cstring_ev_rechamber_wea, _cstring_ev_eject_brass, _cstring_ev_melee_swipe, _cstring_ev_fire_melee, _cstring_ev_prep_offhand, _cstring_ev_use_offhand, _cstring_ev_switch_offhan, _cstring_ev_melee_hit, _cstring_ev_melee_miss, _cstring_ev_melee_blood, _cstring_ev_fire_weapon_m, _cstring_ev_fire_quadbarr, _cstring_ev_fire_quadbarr1, _cstring_ev_bullet_hit, _cstring_ev_bullet_hit_cl, _cstring_ev_bullet_hit_cl1, _cstring_ev_grenade_bounc, _cstring_ev_grenade_explo, _cstring_ev_rocket_explod, _cstring_ev_rocket_explod1, _cstring_ev_flashbang_exp, _cstring_ev_custom_explod, _cstring_ev_custom_explod1, _cstring_ev_change_to_dud, _cstring_ev_dud_explode, _cstring_ev_dud_impact, _cstring_ev_bullet, _cstring_ev_play_fx, _cstring_ev_play_fx_on_ta, _cstring_ev_phys_explosio, _cstring_ev_phys_explosio1, _cstring_ev_phys_explosio2, _cstring_ev_phys_jitter, _cstring_ev_earthquake, _cstring_ev_grenade_suici, _cstring_ev_detonate, _cstring_ev_nightvision_w, _cstring_ev_nightvision_r, _cstring_ev_obituary, _cstring_ev_no_frag_grena, _cstring_ev_no_special_gr, _cstring_ev_target_too_cl, _cstring_ev_target_not_en, _cstring_ev_lockon_requir, _cstring_ev_footstep_spri, _cstring_ev_footstep_run, _cstring_ev_footstep_walk, _cstring_ev_footstep_pron, _cstring_ev_jump, _cstring_ev_landing_defau, _cstring_ev_landing_bark, _cstring_ev_landing_brick, _cstring_ev_landing_carpe, _cstring_ev_landing_cloth, _cstring_ev_landing_concr, _cstring_ev_landing_dirt, _cstring_ev_landing_flesh, _cstring_ev_landing_folia, _cstring_ev_landing_glass, _cstring_ev_landing_grass, _cstring_ev_landing_grave, _cstring_ev_landing_ice, _cstring_ev_landing_metal, _cstring_ev_landing_mud, _cstring_ev_landing_paper, _cstring_ev_landing_plast, _cstring_ev_landing_rock, _cstring_ev_landing_sand, _cstring_ev_landing_snow, _cstring_ev_landing_water, _cstring_ev_landing_wood, _cstring_ev_landing_aspha, _cstring_ev_landing_ceram, _cstring_ev_landing_plast1, _cstring_ev_landing_rubbe, _cstring_ev_landing_cushi, _cstring_ev_landing_fruit, _cstring_ev_landing_paint, _cstring_ev_landing_pain_, _cstring_ev_landing_pain_1, _cstring_ev_landing_pain_2, _cstring_ev_landing_pain_3, _cstring_ev_landing_pain_4, _cstring_ev_landing_pain_5, _cstring_ev_landing_pain_6, _cstring_ev_landing_pain_7, _cstring_ev_landing_pain_8, _cstring_ev_landing_pain_9, _cstring_ev_landing_pain_10, _cstring_ev_landing_pain_11, _cstring_ev_landing_pain_12, _cstring_ev_landing_pain_13, _cstring_ev_landing_pain_14, _cstring_ev_landing_pain_15, _cstring_ev_landing_pain_16, _cstring_ev_landing_pain_17, _cstring_ev_landing_pain_18, _cstring_ev_landing_pain_19, _cstring_ev_landing_pain_20, _cstring_ev_landing_pain_21, _cstring_ev_landing_pain_22, _cstring_ev_landing_pain_23, _cstring_ev_landing_pain_24, _cstring_ev_landing_pain_25, _cstring_ev_landing_pain_26, _cstring_ev_landing_pain_27, _cstring_ev_landing_pain_28, 0x0
+
+
+;Initialized constant data of bg_misc:
+SECTION .rdata
+serverOnlyEvents: dd 0x1f, 0x14, 0x13, 0xffffffff, 0x0, 0x0, 0x0, 0x0
+singleClientEvents: dd 0x6, 0x7, 0x8, 0x22, 0xd, 0xe, 0x20, 0x21, 0x22, 0x25, 0x2a, 0x2b, 0xffffffff, 0x2cff1, 0x2cff1, 0x2d00c, 0x2d002, 0x2d078, 0x2d047, 0x2d027, 0x2cfe1, 0x0, 0x0, 0x0, 0x80000000, 0x0, 0x0, 0x0, 0x2e5bc, 0x2e5bc, 0x2e631, 0x2e559, 0x2e7f1, 0x2e5d2, 0x2e730, 0x2e64e, 0x2e5bc, 0x2e631, 0x2e5d2, 0x2e5bc, 0x80000000, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0
+
+
 ;Zero initialized global or static variables of bg_misc:
 SECTION .bss
 _ZZ22BG_SaveShellShockDvarsPKcE7filebuf: resb 0x10000
@@ -3818,21 +3832,6 @@ player_turnAnims: resb 0x4
 player_view_pitch_down: resb 0x4
 player_view_pitch_up: resb 0x4
 stopspeed: resb 0x4
-
-
-;Initialized global or static variables of bg_misc:
-SECTION .data
-entityTypeNames: dd _cstring_general, _cstring_player, _cstring_corpse, _cstring_item, _cstring_missle, _cstring_invisible_entity, _cstring_scriptmover, _cstring_sound_blend, _cstring_fx, _cstring_loop_fx, _cstring_primary_light, _cstring_mg42, _cstring_helicopter, _cstring_plane, _cstring_vehicle, _cstring_vehicle_collmap, _cstring_vehicle_corpse, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0
-bg_soundRoomTypes: dd _cstring_generic, _cstring_paddedcell, _cstring_room, _cstring_bathroom, _cstring_livingroom, _cstring_stoneroom, _cstring_auditorium, _cstring_concerthall, _cstring_cave, _cstring_arena, _cstring_hangar, _cstring_carpetedhallway, _cstring_hallway, _cstring_stonecorridor, _cstring_alley, _cstring_forest, _cstring_city, _cstring_mountains, _cstring_quarry, _cstring_plain, _cstring_parkinglot, _cstring_sewerpipe, _cstring_underwater, _cstring_drugged, _cstring_dizzy, _cstring_psychotic, 0x0
-bg_ShockScreenTypeNames: dd _cstring_blurred, _cstring_flashed, _cstring_none, 0x0, 0x0
-bgShockDvarNames: dd _cstring_bg_shock_screent, _cstring_bg_shock_screenb, _cstring_bg_shock_screenb1, _cstring_bg_shock_screenf, _cstring_bg_shock_screenf1, _cstring_bg_shock_viewkic, _cstring_bg_shock_viewkic1, _cstring_bg_shock_viewkic2, _cstring_bg_shock_soundlo, _cstring_bg_shock_soundlo1, _cstring_bg_shock_sounden, _cstring_bg_shock_sounden1, _cstring_bg_shock_sound, _cstring_bg_shock_soundfa, _cstring_bg_shock_soundfa1, _cstring_bg_shock_soundlo2, _cstring_bg_shock_soundlo3, _cstring_bg_shock_soundro, _cstring_bg_shock_sounddr, _cstring_bg_shock_soundwe, _cstring_bg_shock_soundmo, _cstring_bg_shock_lookcon, _cstring_bg_shock_lookcon1, _cstring_bg_shock_lookcon2, _cstring_bg_shock_lookcon3, _cstring_bg_shock_lookcon4, _cstring_bg_shock_movemen, 0x0, 0x0, 0x0, 0x0, 0x0
-eventnames: dd _cstring_ev_none, _cstring_ev_foliage_sound, _cstring_ev_stop_weapon_s, _cstring_ev_sound_alias, _cstring_ev_sound_alias_a, _cstring_ev_stopsounds, _cstring_ev_stance_force_, _cstring_ev_stance_force_1, _cstring_ev_stance_force_2, _cstring_ev_item_pickup, _cstring_ev_ammo_pickup, _cstring_ev_noammo, _cstring_ev_emptyclip, _cstring_ev_empty_offhand, _cstring_ev_reset_ads, _cstring_ev_reload, _cstring_ev_reload_from_e, _cstring_ev_reload_start, _cstring_ev_reload_end, _cstring_ev_reload_start_, _cstring_ev_reload_addamm, _cstring_ev_raise_weapon, _cstring_ev_first_raise_w, _cstring_ev_putaway_weapo, _cstring_ev_weapon_alt, _cstring_ev_pullback_weap, _cstring_ev_fire_weapon, _cstring_ev_fire_weapon_l, _cstring_ev_rechamber_wea, _cstring_ev_eject_brass, _cstring_ev_melee_swipe, _cstring_ev_fire_melee, _cstring_ev_prep_offhand, _cstring_ev_use_offhand, _cstring_ev_switch_offhan, _cstring_ev_melee_hit, _cstring_ev_melee_miss, _cstring_ev_melee_blood, _cstring_ev_fire_weapon_m, _cstring_ev_fire_quadbarr, _cstring_ev_fire_quadbarr1, _cstring_ev_bullet_hit, _cstring_ev_bullet_hit_cl, _cstring_ev_bullet_hit_cl1, _cstring_ev_grenade_bounc, _cstring_ev_grenade_explo, _cstring_ev_rocket_explod, _cstring_ev_rocket_explod1, _cstring_ev_flashbang_exp, _cstring_ev_custom_explod, _cstring_ev_custom_explod1, _cstring_ev_change_to_dud, _cstring_ev_dud_explode, _cstring_ev_dud_impact, _cstring_ev_bullet, _cstring_ev_play_fx, _cstring_ev_play_fx_on_ta, _cstring_ev_phys_explosio, _cstring_ev_phys_explosio1, _cstring_ev_phys_explosio2, _cstring_ev_phys_jitter, _cstring_ev_earthquake, _cstring_ev_grenade_suici, _cstring_ev_detonate, _cstring_ev_nightvision_w, _cstring_ev_nightvision_r, _cstring_ev_obituary, _cstring_ev_no_frag_grena, _cstring_ev_no_special_gr, _cstring_ev_target_too_cl, _cstring_ev_target_not_en, _cstring_ev_lockon_requir, _cstring_ev_footstep_spri, _cstring_ev_footstep_run, _cstring_ev_footstep_walk, _cstring_ev_footstep_pron, _cstring_ev_jump, _cstring_ev_landing_defau, _cstring_ev_landing_bark, _cstring_ev_landing_brick, _cstring_ev_landing_carpe, _cstring_ev_landing_cloth, _cstring_ev_landing_concr, _cstring_ev_landing_dirt, _cstring_ev_landing_flesh, _cstring_ev_landing_folia, _cstring_ev_landing_glass, _cstring_ev_landing_grass, _cstring_ev_landing_grave, _cstring_ev_landing_ice, _cstring_ev_landing_metal, _cstring_ev_landing_mud, _cstring_ev_landing_paper, _cstring_ev_landing_plast, _cstring_ev_landing_rock, _cstring_ev_landing_sand, _cstring_ev_landing_snow, _cstring_ev_landing_water, _cstring_ev_landing_wood, _cstring_ev_landing_aspha, _cstring_ev_landing_ceram, _cstring_ev_landing_plast1, _cstring_ev_landing_rubbe, _cstring_ev_landing_cushi, _cstring_ev_landing_fruit, _cstring_ev_landing_paint, _cstring_ev_landing_pain_, _cstring_ev_landing_pain_1, _cstring_ev_landing_pain_2, _cstring_ev_landing_pain_3, _cstring_ev_landing_pain_4, _cstring_ev_landing_pain_5, _cstring_ev_landing_pain_6, _cstring_ev_landing_pain_7, _cstring_ev_landing_pain_8, _cstring_ev_landing_pain_9, _cstring_ev_landing_pain_10, _cstring_ev_landing_pain_11, _cstring_ev_landing_pain_12, _cstring_ev_landing_pain_13, _cstring_ev_landing_pain_14, _cstring_ev_landing_pain_15, _cstring_ev_landing_pain_16, _cstring_ev_landing_pain_17, _cstring_ev_landing_pain_18, _cstring_ev_landing_pain_19, _cstring_ev_landing_pain_20, _cstring_ev_landing_pain_21, _cstring_ev_landing_pain_22, _cstring_ev_landing_pain_23, _cstring_ev_landing_pain_24, _cstring_ev_landing_pain_25, _cstring_ev_landing_pain_26, _cstring_ev_landing_pain_27, _cstring_ev_landing_pain_28, 0x0
-
-
-;Initialized constant data of bg_misc:
-SECTION .rdata
-serverOnlyEvents: dd 0x1f, 0x14, 0x13, 0xffffffff, 0x0, 0x0, 0x0, 0x0
-singleClientEvents: dd 0x6, 0x7, 0x8, 0x22, 0xd, 0xe, 0x20, 0x21, 0x22, 0x25, 0x2a, 0x2b, 0xffffffff, 0x2cff1, 0x2cff1, 0x2d00c, 0x2d002, 0x2d078, 0x2d047, 0x2d027, 0x2cfe1, 0x0, 0x0, 0x0, 0x80000000, 0x0, 0x0, 0x0, 0x2e5bc, 0x2e5bc, 0x2e631, 0x2e559, 0x2e7f1, 0x2e5d2, 0x2e730, 0x2e64e, 0x2e5bc, 0x2e631, 0x2e5d2, 0x2e5bc, 0x80000000, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0
 
 
 ;All cstrings:
@@ -4248,6 +4247,7 @@ _float_1_00000000:		dd 0x3f800000	; 1
 _float_18_00000000:		dd 0x41900000	; 18
 _float_2_50000000:		dd 0x40200000	; 2.5
 _float__0_75000000:		dd 0xbf400000	; -0.75
+_data16_80000000:		dd 0x80000000, 0x0, 0x0, 0x0	; OWORD
 _float_10_00000000:		dd 0x41200000	; 10
 _float_2_00000000:		dd 0x40000000	; 2
 _float_0_69999999:		dd 0x3f333333	; 0.7

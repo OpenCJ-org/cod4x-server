@@ -1,6 +1,5 @@
 ;Imports of bg_animation_mp:
 	extern floorf
-	extern red.137162
 	extern AngleNormalize360
 	extern XAnimClearTreeGoalWeights
 	extern XAnimSetCompleteGoalWeight
@@ -185,7 +184,7 @@ BG_SwingAngles_30:
 	subss xmm0, [ebp-0x24]
 	mulss xmm0, [_float_360_00000000]
 	movaps xmm2, xmm0
-	andps xmm2, [red.137162+0x60]
+	andps xmm2, [_data16_7fffffff]
 	mulss xmm2, [_float_0_05000000]
 	movss xmm5, dword [ebp-0x68]
 	movaps xmm3, xmm5
@@ -225,7 +224,7 @@ BG_SwingAngles_80:
 	ucomiss xmm1, [ebp-0x18]
 	ja BG_SwingAngles_70
 	movss xmm0, dword [ebp-0x18]
-	xorps xmm0, [red.137162+0x50]
+	xorps xmm0, [_data16_80000000]
 	ucomiss xmm0, xmm1
 	jbe BG_SwingAngles_40
 	movss xmm3, dword [ebp-0x14]
@@ -253,7 +252,7 @@ BG_SwingAngles_60:
 	mov dword [ebx], 0x1
 	jmp BG_SwingAngles_100
 BG_SwingAngles_20:
-	xorps xmm4, [red.137162+0x50]
+	xorps xmm4, [_data16_80000000]
 	ucomiss xmm4, xmm0
 	jbe BG_SwingAngles_110
 	jmp BG_SwingAngles_120
@@ -729,7 +728,7 @@ BG_RunLerpFrameRate_270:
 	movss xmm1, dword [esi+0x24]
 	mov edi, [ebp+0xc]
 	subss xmm1, [edi+0x20]
-	andps xmm1, [red.137162+0x70]
+	andps xmm1, [_data16_7fffffff]
 	lea edi, [edi+0x18]
 	lea ebx, [esi+0x1c]
 	mov [ebp-0x80], ebx
@@ -5450,7 +5449,7 @@ BG_Player_DoControllersSetup_390:
 	ucomiss xmm1, xmm7
 	movss xmm4, dword [ebp-0x168]
 	jbe BG_Player_DoControllersSetup_160
-	xorps xmm3, [red.137162+0x40]
+	xorps xmm3, [_data16_80000000]
 	mulss xmm2, xmm3
 	mulss xmm2, [_float_16_00000000]
 	addss xmm2, xmm0
@@ -5616,7 +5615,7 @@ BG_Player_DoControllersSetup_220:
 	mulss xmm3, [_float_0_36000001]
 	xor edi, edi
 	movaps xmm4, xmm3
-	xorps xmm4, [red.137162+0x40]
+	xorps xmm4, [_data16_80000000]
 	mov ecx, [ebp+0xc]
 	add ecx, 0x3f8
 	xor esi, esi
@@ -5648,7 +5647,7 @@ BG_Player_DoControllersSetup_310:
 	add ecx, 0x440
 	mov dl, 0x1
 	movaps xmm4, xmm3
-	xorps xmm4, [red.137162+0x40]
+	xorps xmm4, [_data16_80000000]
 BG_Player_DoControllersSetup_290:
 	lea eax, [edx*4]
 	movss xmm2, dword [eax+ebp-0xa0]
@@ -5979,21 +5978,6 @@ BG_IsAds_10:
 	nop
 
 
-;Zero initialized global or static variables of bg_animation_mp:
-SECTION .bss
-defineBits: resb 0x500
-weaponStrings: resb 0x400
-parseEvent: resb 0x4
-parseMovetype: resb 0x4
-defineStringsOffset: resb 0x18
-numDefines: resb 0x40
-defineStrings: resb 0x2720
-defineStr: resb 0x500
-g_piNumLoadAnims: resb 0x4
-g_pLoadAnims: resb 0x4
-globalScriptData: resb 0x78
-
-
 ;Initialized global or static variables of bg_animation_mp:
 SECTION .data
 animEventTypesStr: dd _cstring_pain, 0xffffffff, _cstring_death, 0xffffffff, _cstring_fireweapon, 0xffffffff, _cstring_jump, 0xffffffff, _cstring_jumpbk, 0xffffffff, _cstring_land, 0xffffffff, _cstring_dropweapon, 0xffffffff, _cstring_raiseweapon, 0xffffffff, _cstring_climbmount, 0xffffffff, _cstring_climbdismount, 0xffffffff, _cstring_reload, 0xffffffff, _cstring_crouch_to_prone, 0xffffffff, _cstring_prone_to_crouch, 0xffffffff, _cstring_stand_to_crouch, 0xffffffff, _cstring_crouch_to_stand, 0xffffffff, _cstring_stand_to_prone, 0xffffffff, _cstring_prone_to_stand, 0xffffffff, _cstring_meleeattack, 0xffffffff, _cstring_knife_melee, 0xffffffff, _cstring_knife_melee_char, 0xffffffff, _cstring_shellshock, 0xffffffff, 0x0, 0xffffffff, 0x0, 0x0, 0x0, 0x0
@@ -6015,6 +5999,21 @@ controller_names: dd 0x1708d20, 0x1708d22, 0x1708d24, 0x1708d36, 0x1708d2c, 0x17
 
 ;Initialized constant data of bg_animation_mp:
 SECTION .rdata
+
+
+;Zero initialized global or static variables of bg_animation_mp:
+SECTION .bss
+defineBits: resb 0x500
+weaponStrings: resb 0x400
+parseEvent: resb 0x4
+parseMovetype: resb 0x4
+defineStringsOffset: resb 0x18
+numDefines: resb 0x40
+defineStrings: resb 0x2720
+defineStr: resb 0x500
+g_piNumLoadAnims: resb 0x4
+g_pLoadAnims: resb 0x4
+globalScriptData: resb 0x78
 
 
 ;All cstrings:
@@ -6193,7 +6192,9 @@ SECTION .rdata
 _float_0_00277778:		dd 0x3b360b61	; 0.00277778
 _float_0_50000000:		dd 0x3f000000	; 0.5
 _float_360_00000000:		dd 0x43b40000	; 360
+_data16_7fffffff:		dd 0x7fffffff, 0x0, 0x0, 0x0	; OWORD
 _float_0_05000000:		dd 0x3d4ccccd	; 0.05
+_data16_80000000:		dd 0x80000000, 0x0, 0x0, 0x0	; OWORD
 _float_0_00100000:		dd 0x3a83126f	; 0.001
 _float_0_00000000:		dd 0x0	; 0
 _float_1000_00000000:		dd 0x447a0000	; 1000

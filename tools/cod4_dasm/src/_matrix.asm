@@ -266,16 +266,16 @@ dSetZero_10:
 	nop
 
 
-;Zero initialized global or static variables of matrix:
-SECTION .bss
-
-
 ;Initialized global or static variables of matrix:
 SECTION .data
 
 
 ;Initialized constant data of matrix:
 SECTION .rdata
+
+
+;Zero initialized global or static variables of matrix:
+SECTION .bss
 
 
 ;All cstrings:

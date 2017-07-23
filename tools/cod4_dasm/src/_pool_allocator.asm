@@ -89,16 +89,16 @@ Pool_Init_20:
 	ret
 
 
-;Zero initialized global or static variables of pool_allocator:
-SECTION .bss
-
-
 ;Initialized global or static variables of pool_allocator:
 SECTION .data
 
 
 ;Initialized constant data of pool_allocator:
 SECTION .rdata
+
+
+;Zero initialized global or static variables of pool_allocator:
+SECTION .bss
 
 
 ;All cstrings:

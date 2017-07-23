@@ -5658,18 +5658,18 @@ Phys_CollideCapsuleWithTriangleList_170:
 	nop
 
 
-;Zero initialized global or static variables of phys_coll_capsulebrush:
-SECTION .bss
-numLocalContacts: resb 0x20
-localContacts: resb 0x4e0
-
-
 ;Initialized global or static variables of phys_coll_capsulebrush:
 SECTION .data
 
 
 ;Initialized constant data of phys_coll_capsulebrush:
 SECTION .rdata
+
+
+;Zero initialized global or static variables of phys_coll_capsulebrush:
+SECTION .bss
+numLocalContacts: resb 0x20
+localContacts: resb 0x4e0
 
 
 ;All cstrings:

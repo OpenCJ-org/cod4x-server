@@ -8,7 +8,6 @@
 	extern ClearBounds
 	extern AddPointToBounds
 	extern ExpandBounds
-	extern g_fltMin__uint4_dup_1
 	extern BuildAabbTree
 	extern free
 
@@ -1065,7 +1064,7 @@ XModelReadSurface_BuildCollisionTree_80:
 	mov byte [ebp-0x9a], 0x0
 	jmp XModelReadSurface_BuildCollisionTree_90
 XModelReadSurface_BuildCollisionTree_20:
-	movss xmm1, dword [g_fltMin__uint4_dup_1+0xc0]
+	movss xmm1, dword [_data16_80000000]
 	movss xmm0, dword [ebp-0x24]
 	xorps xmm0, xmm1
 	mov edx, [ebp-0xb0]
@@ -1159,10 +1158,10 @@ XModelReadSurface_BuildCollisionTree_110:
 	subss xmm0, xmm6
 	xorps xmm1, xmm1
 	maxss xmm0, xmm1
-	movss xmm4, dword [g_fltMin__uint4_dup_1+0xd0]
+	movss xmm4, dword [_data16_4f000000]
 	movaps xmm3, xmm4
 	cmpss xmm3, xmm0, 0x2
-	movss xmm5, dword [g_fltMin__uint4_dup_1+0xe0]
+	movss xmm5, dword [_data16_4f800000]
 	movaps xmm1, xmm5
 	cmpss xmm1, xmm0, 0x2
 	movaps xmm2, xmm3
@@ -1386,16 +1385,16 @@ XModelReadSurface_BuildCollisionTree_130:
 	jmp XModelReadSurface_BuildCollisionTree_270
 
 
-;Zero initialized global or static variables of r_xsurface_load_obj:
-SECTION .bss
-
-
 ;Initialized global or static variables of r_xsurface_load_obj:
 SECTION .data
 
 
 ;Initialized constant data of r_xsurface_load_obj:
 SECTION .rdata
+
+
+;Zero initialized global or static variables of r_xsurface_load_obj:
+SECTION .bss
 
 
 ;All cstrings:
@@ -1405,6 +1404,9 @@ SECTION .rdata
 
 ;All constant floats and doubles:
 SECTION .rdata
+_data16_80000000:		dd 0x80000000, 0x0, 0x0, 0x0	; OWORD
 _float_65535_00000000:		dd 0x477fff00	; 65535
 _float_0_50000000:		dd 0x3f000000	; 0.5
+_data16_4f000000:		dd 0x4f000000, 0x0, 0x0, 0x0	; OWORD
+_data16_4f800000:		dd 0x4f800000, 0x0, 0x0, 0x0	; OWORD
 

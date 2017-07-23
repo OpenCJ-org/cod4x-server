@@ -269,16 +269,16 @@ dPlaneSpace_10:
 	ret
 
 
-;Zero initialized global or static variables of odemath:
-SECTION .bss
-
-
 ;Initialized global or static variables of odemath:
 SECTION .data
 
 
 ;Initialized constant data of odemath:
 SECTION .rdata
+
+
+;Zero initialized global or static variables of odemath:
+SECTION .bss
 
 
 ;All cstrings:

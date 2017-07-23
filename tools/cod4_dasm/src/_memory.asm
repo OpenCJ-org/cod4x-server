@@ -30,17 +30,17 @@ dFree_10:
 	ret
 
 
-;Zero initialized global or static variables of memory:
-SECTION .bss
-freefn: resb 0x80
-
-
 ;Initialized global or static variables of memory:
 SECTION .data
 
 
 ;Initialized constant data of memory:
 SECTION .rdata
+
+
+;Zero initialized global or static variables of memory:
+SECTION .bss
+freefn: resb 0x80
 
 
 ;All cstrings:

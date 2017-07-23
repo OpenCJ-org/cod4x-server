@@ -8442,6 +8442,16 @@ PM_Weapon_jumptab_0:
 	dd PM_Weapon_2420
 
 
+;Initialized global or static variables of bg_weapons:
+SECTION .data
+_ZZ24PM_Weapon_CheckForReloadP7pmove_tE35MY_RELOADSTART_INTERUPT_IGNORE_FRAC: dd 0x3ecccccd, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0
+bg_lastParsedWeaponIndex: dd 0x0
+
+
+;Initialized constant data of bg_weapons:
+SECTION .rdata
+
+
 ;Zero initialized global or static variables of bg_weapons:
 SECTION .bss
 bg_numAmmoTypes: resb 0x20
@@ -8453,16 +8463,6 @@ bg_weapClips: resb 0x200
 penetrationDepthTableLoaded: resb 0x20
 bg_weaponDefs: resb 0x204
 penetrationDepthTable: resb 0x1e0
-
-
-;Initialized global or static variables of bg_weapons:
-SECTION .data
-_ZZ24PM_Weapon_CheckForReloadP7pmove_tE35MY_RELOADSTART_INTERUPT_IGNORE_FRAC: dd 0x3ecccccd, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0
-bg_lastParsedWeaponIndex: dd 0x0
-
-
-;Initialized constant data of bg_weapons:
-SECTION .rdata
 
 
 ;All cstrings:

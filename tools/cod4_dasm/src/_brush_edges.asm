@@ -1,6 +1,5 @@
 ;Imports of brush_edges:
 	extern memmove
-	extern g_fltMin__uint4_dup_1
 	extern VecNCompareCustomEpsilon
 	extern memcpy
 	extern PlaneFromPoints
@@ -543,7 +542,7 @@ TestConvexWithoutNearPoints_50:
 	addss xmm0, xmm1
 	sqrtss xmm4, xmm0
 	movaps xmm0, xmm4
-	xorps xmm0, [g_fltMin__uint4_dup_1+0x1c0]
+	xorps xmm0, [_data16_80000000]
 	pxor xmm1, xmm1
 	ucomiss xmm0, xmm1
 	jae TestConvexWithoutNearPoints_90
@@ -692,7 +691,7 @@ TestConvexWithoutNearPoints_150:
 	addss xmm0, xmm1
 	sqrtss xmm3, xmm0
 	movaps xmm0, xmm3
-	xorps xmm0, [g_fltMin__uint4_dup_1+0x1c0]
+	xorps xmm0, [_data16_80000000]
 	pxor xmm1, xmm1
 	ucomiss xmm0, xmm1
 	jb TestConvexWithoutNearPoints_170
@@ -1805,7 +1804,7 @@ BuildBrushdAdjacencyWindingForSide_1180:
 	movss [ebp-0xf098], xmm0
 	xor edx, edx
 	lea eax, [ebp-0xf04c]
-	movss xmm5, dword [g_fltMin__uint4_dup_1+0x1d0]
+	movss xmm5, dword [_data16_7fffffff]
 BuildBrushdAdjacencyWindingForSide_1160:
 	movss xmm2, dword [eax]
 	subss xmm2, [ebp-0xf0b4]
@@ -2212,16 +2211,16 @@ BuildBrushdAdjacencyWindingForSide_1560:
 	jmp BuildBrushdAdjacencyWindingForSide_1640
 
 
-;Zero initialized global or static variables of brush_edges:
-SECTION .bss
-
-
 ;Initialized global or static variables of brush_edges:
 SECTION .data
 
 
 ;Initialized constant data of brush_edges:
 SECTION .rdata
+
+
+;Zero initialized global or static variables of brush_edges:
+SECTION .bss
 
 
 ;All cstrings:
@@ -2234,7 +2233,9 @@ _cstring_brush_face_has_t:		db "Brush face has too many edges",0
 SECTION .rdata
 _float_1_00000000:		dd 0x3f800000	; 1
 _double_0_01000000:		dq 0x3f847ae147ae147b	; 0.01
+_data16_80000000:		dd 0x80000000, 0x0, 0x0, 0x0	; OWORD
 _float_0_50000000:		dd 0x3f000000	; 0.5
+_data16_7fffffff:		dd 0x7fffffff, 0x0, 0x0, 0x0	; OWORD
 _float_0_00100000:		dd 0x3a83126f	; 0.001
 _float_0_00000000:		dd 0x0	; 0
 

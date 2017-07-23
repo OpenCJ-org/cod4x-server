@@ -1809,16 +1809,16 @@ CM_ForEachBrushInLeafBrushNode_r_130:
 	nop
 
 
-;Zero initialized global or static variables of phys_world_collision:
-SECTION .bss
-
-
 ;Initialized global or static variables of phys_world_collision:
 SECTION .data
 
 
 ;Initialized constant data of phys_world_collision:
 SECTION .rdata
+
+
+;Zero initialized global or static variables of phys_world_collision:
+SECTION .bss
 
 
 ;All cstrings:

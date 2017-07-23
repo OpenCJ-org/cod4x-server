@@ -842,16 +842,16 @@ dMassTranslate_10:
 	nop
 
 
-;Zero initialized global or static variables of mass:
-SECTION .bss
-
-
 ;Initialized global or static variables of mass:
 SECTION .data
 
 
 ;Initialized constant data of mass:
 SECTION .rdata
+
+
+;Zero initialized global or static variables of mass:
+SECTION .bss
 
 
 ;All cstrings:

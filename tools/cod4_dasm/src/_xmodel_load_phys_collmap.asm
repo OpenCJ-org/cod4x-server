@@ -2344,16 +2344,16 @@ SkipEpair_90:
 	nop
 
 
-;Zero initialized global or static variables of xmodel_load_phys_collmap:
-SECTION .bss
-
-
 ;Initialized global or static variables of xmodel_load_phys_collmap:
 SECTION .data
 
 
 ;Initialized constant data of xmodel_load_phys_collmap:
 SECTION .rdata
+
+
+;Zero initialized global or static variables of xmodel_load_phys_collmap:
+SECTION .bss
 
 
 ;All cstrings:

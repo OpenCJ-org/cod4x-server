@@ -1861,16 +1861,16 @@ Phys_CreateJointForEachContact_170:
 	ret
 
 
-;Zero initialized global or static variables of phys_contacts:
-SECTION .bss
-
-
 ;Initialized global or static variables of phys_contacts:
 SECTION .data
 
 
 ;Initialized constant data of phys_contacts:
 SECTION .rdata
+
+
+;Zero initialized global or static variables of phys_contacts:
+SECTION .bss
 
 
 ;All cstrings:

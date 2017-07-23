@@ -5810,16 +5810,16 @@ dJointSetUniversalParam_jumptab_1:
 	dd dJointSetUniversalParam_210
 
 
-;Zero initialized global or static variables of joint:
-SECTION .bss
-
-
 ;Initialized global or static variables of joint:
 SECTION .data
 
 
 ;Initialized constant data of joint:
 SECTION .rdata
+
+
+;Zero initialized global or static variables of joint:
+SECTION .bss
 
 
 ;All cstrings:

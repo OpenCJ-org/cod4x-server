@@ -689,7 +689,7 @@ dxQuickStepper_150:
 	call cosf
 	fstp dword [ebp-0x38]
 	movss xmm0, dword [ebp-0x210c]
-	andps xmm0, [g_fltMin__uint4_dup_1+0x10]
+	andps xmm0, [_data16_7fffffff]
 	cvtss2sd xmm0, xmm0
 	ucomisd xmm0, [_double_0_00010000]
 	jae dxQuickStepper_180
@@ -778,7 +778,7 @@ dxQuickStepper_170:
 	fstp dword [ebp-0x38]
 	movss xmm1, dword [ebp-0x21d8]
 	movaps xmm0, xmm1
-	andps xmm0, [g_fltMin__uint4_dup_1+0x10]
+	andps xmm0, [_data16_7fffffff]
 	cvtss2sd xmm0, xmm0
 	ucomisd xmm0, [_double_0_00010000]
 	jae dxQuickStepper_240
@@ -1336,7 +1336,7 @@ dxQuickStepper_660:
 	cdq
 	mov [ebp-0x21b8], eax
 	mov [ebp-0x21b4], edx
-	movss xmm7, dword [g_fltMin__uint4_dup_1+0x20]
+	movss xmm7, dword [_data16_80000000]
 	mov eax, [ebp-0x2134]
 	and eax, 0x7
 	cmp eax, 0x7
@@ -1353,7 +1353,7 @@ dxQuickStepper_610:
 	movss xmm3, dword [edi+0x84]
 	mov ecx, [ebp-0x2198]
 	mulss xmm3, [eax+ecx+0xc]
-	andps xmm3, [g_fltMin__uint4_dup_1+0x10]
+	andps xmm3, [_data16_7fffffff]
 	movaps xmm6, xmm3
 	xorps xmm6, xmm7
 dxQuickStepper_620:
@@ -1756,7 +1756,7 @@ dxQuickStepper_540:
 	cdq
 	mov [ebp-0x21c0], eax
 	mov [ebp-0x21bc], edx
-	movss xmm7, dword [g_fltMin__uint4_dup_1+0x10]
+	movss xmm7, dword [_data16_7fffffff]
 	mov eax, [ebp-0x214c]
 	and eax, 0x7
 	cmp eax, 0x7
@@ -1773,7 +1773,7 @@ dxQuickStepper_780:
 	mulss xmm5, [eax+edi+0xc]
 	andps xmm5, xmm7
 	movaps xmm6, xmm5
-	xorps xmm6, [g_fltMin__uint4_dup_1+0x20]
+	xorps xmm6, [_data16_80000000]
 dxQuickStepper_790:
 	movss xmm4, dword [ecx+0xc]
 	movaps xmm0, xmm4
@@ -1937,44 +1937,6 @@ dxQuickStepper_810:
 	jmp dxQuickStepper_800
 
 
-;Zero initialized global or static variables of quickstep:
-SECTION .bss
-g_keepZ_dup_1: resb 0x10
-g_keepX_dup_1: resb 0x10
-g_keepZW_dup_1: resb 0x10
-g_keepXY_dup_1: resb 0x10
-g_keepXYZ_dup_1: resb 0x10
-g_keepXYW_dup_1: resb 0x10
-g_keepXZW_dup_1: resb 0x10
-g_keepYZW_dup_1: resb 0x10
-g_selectW_dup_1: resb 0x10
-g_selectZ_dup_1: resb 0x10
-g_selectY_dup_1: resb 0x10
-g_selectX_dup_1: resb 0x10
-g_swizzleWWWW_dup_1: resb 0x10
-g_swizzleZZZZ_dup_1: resb 0x10
-g_swizzleYYYY_dup_1: resb 0x10
-g_swizzleXXXX_dup_1: resb 0x10
-g_swizzleYZWA_dup_1: resb 0x10
-g_swizzleZWAW_dup_1: resb 0x10
-g_swizzleWABW_dup_1: resb 0x10
-g_swizzleZXYW_dup_1: resb 0x10
-g_swizzleYZXW_dup_1: resb 0x10
-g_swizzleXYZA_dup_1: resb 0x10
-g_swizzleZWCD_dup_1: resb 0x10
-g_swizzleXYAB_dup_1: resb 0x10
-g_swizzleYBWD_dup_1: resb 0x10
-g_swizzleXAZC_dup_1: resb 0x10
-g_swizzleYXWZ_dup_1: resb 0x10
-g_swizzleXZYW_dup_1: resb 0x10
-g_swizzleYXZW_dup_1: resb 0x10
-g_swizzleXYZW_dup_1: resb 0x10
-g_inc_dup_1: resb 0x10
-g_negativeZero_dup_1: resb 0x10
-g_fltMin_dup_1: resb 0x10
-g_holdrand: resb 0x70
-
-
 ;Initialized global or static variables of quickstep:
 SECTION .data
 
@@ -2016,6 +1978,44 @@ g_negativeZero__uint4_dup_1: dd 0x80000000, 0x80000000, 0x80000000, 0x80000000
 g_fltMin__uint4_dup_1: dd 0x800000, 0x800000, 0x800000, 0x800000, 0x7fffffff, 0x0, 0x0, 0x0, 0x80000000, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x80000000, 0x0, 0x0, 0x0, 0x80000000, 0x0, 0x0, 0x0, 0x80000000, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x80000000, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x80000000, 0x0, 0x0, 0x0, 0x80000000, 0x0, 0x0, 0x0, 0x7fffffff, 0x0, 0x0, 0x0, 0x7fffffff, 0x0, 0x0, 0x0, 0x80000000, 0x0, 0x0, 0x0, 0x80000000, 0x0, 0x0, 0x0, 0x80000000, 0x0, 0x0, 0x0, 0x80000000, 0x0, 0x0, 0x0, 0x80000000, 0x0, 0x0, 0x0, 0x80000000, 0x0, 0x0, 0x0, 0x7fffffff, 0x0, 0x0, 0x0, 0x80000000, 0x0, 0x0, 0x0, 0x80000000, 0x0, 0x0, 0x0, 0x7fffffff, 0x0, 0x0, 0x0, 0x80000000, 0x0, 0x0, 0x0, 0x80000000, 0x0, 0x0, 0x0, 0x80000000, 0x0, 0x0, 0x0, 0x80000000, 0x0, 0x0, 0x0, 0x80000000, 0x0, 0x0, 0x0, 0x7fffffff, 0x0, 0x0, 0x0
 
 
+;Zero initialized global or static variables of quickstep:
+SECTION .bss
+g_keepZ_dup_1: resb 0x10
+g_keepX_dup_1: resb 0x10
+g_keepZW_dup_1: resb 0x10
+g_keepXY_dup_1: resb 0x10
+g_keepXYZ_dup_1: resb 0x10
+g_keepXYW_dup_1: resb 0x10
+g_keepXZW_dup_1: resb 0x10
+g_keepYZW_dup_1: resb 0x10
+g_selectW_dup_1: resb 0x10
+g_selectZ_dup_1: resb 0x10
+g_selectY_dup_1: resb 0x10
+g_selectX_dup_1: resb 0x10
+g_swizzleWWWW_dup_1: resb 0x10
+g_swizzleZZZZ_dup_1: resb 0x10
+g_swizzleYYYY_dup_1: resb 0x10
+g_swizzleXXXX_dup_1: resb 0x10
+g_swizzleYZWA_dup_1: resb 0x10
+g_swizzleZWAW_dup_1: resb 0x10
+g_swizzleWABW_dup_1: resb 0x10
+g_swizzleZXYW_dup_1: resb 0x10
+g_swizzleYZXW_dup_1: resb 0x10
+g_swizzleXYZA_dup_1: resb 0x10
+g_swizzleZWCD_dup_1: resb 0x10
+g_swizzleXYAB_dup_1: resb 0x10
+g_swizzleYBWD_dup_1: resb 0x10
+g_swizzleXAZC_dup_1: resb 0x10
+g_swizzleYXWZ_dup_1: resb 0x10
+g_swizzleXZYW_dup_1: resb 0x10
+g_swizzleYXZW_dup_1: resb 0x10
+g_swizzleXYZW_dup_1: resb 0x10
+g_inc_dup_1: resb 0x10
+g_negativeZero_dup_1: resb 0x10
+g_fltMin_dup_1: resb 0x10
+g_holdrand: resb 0x70
+
+
 ;All cstrings:
 SECTION .rdata
 
@@ -2029,6 +2029,8 @@ _float_999900_00000000:		dd 0x49741dc0	; 999900
 _float_1600_00000000:		dd 0x44c80000	; 1600
 _float_999999995904_0000_float_:		dd 0x5368d4a5	; 1e+12
 _float_0_50000000:		dd 0x3f000000	; 0.5
+_data16_7fffffff:		dd 0x7fffffff, 0x0, 0x0, 0x0	; OWORD
 _double_0_00010000:		dq 0x3f1a36e2eb1c432d	; 0.0001
 _float__0_16666667:		dd 0xbe2aaaab	; -0.166667
+_data16_80000000:		dd 0x80000000, 0x0, 0x0, 0x0	; OWORD
 

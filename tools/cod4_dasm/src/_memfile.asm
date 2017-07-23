@@ -1034,6 +1034,14 @@ MemFile_InitForWriting:
 	nop
 
 
+;Initialized global or static variables of memfile:
+SECTION .data
+
+
+;Initialized constant data of memfile:
+SECTION .rdata
+
+
 ;Zero initialized global or static variables of memfile:
 SECTION .bss
 g_zeroCount: resb 0x4
@@ -1046,14 +1054,6 @@ g_cacheSize: resb 0x4
 streamModeThread: resb 0x4
 streamMode: resb 0x4
 g_compress: resb 0x4c
-
-
-;Initialized global or static variables of memfile:
-SECTION .data
-
-
-;Initialized constant data of memfile:
-SECTION .rdata
 
 
 ;All cstrings:

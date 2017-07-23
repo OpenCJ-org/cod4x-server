@@ -2493,17 +2493,17 @@ SP_turret_10:
 	nop
 
 
-;Zero initialized global or static variables of g_misc_mp:
-SECTION .bss
-turretInfo: resb 0x900
-
-
 ;Initialized global or static variables of g_misc_mp:
 SECTION .data
 
 
 ;Initialized constant data of g_misc_mp:
 SECTION .rdata
+
+
+;Zero initialized global or static variables of g_misc_mp:
+SECTION .bss
+turretInfo: resb 0x900
 
 
 ;All cstrings:

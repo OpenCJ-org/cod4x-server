@@ -1,5 +1,4 @@
 ;Imports of rotation:
-	extern g_fltMin__uint4_dup_1
 	extern dMessage
 
 ;Exports of rotation:
@@ -27,7 +26,7 @@ dDQfromW:
 	mov eax, [ebp+0xc]
 	mov edx, [ebp+0x10]
 	movss xmm1, dword [eax]
-	xorps xmm1, [g_fltMin__uint4_dup_1+0x60]
+	xorps xmm1, [_data16_80000000]
 	mulss xmm1, [edx+0x4]
 	movss xmm0, dword [eax+0x4]
 	mulss xmm0, [edx+0x8]
@@ -273,7 +272,7 @@ dQMultiply3:
 	mulss xmm0, [edx+0xc]
 	subss xmm1, xmm0
 	movss [ecx], xmm1
-	movss xmm2, dword [g_fltMin__uint4_dup_1+0x50]
+	movss xmm2, dword [_data16_80000000]
 	movss xmm1, dword [eax]
 	xorps xmm1, xmm2
 	mulss xmm1, [edx+0x4]
@@ -642,16 +641,16 @@ dRfromQ:
 	nop
 
 
-;Zero initialized global or static variables of rotation:
-SECTION .bss
-
-
 ;Initialized global or static variables of rotation:
 SECTION .data
 
 
 ;Initialized constant data of rotation:
 SECTION .rdata
+
+
+;Zero initialized global or static variables of rotation:
+SECTION .bss
 
 
 ;All cstrings:
@@ -663,6 +662,7 @@ _cstring_zero_length_vect:		db "zero length vector in %s()",0
 
 ;All constant floats and doubles:
 SECTION .rdata
+_data16_80000000:		dd 0x80000000, 0x0, 0x0, 0x0	; OWORD
 _float_0_50000000:		dd 0x3f000000	; 0.5
 _float_0_00000000:		dd 0x0	; 0
 _float_1_00000000:		dd 0x3f800000	; 1

@@ -474,16 +474,16 @@ ODE_BreakupIslandIfTooBig_270:
 	jmp ODE_BreakupIslandIfTooBig_190
 
 
-;Zero initialized global or static variables of util:
-SECTION .bss
-
-
 ;Initialized global or static variables of util:
 SECTION .data
 
 
 ;Initialized constant data of util:
 SECTION .rdata
+
+
+;Zero initialized global or static variables of util:
+SECTION .bss
 
 
 ;All cstrings:
