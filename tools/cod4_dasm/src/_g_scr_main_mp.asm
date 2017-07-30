@@ -37,7 +37,7 @@
 	extern atoi
 	extern atof
 	extern Scr_AddFloat
-	extern I_CleanChar
+	extern Q_CleanChar
 	extern Cvar_IsValidName
 	extern Cvar_SetFromStringByName
 	extern Cvar_FindVar
@@ -58,7 +58,6 @@
 	extern G_LocationalTrace
 	extern Scr_AddArrayStringIndexed
 	extern Trace_GetEntityHitId
-	extern _ZZ11Melee_TraceP9gentity_sP11weaponParmsifffP7trace_tPfE12traceOffsets
 	extern Scr_AddConstString
 	extern Com_SurfaceTypeToName
 	extern Scr_AddUndefined
@@ -183,7 +182,6 @@
 	extern BG_AnimScriptEvent
 	extern G_ExplodeMissile
 	extern _ZN9EntHandle6setEntEP9gentity_s
-	extern g_clients
 	extern Com_PrintWarning
 	extern SV_GetClientStat
 	extern Scr_LoadedImpureScript
@@ -1576,7 +1574,7 @@ GScr_SetDvar_80:
 GScr_SetDvar_40:
 	movsx eax, al
 	mov [esp], eax
-	call I_CleanChar
+	call Q_CleanChar
 	mov edx, 0x27
 	cmp al, 0x22
 	cmovnz edx, eax
@@ -2533,7 +2531,7 @@ Scr_BulletTrace_50:
 	addss xmm2, xmm0
 	sqrtss xmm2, xmm2
 	movaps xmm0, xmm2
-	xorps xmm0, [_ZZ11Melee_TraceP9gentity_sP11weaponParmsifffP7trace_tPfE12traceOffsets+0x280]
+	xorps xmm0, [_data16_80000000]
 	ucomiss xmm0, [_float_0_00000000]
 	jb Scr_BulletTrace_40
 	movaps xmm1, xmm4
@@ -3469,7 +3467,7 @@ GScr_VectorFromLineToPoint_20:
 	mulss xmm1, xmm4
 	addss xmm0, xmm1
 	divss xmm0, dword [ebp-0x3c]
-	xorps xmm0, [_ZZ11Melee_TraceP9gentity_sP11weaponParmsifffP7trace_tPfE12traceOffsets+0x250]
+	xorps xmm0, [_data16_80000000]
 	mulss xmm5, xmm0
 	addss xmm2, xmm5
 	movss [ebp-0x38], xmm2
@@ -3847,7 +3845,7 @@ Scr_VectorNormalize_10:
 	addss xmm0, xmm2
 	sqrtss xmm2, xmm0
 	movaps xmm0, xmm2
-	xorps xmm0, [_ZZ11Melee_TraceP9gentity_sP11weaponParmsifffP7trace_tPfE12traceOffsets+0x290]
+	xorps xmm0, [_data16_80000000]
 	ucomiss xmm0, [_float_0_00000000]
 	jb Scr_VectorNormalize_20
 	movss xmm1, dword [_float_1_00000000]
@@ -4841,7 +4839,7 @@ Scr_PlayFX_120:
 	addss xmm0, xmm2
 	sqrtss xmm2, xmm0
 	movaps xmm0, xmm2
-	xorps xmm0, [_ZZ11Melee_TraceP9gentity_sP11weaponParmsifffP7trace_tPfE12traceOffsets+0x2b0]
+	xorps xmm0, [_data16_80000000]
 	pxor xmm4, xmm4
 	ucomiss xmm0, xmm4
 	jb Scr_PlayFX_30
@@ -4877,7 +4875,7 @@ Scr_PlayFX_110:
 	addss xmm0, xmm2
 	sqrtss xmm1, xmm0
 	movaps xmm0, xmm1
-	xorps xmm0, [_ZZ11Melee_TraceP9gentity_sP11weaponParmsifffP7trace_tPfE12traceOffsets+0x2b0]
+	xorps xmm0, [_data16_80000000]
 	pxor xmm4, xmm4
 	ucomiss xmm0, xmm4
 	jb Scr_PlayFX_60
@@ -5207,7 +5205,7 @@ Scr_PlayLoopedFX_160:
 	addss xmm0, xmm2
 	sqrtss xmm2, xmm0
 	movaps xmm0, xmm2
-	xorps xmm0, [_ZZ11Melee_TraceP9gentity_sP11weaponParmsifffP7trace_tPfE12traceOffsets+0x2c0]
+	xorps xmm0, [_data16_80000000]
 	pxor xmm4, xmm4
 	ucomiss xmm0, xmm4
 	jb Scr_PlayLoopedFX_70
@@ -5280,7 +5278,7 @@ Scr_PlayLoopedFX_30:
 	addss xmm0, xmm2
 	sqrtss xmm2, xmm0
 	movaps xmm0, xmm2
-	xorps xmm0, [_ZZ11Melee_TraceP9gentity_sP11weaponParmsifffP7trace_tPfE12traceOffsets+0x2c0]
+	xorps xmm0, [_data16_80000000]
 	pxor xmm4, xmm4
 	ucomiss xmm0, xmm4
 	jb Scr_PlayLoopedFX_130
@@ -5441,7 +5439,7 @@ Scr_SpawnFX_110:
 	addss xmm0, xmm2
 	sqrtss xmm2, xmm0
 	movaps xmm0, xmm2
-	xorps xmm0, [_ZZ11Melee_TraceP9gentity_sP11weaponParmsifffP7trace_tPfE12traceOffsets+0x2d0]
+	xorps xmm0, [_data16_80000000]
 	pxor xmm4, xmm4
 	ucomiss xmm0, xmm4
 	jb Scr_SpawnFX_50
@@ -5492,7 +5490,7 @@ Scr_SpawnFX_30:
 	addss xmm0, xmm2
 	sqrtss xmm2, xmm0
 	movaps xmm0, xmm2
-	xorps xmm0, [_ZZ11Melee_TraceP9gentity_sP11weaponParmsifffP7trace_tPfE12traceOffsets+0x2d0]
+	xorps xmm0, [_data16_80000000]
 	pxor xmm4, xmm4
 	ucomiss xmm0, xmm4
 	jb Scr_SpawnFX_80
@@ -7788,7 +7786,7 @@ GScr_MakeDvarServerInfo_60:
 GScr_MakeDvarServerInfo_50:
 	movsx eax, al
 	mov [esp], eax
-	call I_CleanChar
+	call Q_CleanChar
 	mov edx, 0x27
 	cmp al, 0x22
 	cmovnz edx, eax
@@ -8559,7 +8557,7 @@ GScr_SetMiniMap_10:
 	mulss xmm1, xmm2
 	subss xmm0, xmm1
 	movss [ebx+0x2e58], xmm0
-	xorps xmm3, [_ZZ11Melee_TraceP9gentity_sP11weaponParmsifffP7trace_tPfE12traceOffsets+0x200]
+	xorps xmm3, [_data16_80000000]
 	mulss xmm3, xmm4
 	mulss xmm2, [ebp-0x4c]
 	subss xmm3, xmm2
@@ -11910,7 +11908,7 @@ GScr_SetRightArc_50:
 	call Scr_GetFloat
 	fstp dword [ebp-0xc]
 	movss xmm0, dword [ebp-0xc]
-	xorps xmm0, [_ZZ11Melee_TraceP9gentity_sP11weaponParmsifffP7trace_tPfE12traceOffsets+0x260]
+	xorps xmm0, [_data16_80000000]
 	movss [ebx+0x10], xmm0
 	pxor xmm1, xmm1
 	ucomiss xmm0, xmm1
@@ -12016,7 +12014,7 @@ GScr_SetTopArc_50:
 	call Scr_GetFloat
 	fstp dword [ebp-0xc]
 	movss xmm0, dword [ebp-0xc]
-	xorps xmm0, [_ZZ11Melee_TraceP9gentity_sP11weaponParmsifffP7trace_tPfE12traceOffsets+0x270]
+	xorps xmm0, [_data16_80000000]
 	movss [ebx+0xc], xmm0
 	pxor xmm1, xmm1
 	ucomiss xmm0, xmm1
@@ -12210,7 +12208,7 @@ GScr_DamageConeTrace:
 	push ebp
 	mov ebp, esp
 	mov eax, [ebp+0x8]
-	mov edx, g_clients+0x9be11
+	mov edx, 0x802011
 	pop ebp
 	jmp GScr_DamageConeTraceInternal
 	nop
@@ -13926,7 +13924,7 @@ Scr_SetFxAngles_20:
 	movss xmm0, dword [ebx+0x8]
 	mulss xmm0, [ebx+0x20]
 	addss xmm1, xmm0
-	movss xmm4, dword [_ZZ11Melee_TraceP9gentity_sP11weaponParmsifffP7trace_tPfE12traceOffsets+0x2a0]
+	movss xmm4, dword [_data16_80000000]
 	xorps xmm1, xmm4
 	movaps xmm3, xmm1
 	mulss xmm3, [ebx]
@@ -17081,6 +17079,7 @@ _cstring_endlobby:		db "endlobby",0
 SECTION .rdata
 _float_1_00000000:		dd 0x3f800000	; 1
 _float_0_50000000:		dd 0x3f000000	; 0.5
+_data16_80000000:		dd 0x80000000, 0x0, 0x0, 0x0	; OWORD
 _float_0_00000000:		dd 0x0	; 0
 _double_0_01745329:		dq 0x3f91df46a2529d39	; 0.0174533
 _float__1_00000000:		dd 0xbf800000	; -1

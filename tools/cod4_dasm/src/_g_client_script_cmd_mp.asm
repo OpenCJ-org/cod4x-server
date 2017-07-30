@@ -78,7 +78,7 @@
 	extern XAnimCloneAnimTree
 	extern Cvar_IsValidName
 	extern memset
-	extern I_CleanChar
+	extern Q_CleanChar
 	extern Q_strncat
 	extern Q_strncpyz
 	extern G_SoundAliasIndex
@@ -3470,7 +3470,7 @@ PlayerCmd_SetClientDvar_40:
 PlayerCmd_SetClientDvar_70:
 	movsx eax, al
 	mov [esp], eax
-	call I_CleanChar
+	call Q_CleanChar
 	mov edx, 0x27
 	cmp al, 0x22
 	cmovnz edx, eax
@@ -3617,7 +3617,7 @@ PlayerCmd_SetClientDvars_40:
 PlayerCmd_SetClientDvars_80:
 	movsx eax, al
 	mov [esp], eax
-	call I_CleanChar
+	call Q_CleanChar
 	mov edx, 0x27
 	cmp al, 0x22
 	cmovnz edx, eax

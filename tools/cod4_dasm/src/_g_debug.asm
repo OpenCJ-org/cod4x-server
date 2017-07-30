@@ -264,8 +264,8 @@ G_DebugCircleEx_10:
 	pxor xmm1, xmm1
 	punpckldq xmm1, xmm0
 	movdqa xmm0, xmm1
-	punpckldq xmm0, [_ZZ10G_DebugBoxPKfS0_S0_fS0_iiE10iEdgePairs+0x60]
-	subpd xmm0, [_ZZ10G_DebugBoxPKfS0_S0_fS0_iiE10iEdgePairs+0x70]
+	punpckldq xmm0, [_data16_45300000]
+	subpd xmm0, [_data16_0]
 	movapd [ebp-0x138], xmm0
 	movapd xmm1, xmm0
 	movhpd [ebp-0x138], xmm0
@@ -416,5 +416,7 @@ SECTION .rdata
 ;All constant floats and doubles:
 SECTION .rdata
 _double_0_01745329:		dq 0x3f91df46a2529d39	; 0.0174533
+_data16_45300000:		dd 0x45300000, 0x43300000, 0x0, 0x0	; OWORD
+_data16_0:		dd 0x0, 0x45300000, 0x0, 0x43300000	; OWORD
 _double_0_39269908:		dq 0x3fd921fb54442d18	; 0.392699
 

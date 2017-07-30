@@ -41,7 +41,6 @@
 	extern G_PrintEntities
 	extern G_GetPlayerViewOrigin
 	extern BG_GetPlayerViewDirection
-	extern g_clients
 	extern G_TraceCapsule
 	extern G_SetOrigin
 	extern SetClientViewAngle
@@ -57,14 +56,13 @@
 	extern Scr_GetGameTypeNameForScript
 	extern Cvar_GetInt
 	extern Q_strncpyz
-	extern I_CleanStr
+	extern Q_CleanStr
 	extern SV_GetClientPing
 	extern Com_PrintError
 	extern Com_DPrintf
 	extern atof
 	extern TeleportPlayer
 	extern Com_Error
-	extern g_XAnimPartsPool
 	extern Scr_AddString
 	extern scr_const
 	extern Scr_Notify
@@ -1854,7 +1852,7 @@ StopFollowing_10:
 	mov [ebp-0x6c], eax
 	mov [ebp-0x68], eax
 	mov [ebp-0x64], eax
-	mov dword [esp+0x18], g_clients+0xa9e11
+	mov dword [esp+0x18], 0x810011
 	mov dword [esp+0x14], 0x3ff
 	lea eax, [ebp-0x54]
 	mov [esp+0x10], eax
@@ -2438,7 +2436,7 @@ Cmd_CallVote_f_370:
 	call Q_strncpyz
 	lea edx, [ebp-0x58]
 	mov [esp], edx
-	call I_CleanStr
+	call Q_CleanStr
 	lea eax, [ebp-0x258]
 	mov [esp+0x4], eax
 	lea edx, [ebp-0x58]
@@ -2500,7 +2498,7 @@ Cmd_CallVote_f_430:
 	mov [esp], ebx
 	call Q_strncpyz
 	mov [esp], ebx
-	call I_CleanStr
+	call Q_CleanStr
 Cmd_CallVote_f_460:
 	movzx eax, byte [ebp-0x158]
 	cmp al, 0x74
@@ -2967,7 +2965,7 @@ Cmd_MenuResponse_f:
 	cmp dword [edx+eax*4+0x44], 0x4
 	jz Cmd_MenuResponse_f_10
 	mov byte [ebp-0x808], 0x0
-	mov dword [ebp-0xc08], g_XAnimPartsPool+0x27202
+	mov dword [ebp-0xc08], 0x646162
 	lea esi, [ebp-0x808]
 	lea ebx, [ebp-0xc08]
 Cmd_MenuResponse_f_40:
@@ -3050,7 +3048,7 @@ G_Say_110:
 	call Q_strncpyz
 	lea edx, [ebp-0x58]
 	mov [esp], edx
-	call I_CleanStr
+	call Q_CleanStr
 	cmp edi, 0x1
 	jz G_Say_20
 	cmp edi, 0x2

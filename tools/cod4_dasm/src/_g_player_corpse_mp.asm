@@ -11,7 +11,6 @@
 	extern SV_LinkEntity
 	extern G_TraceCapsuleComplete
 	extern AngleVectors
-	extern _ZZ11Melee_TraceP9gentity_sP11weaponParmsifffP7trace_tPfE12traceOffsets
 	extern SV_PointContents
 	extern Trace_GetEntityHitId
 	extern g_entities
@@ -372,7 +371,7 @@ G_RunCorpseMove_80:
 	lea eax, [edi+0x148]
 	mov [esp], eax
 	call AngleVectors
-	movss xmm3, dword [_ZZ11Melee_TraceP9gentity_sP11weaponParmsifffP7trace_tPfE12traceOffsets+0x3a0]
+	movss xmm3, dword [_data16_80000000]
 	movss xmm5, dword [ebp-0x60]
 	xorps xmm5, xmm3
 	movss xmm6, dword [ebp-0x5c]
@@ -847,6 +846,7 @@ SECTION .rdata
 ;All constant floats and doubles:
 SECTION .rdata
 _float_1_00000000:		dd 0x3f800000	; 1
+_data16_80000000:		dd 0x80000000, 0x0, 0x0, 0x0	; OWORD
 _float_32_00000000:		dd 0x42000000	; 32
 _float__1_00000000:		dd 0xbf800000	; -1
 

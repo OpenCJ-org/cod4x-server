@@ -21,7 +21,6 @@
 	extern Scr_PlayerDamage
 	extern BG_GetViewmodelWeaponIndex
 	extern CM_AreaEntities
-	extern g_clients
 	extern LogAccuracyHit
 	extern AngleVectors
 	extern Com_PrintWarning
@@ -47,7 +46,6 @@
 	extern Com_Printf
 	extern vec3_origin
 	extern G_GetPlayerViewOrigin
-	extern _ZZ11Melee_TraceP9gentity_sP11weaponParmsifffP7trace_tPfE12traceOffsets
 	extern radius_damage_debug
 	extern G_LocationalTracePassed
 	extern colorOrange
@@ -737,7 +735,7 @@ G_RadiusDamage_50:
 	subss xmm1, xmm0
 	mulss xmm1, [ebp-0x105c]
 	addss xmm1, [ebp+0x18]
-	mov dword [esp+0x14], g_clients+0x9be11
+	mov dword [esp+0x14], 0x802011
 	mov eax, [ebp+0x24]
 	mov [esp+0x10], eax
 	movss xmm0, dword [ebp+0x20]
@@ -1644,7 +1642,7 @@ CanDamage_360:
 	addss xmm0, xmm1
 	sqrtss xmm1, xmm0
 	movaps xmm0, xmm1
-	xorps xmm0, [_ZZ11Melee_TraceP9gentity_sP11weaponParmsifffP7trace_tPfE12traceOffsets+0x2e0]
+	xorps xmm0, [_data16_80000000]
 	pxor xmm5, xmm5
 	ucomiss xmm0, xmm5
 	jb CanDamage_30
@@ -1655,7 +1653,7 @@ CanDamage_390:
 	pxor xmm5, xmm5
 	mulss xmm5, xmm0
 	mulss xmm4, xmm0
-	xorps xmm4, [_ZZ11Melee_TraceP9gentity_sP11weaponParmsifffP7trace_tPfE12traceOffsets+0x2e0]
+	xorps xmm4, [_data16_80000000]
 	movss xmm0, dword [ebp-0x24]
 	addss xmm0, [eax]
 	movss xmm1, dword [ebp-0x20]
@@ -1737,7 +1735,7 @@ CanDamage_50:
 	addss xmm0, xmm1
 	sqrtss xmm1, xmm0
 	movaps xmm0, xmm1
-	xorps xmm0, [_ZZ11Melee_TraceP9gentity_sP11weaponParmsifffP7trace_tPfE12traceOffsets+0x2e0]
+	xorps xmm0, [_data16_80000000]
 	ucomiss xmm0, [_float_0_00000000]
 	jb CanDamage_70
 	movss xmm0, dword [_float_1_00000000]
@@ -1856,7 +1854,7 @@ CanDamage_410:
 	addss xmm0, xmm1
 	sqrtss xmm1, xmm0
 	movaps xmm0, xmm1
-	xorps xmm0, [_ZZ11Melee_TraceP9gentity_sP11weaponParmsifffP7trace_tPfE12traceOffsets+0x2e0]
+	xorps xmm0, [_data16_80000000]
 	pxor xmm2, xmm2
 	ucomiss xmm0, xmm2
 	jb CanDamage_130
@@ -1867,7 +1865,7 @@ CanDamage_430:
 	mulss xmm2, xmm0
 	mulss xmm4, xmm0
 	movaps xmm6, xmm2
-	xorps xmm6, [_ZZ11Melee_TraceP9gentity_sP11weaponParmsifffP7trace_tPfE12traceOffsets+0x2e0]
+	xorps xmm6, [_data16_80000000]
 	movaps xmm0, xmm6
 	mulss xmm0, xmm6
 	movaps xmm1, xmm5
@@ -1877,7 +1875,7 @@ CanDamage_430:
 	addss xmm0, xmm1
 	sqrtss xmm7, xmm0
 	movaps xmm0, xmm7
-	xorps xmm0, [_ZZ11Melee_TraceP9gentity_sP11weaponParmsifffP7trace_tPfE12traceOffsets+0x2e0]
+	xorps xmm0, [_data16_80000000]
 	ucomiss xmm0, xmm1
 	jb CanDamage_140
 	movss xmm0, dword [_float_1_00000000]
@@ -1970,16 +1968,16 @@ CanDamage_440:
 	addss xmm0, xmm2
 	movss [ebp-0x58], xmm0
 	movaps xmm1, xmm6
-	xorps xmm1, [_ZZ11Melee_TraceP9gentity_sP11weaponParmsifffP7trace_tPfE12traceOffsets+0x2e0]
+	xorps xmm1, [_data16_80000000]
 	addss xmm1, [ebp-0x6c]
 	movss [ebp-0x54], xmm1
 	movss xmm0, dword [ebp-0x7c]
-	xorps xmm0, [_ZZ11Melee_TraceP9gentity_sP11weaponParmsifffP7trace_tPfE12traceOffsets+0x2e0]
+	xorps xmm0, [_data16_80000000]
 	movss [ebp-0xa4], xmm0
 	addss xmm0, [esi]
 	movss [ebp-0xa4], xmm0
 	movss [ebp-0x50], xmm0
-	xorps xmm7, [_ZZ11Melee_TraceP9gentity_sP11weaponParmsifffP7trace_tPfE12traceOffsets+0x2e0]
+	xorps xmm7, [_data16_80000000]
 	addss xmm7, [ebx]
 	movaps xmm0, xmm3
 	addss xmm0, xmm1
@@ -1991,15 +1989,15 @@ CanDamage_440:
 	addss xmm0, xmm7
 	movss [ebp-0x4c], xmm0
 	addss xmm6, [ebp-0x6c]
-	xorps xmm3, [_ZZ11Melee_TraceP9gentity_sP11weaponParmsifffP7trace_tPfE12traceOffsets+0x2e0]
+	xorps xmm3, [_data16_80000000]
 	movaps xmm0, xmm3
 	addss xmm0, xmm6
 	movss [ebp-0x48], xmm0
-	xorps xmm4, [_ZZ11Melee_TraceP9gentity_sP11weaponParmsifffP7trace_tPfE12traceOffsets+0x2e0]
+	xorps xmm4, [_data16_80000000]
 	movaps xmm0, xmm4
 	addss xmm0, [ebp-0x44]
 	movss [ebp-0x44], xmm0
-	xorps xmm5, [_ZZ11Melee_TraceP9gentity_sP11weaponParmsifffP7trace_tPfE12traceOffsets+0x2e0]
+	xorps xmm5, [_data16_80000000]
 	movaps xmm0, xmm5
 	addss xmm0, xmm2
 	movss [ebp-0x40], xmm0
@@ -2045,7 +2043,7 @@ CanDamage_160:
 	addss xmm0, xmm1
 	sqrtss xmm1, xmm0
 	movaps xmm0, xmm1
-	xorps xmm0, [_ZZ11Melee_TraceP9gentity_sP11weaponParmsifffP7trace_tPfE12traceOffsets+0x2e0]
+	xorps xmm0, [_data16_80000000]
 	ucomiss xmm0, [_float_0_00000000]
 	jb CanDamage_180
 	movss xmm0, dword [_float_1_00000000]
@@ -2123,7 +2121,7 @@ CanDamage_210:
 	addss xmm0, xmm1
 	sqrtss xmm1, xmm0
 	movaps xmm0, xmm1
-	xorps xmm0, [_ZZ11Melee_TraceP9gentity_sP11weaponParmsifffP7trace_tPfE12traceOffsets+0x2e0]
+	xorps xmm0, [_data16_80000000]
 	ucomiss xmm0, [_float_0_00000000]
 	jb CanDamage_230
 	movss xmm0, dword [_float_1_00000000]
@@ -2214,7 +2212,7 @@ CanDamage_330:
 	addss xmm0, xmm1
 	sqrtss xmm1, xmm0
 	movaps xmm0, xmm1
-	xorps xmm0, [_ZZ11Melee_TraceP9gentity_sP11weaponParmsifffP7trace_tPfE12traceOffsets+0x2e0]
+	xorps xmm0, [_data16_80000000]
 	ucomiss xmm0, [_float_0_00000000]
 	jb CanDamage_310
 	movss xmm0, dword [_float_1_00000000]
@@ -2395,6 +2393,7 @@ _float_0_00000000:		dd 0x0	; 0
 _float_24_00000000:		dd 0x41c00000	; 24
 _float_0_50000000:		dd 0x3f000000	; 0.5
 _float_1_50000000:		dd 0x3fc00000	; 1.5
+_data16_80000000:		dd 0x80000000, 0x0, 0x0, 0x0	; OWORD
 _float_15_00000000:		dd 0x41700000	; 15
 _float__15_00000000:		dd 0xc1700000	; -15
 _float__1_00000000:		dd 0xbf800000	; -1

@@ -1,6 +1,5 @@
 ;Imports of g_helicopter:
 	extern VEH_GetVehicleInfo
-	extern _ZZ10G_DebugBoxPKfS0_S0_fS0_iiE10iEdgePairs
 	extern vehHelicopterRightStickDeadzone
 	extern AngleVectors
 	extern Vec3NormalizeTo
@@ -112,7 +111,7 @@ VEH_UpdateClientChopper_20:
 	jnz VEH_UpdateClientChopper_30
 	cmp byte [ebp-0x1b], 0x0
 	jnz VEH_UpdateClientChopper_30
-	movss xmm4, dword [_ZZ10G_DebugBoxPKfS0_S0_fS0_iiE10iEdgePairs+0x80]
+	movss xmm4, dword [_data16_7fffffff]
 	pxor xmm2, xmm2
 VEH_UpdateClientChopper_310:
 	movss xmm0, dword [ebp-0x100]
@@ -207,7 +206,7 @@ VEH_UpdateClientChopper_330:
 	addss xmm0, [ebp-0x1d4]
 	movss [ebp-0x1d4], xmm0
 	movaps xmm1, xmm0
-	xorps xmm1, [_ZZ10G_DebugBoxPKfS0_S0_fS0_iiE10iEdgePairs+0x90]
+	xorps xmm1, [_data16_80000000]
 	movaps xmm0, xmm6
 	mulss xmm0, xmm1
 	addss xmm0, [esi+0x84]
@@ -284,7 +283,7 @@ VEH_UpdateClientChopper_340:
 	addss xmm4, xmm6
 	movss xmm2, dword [ebx+ebp-0x80]
 	movaps xmm3, xmm2
-	xorps xmm3, [_ZZ10G_DebugBoxPKfS0_S0_fS0_iiE10iEdgePairs+0x90]
+	xorps xmm3, [_data16_80000000]
 	movaps xmm0, xmm4
 	subss xmm0, xmm2
 	pxor xmm1, xmm1
@@ -356,7 +355,7 @@ VEH_UpdateClientChopper_340:
 	divss xmm0, dword [_float_0_05000000]
 	movss xmm2, dword [ebp-0x74]
 	movaps xmm3, xmm2
-	xorps xmm3, [_ZZ10G_DebugBoxPKfS0_S0_fS0_iiE10iEdgePairs+0x90]
+	xorps xmm3, [_data16_80000000]
 	movaps xmm1, xmm0
 	subss xmm1, xmm2
 	pxor xmm4, xmm4
@@ -390,7 +389,7 @@ VEH_UpdateClientChopper_340:
 	mulss xmm0, [eax+0xc]
 	subss xmm4, xmm0
 	movaps xmm3, xmm2
-	xorps xmm3, [_ZZ10G_DebugBoxPKfS0_S0_fS0_iiE10iEdgePairs+0x90]
+	xorps xmm3, [_data16_80000000]
 	movaps xmm0, xmm4
 	subss xmm0, xmm2
 	pxor xmm1, xmm1
@@ -418,7 +417,7 @@ VEH_UpdateClientChopper_340:
 	divss xmm0, dword [_float_0_05000000]
 	mov eax, [ebx]
 	movss xmm1, dword [eax+0xc]
-	movss xmm5, dword [_ZZ10G_DebugBoxPKfS0_S0_fS0_iiE10iEdgePairs+0x90]
+	movss xmm5, dword [_data16_80000000]
 	xorps xmm5, xmm1
 	movss [ebp-0x16c], xmm5
 	movaps xmm2, xmm0
@@ -551,7 +550,7 @@ VEH_UpdateClientChopper_350:
 	jbe VEH_UpdateClientChopper_120
 	movss xmm2, dword [esi+0x94]
 	movaps xmm0, xmm2
-	andps xmm0, [_ZZ10G_DebugBoxPKfS0_S0_fS0_iiE10iEdgePairs+0x80]
+	andps xmm0, [_data16_7fffffff]
 	ucomiss xmm0, xmm5
 	jbe VEH_UpdateClientChopper_130
 	divss xmm3, xmm4
@@ -562,7 +561,7 @@ VEH_UpdateClientChopper_350:
 	ja VEH_UpdateClientChopper_140
 	movaps xmm0, xmm6
 VEH_UpdateClientChopper_480:
-	xorps xmm2, [_ZZ10G_DebugBoxPKfS0_S0_fS0_iiE10iEdgePairs+0x90]
+	xorps xmm2, [_data16_80000000]
 	mov eax, vehHelicopterMaxYawRate
 	mov eax, [eax]
 	divss xmm2, dword [eax+0xc]
@@ -892,7 +891,7 @@ VEH_UpdateClientChopper_220:
 	ucomiss xmm4, [_float_0_00000000]
 	jbe VEH_UpdateClientChopper_230
 	movaps xmm0, xmm4
-	xorps xmm0, [_ZZ10G_DebugBoxPKfS0_S0_fS0_iiE10iEdgePairs+0x90]
+	xorps xmm0, [_data16_80000000]
 	movss xmm1, dword [ebp-0x184]
 	mulss xmm1, xmm0
 	addss xmm7, xmm1
@@ -1052,7 +1051,7 @@ VEH_UpdateClientChopper_30:
 	jnz VEH_UpdateClientChopper_280
 	movss xmm1, dword [ebp-0x104]
 VEH_UpdateClientChopper_320:
-	movss xmm4, dword [_ZZ10G_DebugBoxPKfS0_S0_fS0_iiE10iEdgePairs+0x80]
+	movss xmm4, dword [_data16_7fffffff]
 	movaps xmm0, xmm1
 	andps xmm0, xmm4
 	mov eax, vehHelicopterStrafeDeadzone
@@ -1282,7 +1281,7 @@ VEH_UpdateClientChopper_260:
 	addss xmm2, xmm0
 	sqrtss xmm2, xmm2
 	movaps xmm0, xmm2
-	xorps xmm0, [_ZZ10G_DebugBoxPKfS0_S0_fS0_iiE10iEdgePairs+0x90]
+	xorps xmm0, [_data16_80000000]
 	pxor xmm1, xmm1
 	ucomiss xmm0, xmm1
 	jb VEH_UpdateClientChopper_450
@@ -1394,7 +1393,7 @@ VEH_UpdateClientChopper_390:
 	jmp VEH_UpdateClientChopper_490
 VEH_UpdateClientChopper_410:
 	movss [esp+0x4], xmm0
-	xorps xmm0, [_ZZ10G_DebugBoxPKfS0_S0_fS0_iiE10iEdgePairs+0x90]
+	xorps xmm0, [_data16_80000000]
 	movss [esp], xmm0
 	call G_flrand
 	fstp dword [ebp+edi*4-0xac]
@@ -1509,6 +1508,8 @@ SECTION .rdata
 ;All constant floats and doubles:
 SECTION .rdata
 _float_127_00000000:		dd 0x42fe0000	; 127
+_data16_7fffffff:		dd 0x7fffffff, 0x0, 0x0, 0x0	; OWORD
+_data16_80000000:		dd 0x80000000, 0x0, 0x0, 0x0	; OWORD
 _float_0_05000000:		dd 0x3d4ccccd	; 0.05
 _float_17_60000038:		dd 0x418ccccd	; 17.6
 _float_1_00000000:		dd 0x3f800000	; 1

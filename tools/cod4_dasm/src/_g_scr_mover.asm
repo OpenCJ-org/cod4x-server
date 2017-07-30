@@ -2,7 +2,6 @@
 	extern Vec3NormalizeTo
 	extern level
 	extern BG_EvaluateTrajectory
-	extern _ZZ13MissileImpactP9gentity_sP7trace_tPfS3_E19MY_STRAIGHTUPNORMAL
 	extern G_DObjUpdate
 	extern SV_LinkEntity
 	extern g_entities
@@ -492,7 +491,7 @@ ScriptMover_UpdateMove_20:
 	addss xmm0, xmm1
 	sqrtss xmm1, xmm0
 	movaps xmm0, xmm1
-	xorps xmm0, [_ZZ13MissileImpactP9gentity_sP7trace_tPfS3_E19MY_STRAIGHTUPNORMAL+0xb0]
+	xorps xmm0, [_data16_80000000]
 	ucomiss xmm0, xmm6
 	jb ScriptMover_UpdateMove_60
 	movss xmm0, dword [_float_1_00000000]
@@ -1239,7 +1238,7 @@ ScriptEntCmd_Vibrate_30:
 	addss xmm1, xmm2
 	sqrtss xmm1, xmm1
 	movaps xmm0, xmm1
-	xorps xmm0, [_ZZ13MissileImpactP9gentity_sP7trace_tPfS3_E19MY_STRAIGHTUPNORMAL+0xa0]
+	xorps xmm0, [_data16_80000000]
 	ucomiss xmm0, [_float_0_00000000]
 	jb ScriptEntCmd_Vibrate_50
 	movss xmm2, dword [_float_1_00000000]
@@ -1282,7 +1281,7 @@ ScriptEntCmd_Vibrate_60:
 	addss xmm1, xmm2
 	mulss xmm3, [ebp-0x24]
 	addss xmm1, xmm3
-	xorps xmm1, [_ZZ13MissileImpactP9gentity_sP7trace_tPfS3_E19MY_STRAIGHTUPNORMAL+0xa0]
+	xorps xmm1, [_data16_80000000]
 	lea edx, [ebx+0x208]
 	mov eax, [ebx+0x148]
 	mov [ebx+0x208], eax
@@ -2474,6 +2473,7 @@ _cstring_physicslaunch:		db "physicslaunch",0
 ;All constant floats and doubles:
 SECTION .rdata
 _float_1000_00000000:		dd 0x447a0000	; 1000
+_data16_80000000:		dd 0x80000000, 0x0, 0x0, 0x0	; OWORD
 _float_1_00000000:		dd 0x3f800000	; 1
 _float_0_00277778:		dd 0x3b360b61	; 0.00277778
 _float_0_50000000:		dd 0x3f000000	; 0.5

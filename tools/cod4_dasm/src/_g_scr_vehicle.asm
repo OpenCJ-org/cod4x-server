@@ -23,7 +23,6 @@
 	extern G_TraceCapsule
 	extern G_GetWeaponIndexForName
 	extern level
-	extern g_clients
 	extern SV_DObjGetBounds
 	extern va
 	extern Scr_Error
@@ -395,7 +394,7 @@ VEH_JoltBody:
 	movss xmm0, dword [edi+0x8]
 	mulss xmm0, [ebp-0x28]
 	addss xmm1, xmm0
-	xorps xmm1, [s_correctSolidDeltas+0x140]
+	xorps xmm1, [_data16_80000000]
 	movss [ebx+0x2c4], xmm1
 	mov dword [ebx+0x2c8], 0x3f800000
 	movss xmm3, dword [ebp-0x78]
@@ -538,7 +537,7 @@ VEH_UpdateAngleAndAngularVel:
 	jz VEH_UpdateAngleAndAngularVel_20
 VEH_UpdateAngleAndAngularVel_10:
 	movss xmm5, dword [ebx+esi*4+0x90]
-	movss xmm4, dword [s_correctSolidDeltas+0x160]
+	movss xmm4, dword [_data16_7fffffff]
 	movaps xmm7, xmm5
 	andps xmm7, xmm4
 	movss xmm6, dword [ebx+esi*4+0x30]
@@ -614,7 +613,7 @@ VEH_UpdateAngleAndAngularVel_40:
 	ucomiss xmm2, xmm3
 	jbe VEH_UpdateAngleAndAngularVel_80
 VEH_UpdateAngleAndAngularVel_50:
-	xorps xmm6, [s_correctSolidDeltas+0x170]
+	xorps xmm6, [_data16_80000000]
 	movss xmm2, dword [_float_0_05000000]
 	mulss xmm1, xmm2
 	ucomiss xmm1, xmm7
@@ -926,7 +925,7 @@ VEH_UpdateMoveToGoal_190:
 	movss xmm0, dword [ebp-0xe8]
 	subss xmm0, [ebp-0xc8]
 	mulss xmm0, [_float_360_00000000]
-	andps xmm0, [s_correctSolidDeltas+0x1a0]
+	andps xmm0, [_data16_7fffffff]
 	movss xmm1, dword [ebp-0xf8]
 	movss xmm3, dword [ebp-0x118]
 	ucomiss xmm3, xmm1
@@ -953,7 +952,7 @@ VEH_UpdateMoveToGoal_230:
 	test eax, eax
 	jz VEH_UpdateMoveToGoal_250
 	movaps xmm0, xmm4
-	andps xmm0, [s_correctSolidDeltas+0x1a0]
+	andps xmm0, [_data16_7fffffff]
 	ucomiss xmm0, [_float_0_00100000]
 	ja VEH_UpdateMoveToGoal_260
 VEH_UpdateMoveToGoal_250:
@@ -1009,7 +1008,7 @@ VEH_UpdateMoveToGoal_590:
 	movss xmm3, dword [ebp-0xcc]
 	ucomiss xmm3, xmm4
 	ja VEH_UpdateMoveToGoal_340
-	andps xmm0, [s_correctSolidDeltas+0x1a0]
+	andps xmm0, [_data16_7fffffff]
 	ucomiss xmm0, [_float_0_00100000]
 	jb VEH_UpdateMoveToGoal_350
 VEH_UpdateMoveToGoal_330:
@@ -1076,7 +1075,7 @@ VEH_UpdateMoveToGoal_670:
 	addss xmm3, xmm1
 	sqrtss xmm3, xmm3
 	movaps xmm0, xmm3
-	xorps xmm0, [s_correctSolidDeltas+0x1b0]
+	xorps xmm0, [_data16_80000000]
 	ucomiss xmm0, [ebp-0xcc]
 	jb VEH_UpdateMoveToGoal_360
 	movss xmm7, dword [_float_1_00000000]
@@ -1443,7 +1442,7 @@ VEH_UpdateMoveToGoal_860:
 	movss xmm0, dword [ebp-0x7c]
 	mulss xmm0, [ebx+0x78]
 	subss xmm2, xmm0
-	andps xmm2, [s_correctSolidDeltas+0x1a0]
+	andps xmm2, [_data16_7fffffff]
 	ucomiss xmm2, xmm3
 	jbe VEH_UpdateMoveToGoal_630
 	mulss xmm5, [esi]
@@ -1531,7 +1530,7 @@ VEH_UpdateMoveToGoal_520:
 	movss [ebp-0x3c], xmm0
 	jmp VEH_UpdateMoveToGoal_540
 VEH_UpdateMoveToGoal_400:
-	movss xmm1, dword [s_correctSolidDeltas+0x1a0]
+	movss xmm1, dword [_data16_7fffffff]
 	mov eax, [ebp-0x84]
 	movss xmm0, dword [eax+0xd8]
 	andps xmm0, xmm1
@@ -1671,7 +1670,7 @@ VEH_UpdateMoveToGoal_650:
 	jz VEH_UpdateMoveToGoal_800
 VEH_UpdateMoveToGoal_790:
 	movss xmm5, dword [ebx+0x80]
-	movss xmm1, dword [s_correctSolidDeltas+0x1a0]
+	movss xmm1, dword [_data16_7fffffff]
 	movaps xmm0, xmm4
 	andps xmm0, xmm1
 	ucomiss xmm0, [_float_0_00100000]
@@ -1723,7 +1722,7 @@ VEH_UpdateMoveToGoal_620:
 	mulss xmm1, [_float_0_05000000]
 	movaps xmm0, xmm2
 	subss xmm0, [ebp-0x4c]
-	andps xmm0, [s_correctSolidDeltas+0x1a0]
+	andps xmm0, [_data16_7fffffff]
 	ucomiss xmm1, xmm0
 	jbe VEH_UpdateMoveToGoal_630
 	movss xmm0, dword [ebp-0x4c]
@@ -1825,7 +1824,7 @@ VEH_UpdateMoveToGoal_830:
 	jmp VEH_UpdateMoveToGoal_850
 VEH_UpdateMoveToGoal_640:
 	movss xmm1, dword [edi+0x264]
-	xorps xmm1, [s_correctSolidDeltas+0x1b0]
+	xorps xmm1, [_data16_80000000]
 	jmp VEH_UpdateMoveToGoal_900
 VEH_UpdateMoveToGoal_840:
 	movss xmm0, dword [ebp-0x80]
@@ -1855,7 +1854,7 @@ VEH_UpdateMoveToGoal_840:
 	mulss xmm0, [_float_0_05000000]
 	mulss xmm0, [_float_3_00000000]
 	movaps xmm7, xmm0
-	xorps xmm7, [s_correctSolidDeltas+0x1b0]
+	xorps xmm7, [_data16_80000000]
 	movaps xmm1, xmm2
 	subss xmm1, xmm0
 	movss xmm3, dword [ebp-0xcc]
@@ -2204,7 +2203,7 @@ VEH_SlideMove_460:
 	ucomiss xmm0, xmm1
 	jb VEH_SlideMove_240
 	movaps xmm0, xmm4
-	xorps xmm0, [s_correctSolidDeltas+0x1f0]
+	xorps xmm0, [_data16_80000000]
 	mulss xmm0, [ecx]
 	movaps xmm1, xmm2
 	mulss xmm1, [ecx+0x4]
@@ -2300,7 +2299,7 @@ VEH_SlideMove_20:
 	ucomiss xmm1, xmm0
 	jb VEH_SlideMove_320
 	movaps xmm0, xmm4
-	xorps xmm0, [s_correctSolidDeltas+0x1f0]
+	xorps xmm0, [_data16_80000000]
 	mulss xmm0, [s_phys+0x4]
 	movaps xmm1, xmm5
 	mulss xmm1, [s_phys+0x8]
@@ -2363,7 +2362,7 @@ VEH_SlideMove_130:
 	mulss xmm0, xmm0
 	ucomiss xmm1, xmm0
 	jb VEH_SlideMove_370
-	xorps xmm3, [s_correctSolidDeltas+0x1f0]
+	xorps xmm3, [_data16_80000000]
 	mulss xmm3, [ecx]
 	mulss xmm6, [ecx+0x4]
 	subss xmm3, xmm6
@@ -2392,7 +2391,7 @@ VEH_SlideMove_160:
 	ucomiss xmm0, xmm1
 	jb VEH_SlideMove_390
 	movaps xmm0, xmm4
-	xorps xmm0, [s_correctSolidDeltas+0x1f0]
+	xorps xmm0, [_data16_80000000]
 	mulss xmm0, [ecx]
 	movaps xmm1, xmm2
 	mulss xmm1, [ecx+0x4]
@@ -2453,7 +2452,7 @@ VEH_SlideMove_200:
 	ucomiss xmm0, xmm2
 	jb VEH_SlideMove_450
 	movaps xmm0, xmm7
-	xorps xmm0, [s_correctSolidDeltas+0x1f0]
+	xorps xmm0, [_data16_80000000]
 	mulss xmm0, [ecx]
 	subss xmm0, xmm3
 	movss [ebp-0x1c], xmm0
@@ -2499,7 +2498,7 @@ VEH_SlideMove_250:
 	addss xmm0, xmm1
 	sqrtss xmm1, xmm0
 	movaps xmm0, xmm1
-	xorps xmm0, [s_correctSolidDeltas+0x1f0]
+	xorps xmm0, [_data16_80000000]
 	pxor xmm2, xmm2
 	ucomiss xmm0, xmm2
 	jb VEH_SlideMove_490
@@ -2680,7 +2679,7 @@ VEH_InitEntity:
 	mov [ebx+0x19c], eax
 	mov byte [ebx+0x16b], 0x1
 	mov byte [ebx+0x16c], 0x1
-	mov dword [ebx+0x190], g_clients+0xaa011
+	mov dword [ebx+0x190], 0x810211
 	lea eax, [ebx+0x114]
 	mov [esp+0x8], eax
 	lea eax, [ebx+0x108]
@@ -3103,7 +3102,7 @@ Scr_Vehicle_Think_350:
 	fstp dword [ebp-0x115c]
 	movss xmm0, dword [ebp-0x115c]
 	mov edx, [ebp-0x115c]
-	xorps xmm0, [s_correctSolidDeltas+0x1c0]
+	xorps xmm0, [_data16_80000000]
 	movss [ebp-0x115c], xmm0
 	mov eax, [ebp-0x115c]
 	mov [ebp-0x3c], eax
@@ -3339,7 +3338,7 @@ Scr_Vehicle_Think_180:
 	addss xmm2, xmm0
 	sqrtss xmm2, xmm2
 	movaps xmm0, xmm2
-	xorps xmm0, [s_correctSolidDeltas+0x1c0]
+	xorps xmm0, [_data16_80000000]
 	ucomiss xmm0, [_float_0_00000000]
 	jb Scr_Vehicle_Think_200
 	movss xmm1, dword [_float_1_00000000]
@@ -3392,7 +3391,7 @@ Scr_Vehicle_Think_470:
 	lea edx, [ebp-0x3c]
 	mov [esp], edx
 	call AnglesSubtract
-	movss xmm1, dword [s_correctSolidDeltas+0x1d0]
+	movss xmm1, dword [_data16_7fffffff]
 	movss xmm0, dword [ebp-0x30]
 	andps xmm0, xmm1
 	movss [ebp-0x30], xmm0
@@ -3427,7 +3426,7 @@ Scr_Vehicle_Think_470:
 	movss xmm4, dword [ecx+0x64]
 	mov ebx, [ebp-0x10f4]
 	movss xmm3, dword [ebx+0xdc]
-	movss xmm6, dword [s_correctSolidDeltas+0x1c0]
+	movss xmm6, dword [_data16_80000000]
 	movss xmm1, dword [ebx+0xd8]
 	xorps xmm1, xmm6
 	movaps xmm0, xmm4
@@ -3891,7 +3890,7 @@ Scr_Vehicle_Think_190:
 	addss xmm2, xmm0
 	sqrtss xmm2, xmm2
 	movaps xmm0, xmm2
-	xorps xmm0, [s_correctSolidDeltas+0x1c0]
+	xorps xmm0, [_data16_80000000]
 	ucomiss xmm0, [_float_0_00000000]
 	jb Scr_Vehicle_Think_460
 	movss xmm1, dword [_float_1_00000000]
@@ -4067,7 +4066,7 @@ CMD_VEH_FireWeapon_310:
 	mov [esp+0x4], eax
 	mov [esp], esi
 	call G_DObjGetWorldBoneIndexMatrix
-	movss xmm1, dword [s_correctSolidDeltas+0x150]
+	movss xmm1, dword [_data16_80000000]
 	movss xmm0, dword [ebp-0xb4]
 	xorps xmm0, xmm1
 	movss [ebp-0x54], xmm0
@@ -4146,7 +4145,7 @@ CMD_VEH_FireWeapon_270:
 	test edi, edi
 	jz CMD_VEH_FireWeapon_120
 	movss xmm0, dword [edx+0x1dc]
-	xorps xmm0, [s_correctSolidDeltas+0x150]
+	xorps xmm0, [_data16_80000000]
 	movaps xmm1, xmm0
 	mulss xmm1, [ebp-0xc4]
 	addss xmm1, [ebp-0x60]
@@ -4326,7 +4325,7 @@ CMD_VEH_FireWeapon_110:
 	addss xmm2, xmm0
 	sqrtss xmm2, xmm2
 	movaps xmm0, xmm2
-	xorps xmm0, [s_correctSolidDeltas+0x150]
+	xorps xmm0, [_data16_80000000]
 	ucomiss xmm0, [_float_0_00000000]
 	jb CMD_VEH_FireWeapon_260
 	movss xmm1, dword [_float_1_00000000]
@@ -4357,7 +4356,7 @@ CMD_VEH_FireWeapon_330:
 	mov eax, [ebp-0xb8]
 	movss xmm2, dword [eax+0x40c]
 	movaps xmm4, xmm2
-	xorps xmm4, [s_correctSolidDeltas+0x150]
+	xorps xmm4, [_data16_80000000]
 	movss xmm3, dword [ebp-0x48]
 	movaps xmm0, xmm3
 	subss xmm0, xmm2
@@ -4377,7 +4376,7 @@ CMD_VEH_FireWeapon_330:
 	movss [ebp-0x48], xmm0
 	movss xmm2, dword [eax+0x40c]
 	movaps xmm4, xmm2
-	xorps xmm4, [s_correctSolidDeltas+0x150]
+	xorps xmm4, [_data16_80000000]
 	movss xmm3, dword [ebp-0x44]
 	movaps xmm0, xmm3
 	subss xmm0, xmm2
@@ -5382,8 +5381,10 @@ _float_17_60000038:		dd 0x418ccccd	; 17.6
 _float_0_00000000:		dd 0x0	; 0
 _float_0_50000000:		dd 0x3f000000	; 0.5
 _float_1_00000000:		dd 0x3f800000	; 1
+_data16_80000000:		dd 0x80000000, 0x0, 0x0, 0x0	; OWORD
 _float_0_00277778:		dd 0x3b360b61	; 0.00277778
 _float_360_00000000:		dd 0x43b40000	; 360
+_data16_7fffffff:		dd 0x7fffffff, 0x0, 0x0, 0x0	; OWORD
 _float_0_05000000:		dd 0x3d4ccccd	; 0.05
 _float__0_05000000:		dd 0xbd4ccccd	; -0.05
 _float_0_00100000:		dd 0x3a83126f	; 0.001

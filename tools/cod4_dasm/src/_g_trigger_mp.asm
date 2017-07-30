@@ -7,7 +7,6 @@
 	extern Scr_Notify
 	extern G_FreeEntityDelay
 	extern G_SpawnFloat
-	extern _ZZ11Melee_TraceP9gentity_sP11weaponParmsifffP7trace_tPfE12traceOffsets
 	extern SV_LinkEntity
 	extern va
 	extern Com_Error
@@ -225,7 +224,7 @@ SP_trigger_disk_70:
 	addss xmm0, [ebp-0xc]
 	movss [ebp-0xc], xmm0
 	movaps xmm1, xmm0
-	xorps xmm1, [_ZZ11Melee_TraceP9gentity_sP11weaponParmsifffP7trace_tPfE12traceOffsets+0x170]
+	xorps xmm1, [_data16_80000000]
 	movss [ebx+0x108], xmm1
 	movss [ebx+0x10c], xmm1
 	mov dword [ebx+0x110], 0xc7c35000
@@ -589,7 +588,7 @@ SP_trigger_radius_100:
 	mov edx, [ebp-0xc]
 	mov [ebp-0x1c], edx
 	movss xmm0, dword [ebp-0x1c]
-	xorps xmm0, [_ZZ11Melee_TraceP9gentity_sP11weaponParmsifffP7trace_tPfE12traceOffsets+0x160]
+	xorps xmm0, [_data16_80000000]
 	movss [ebp-0x1c], xmm0
 	mov eax, [ebp-0x1c]
 	mov [ebx+0x108], eax
@@ -1061,7 +1060,7 @@ G_CheckHitTriggerDamage:
 	addss xmm2, xmm0
 	sqrtss xmm2, xmm2
 	movaps xmm0, xmm2
-	xorps xmm0, [_ZZ11Melee_TraceP9gentity_sP11weaponParmsifffP7trace_tPfE12traceOffsets+0x190]
+	xorps xmm0, [_data16_80000000]
 	ucomiss xmm0, [_float_0_00000000]
 	jb G_CheckHitTriggerDamage_10
 	movss xmm1, dword [_float_1_00000000]
@@ -1212,7 +1211,7 @@ G_GrenadeTouchTriggerDamage:
 	addss xmm2, xmm0
 	sqrtss xmm2, xmm2
 	movaps xmm0, xmm2
-	xorps xmm0, [_ZZ11Melee_TraceP9gentity_sP11weaponParmsifffP7trace_tPfE12traceOffsets+0x180]
+	xorps xmm0, [_data16_80000000]
 	ucomiss xmm0, [_float_0_00000000]
 	jb G_GrenadeTouchTriggerDamage_10
 	movss xmm1, dword [_float_1_00000000]
@@ -1366,6 +1365,7 @@ _cstring_usage_spawn_trig:		db "USAGE: spawn( ",22h,"trigger_radius",22h,", <ori
 ;All constant floats and doubles:
 SECTION .rdata
 _float_64_00000000:		dd 0x42800000	; 64
+_data16_80000000:		dd 0x80000000, 0x0, 0x0, 0x0	; OWORD
 _float_0_00000000:		dd 0x0	; 0
 _float_1_00000000:		dd 0x3f800000	; 1
 

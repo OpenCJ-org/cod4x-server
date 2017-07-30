@@ -10,7 +10,6 @@
 	extern Com_PrintWarning
 	extern AngleNormalize360
 	extern floorf
-	extern _ZZ11Melee_TraceP9gentity_sP11weaponParmsifffP7trace_tPfE12traceOffsets
 	extern G_DObjGetLocalBoneIndexMatrix
 	extern SL_ConvertToString
 	extern G_TryPushingEntity
@@ -55,7 +54,6 @@
 	extern G_LevelSpawnString
 	extern G_DObjUpdate
 	extern G_GetWeaponIndexForName
-	extern g_clients
 	extern SV_LinkEntity
 	extern Com_Memset
 	extern BG_VehiclesGetSlotTagName
@@ -434,7 +432,7 @@ VEH_PlayerRotation:
 	seta cl
 	lea eax, [ecx+ecx-0x1]
 	mov ecx, eax
-	andps xmm1, [_ZZ11Melee_TraceP9gentity_sP11weaponParmsifffP7trace_tPfE12traceOffsets+0x60]
+	andps xmm1, [_data16_7fffffff]
 	ucomiss xmm1, [_float_20_00000000]
 	jb VEH_PlayerRotation_10
 	movsx edx, al
@@ -518,7 +516,7 @@ VEH_GetWheelOrigin_20:
 VEH_GetWheelOrigin_30:
 	sqrtss xmm2, xmm2
 	movaps xmm0, xmm2
-	xorps xmm0, [_ZZ11Melee_TraceP9gentity_sP11weaponParmsifffP7trace_tPfE12traceOffsets+0xc0]
+	xorps xmm0, [_data16_80000000]
 	ucomiss xmm0, [_float_0_00000000]
 	jb VEH_GetWheelOrigin_40
 	movss xmm1, dword [_float_1_00000000]
@@ -933,7 +931,7 @@ VEH_TouchEntities_10:
 	call RadiusFromBounds
 	fst dword [ebp-0x10ac]
 	movss xmm0, dword [ebp-0x10ac]
-	xorps xmm0, [_ZZ11Melee_TraceP9gentity_sP11weaponParmsifffP7trace_tPfE12traceOffsets+0xe0]
+	xorps xmm0, [_data16_80000000]
 	movss [ebp-0x3c], xmm0
 	movss [ebp-0x38], xmm0
 	movss [ebp-0x34], xmm0
@@ -1126,7 +1124,7 @@ VEH_TouchEntities_130:
 	mulss xmm1, xmm5
 	addss xmm0, xmm1
 	sqrtss xmm6, xmm0
-	movss xmm2, dword [_ZZ11Melee_TraceP9gentity_sP11weaponParmsifffP7trace_tPfE12traceOffsets+0xe0]
+	movss xmm2, dword [_data16_80000000]
 	movaps xmm0, xmm6
 	xorps xmm0, xmm2
 	ucomiss xmm0, [_float_0_00000000]
@@ -1385,7 +1383,7 @@ VEH_GroundPlant_160:
 	addss xmm0, xmm1
 	sqrtss xmm1, xmm0
 	movaps xmm0, xmm1
-	xorps xmm0, [_ZZ11Melee_TraceP9gentity_sP11weaponParmsifffP7trace_tPfE12traceOffsets+0xf0]
+	xorps xmm0, [_data16_80000000]
 	pxor xmm2, xmm2
 	ucomiss xmm0, xmm2
 	jb VEH_GroundPlant_20
@@ -1431,7 +1429,7 @@ VEH_GroundPlant_270:
 	addss xmm0, xmm1
 	sqrtss xmm1, xmm0
 	movaps xmm0, xmm1
-	xorps xmm0, [_ZZ11Melee_TraceP9gentity_sP11weaponParmsifffP7trace_tPfE12traceOffsets+0xf0]
+	xorps xmm0, [_data16_80000000]
 	pxor xmm7, xmm7
 	ucomiss xmm0, xmm7
 	jb VEH_GroundPlant_30
@@ -1522,7 +1520,7 @@ VEH_GroundPlant_130:
 	addss xmm1, xmm0
 	sqrtss xmm1, xmm1
 	movaps xmm0, xmm1
-	xorps xmm0, [_ZZ11Melee_TraceP9gentity_sP11weaponParmsifffP7trace_tPfE12traceOffsets+0xf0]
+	xorps xmm0, [_data16_80000000]
 	pxor xmm2, xmm2
 	ucomiss xmm0, xmm2
 	jb VEH_GroundPlant_70
@@ -1563,7 +1561,7 @@ VEH_GroundPlant_280:
 	addss xmm1, xmm0
 	sqrtss xmm1, xmm1
 	movaps xmm0, xmm1
-	xorps xmm0, [_ZZ11Melee_TraceP9gentity_sP11weaponParmsifffP7trace_tPfE12traceOffsets+0xf0]
+	xorps xmm0, [_data16_80000000]
 	pxor xmm7, xmm7
 	ucomiss xmm0, xmm7
 	jb VEH_GroundPlant_80
@@ -1692,7 +1690,7 @@ VEH_GroundPlant_120:
 	mulss xmm1, [ecx+0x4]
 	addss xmm0, xmm1
 	subss xmm0, [ebp-0x14c]
-	xorps xmm0, [_ZZ11Melee_TraceP9gentity_sP11weaponParmsifffP7trace_tPfE12traceOffsets+0xf0]
+	xorps xmm0, [_data16_80000000]
 	divss xmm0, dword [ebp-0x148]
 	movss [ecx+0x8], xmm0
 	add ebx, 0x1
@@ -1767,7 +1765,7 @@ VEH_GroundPlant_100:
 	mulss xmm1, [ebx+0x4]
 	addss xmm0, xmm1
 	subss xmm0, [ebp-0x14c]
-	xorps xmm0, [_ZZ11Melee_TraceP9gentity_sP11weaponParmsifffP7trace_tPfE12traceOffsets+0xf0]
+	xorps xmm0, [_data16_80000000]
 	divss xmm0, dword [ebp-0x148]
 	movss [ebx+0x8], xmm0
 	jmp VEH_GroundPlant_90
@@ -2105,7 +2103,7 @@ InitFirstThink_10:
 	mulss xmm0, [_float_0_50000000]
 	mulss xmm0, [_float_1_50000000]
 	movaps xmm1, xmm0
-	xorps xmm1, [_ZZ11Melee_TraceP9gentity_sP11weaponParmsifffP7trace_tPfE12traceOffsets+0x100]
+	xorps xmm1, [_data16_80000000]
 	mov eax, [ebp-0x50]
 	add eax, 0x120
 	mov edx, [ebp-0x50]
@@ -2453,7 +2451,7 @@ VEH_SlideMove_460:
 	ucomiss xmm0, xmm1
 	jb VEH_SlideMove_240
 	movaps xmm0, xmm4
-	xorps xmm0, [_ZZ11Melee_TraceP9gentity_sP11weaponParmsifffP7trace_tPfE12traceOffsets+0x110]
+	xorps xmm0, [_data16_80000000]
 	mulss xmm0, [ecx]
 	movaps xmm1, xmm2
 	mulss xmm1, [ecx+0x4]
@@ -2549,7 +2547,7 @@ VEH_SlideMove_20:
 	ucomiss xmm1, xmm0
 	jb VEH_SlideMove_320
 	movaps xmm0, xmm4
-	xorps xmm0, [_ZZ11Melee_TraceP9gentity_sP11weaponParmsifffP7trace_tPfE12traceOffsets+0x110]
+	xorps xmm0, [_data16_80000000]
 	mulss xmm0, [s_phys_dup_1+0x4]
 	movaps xmm1, xmm5
 	mulss xmm1, [s_phys_dup_1+0x8]
@@ -2612,7 +2610,7 @@ VEH_SlideMove_130:
 	mulss xmm0, xmm0
 	ucomiss xmm1, xmm0
 	jb VEH_SlideMove_370
-	xorps xmm3, [_ZZ11Melee_TraceP9gentity_sP11weaponParmsifffP7trace_tPfE12traceOffsets+0x110]
+	xorps xmm3, [_data16_80000000]
 	mulss xmm3, [ecx]
 	mulss xmm6, [ecx+0x4]
 	subss xmm3, xmm6
@@ -2641,7 +2639,7 @@ VEH_SlideMove_160:
 	ucomiss xmm0, xmm1
 	jb VEH_SlideMove_390
 	movaps xmm0, xmm4
-	xorps xmm0, [_ZZ11Melee_TraceP9gentity_sP11weaponParmsifffP7trace_tPfE12traceOffsets+0x110]
+	xorps xmm0, [_data16_80000000]
 	mulss xmm0, [ecx]
 	movaps xmm1, xmm2
 	mulss xmm1, [ecx+0x4]
@@ -2702,7 +2700,7 @@ VEH_SlideMove_200:
 	ucomiss xmm0, xmm2
 	jb VEH_SlideMove_450
 	movaps xmm0, xmm6
-	xorps xmm0, [_ZZ11Melee_TraceP9gentity_sP11weaponParmsifffP7trace_tPfE12traceOffsets+0x110]
+	xorps xmm0, [_data16_80000000]
 	mulss xmm0, [ecx]
 	subss xmm0, xmm3
 	movss [ebp-0x1c], xmm0
@@ -2748,7 +2746,7 @@ VEH_SlideMove_250:
 	addss xmm0, xmm1
 	sqrtss xmm1, xmm0
 	movaps xmm0, xmm1
-	xorps xmm0, [_ZZ11Melee_TraceP9gentity_sP11weaponParmsifffP7trace_tPfE12traceOffsets+0x110]
+	xorps xmm0, [_data16_80000000]
 	pxor xmm2, xmm2
 	ucomiss xmm0, xmm2
 	jb VEH_SlideMove_490
@@ -2808,7 +2806,7 @@ VEH_SlideMove_590:
 	addss xmm0, xmm1
 	sqrtss xmm2, xmm0
 	movaps xmm0, xmm2
-	xorps xmm0, [_ZZ11Melee_TraceP9gentity_sP11weaponParmsifffP7trace_tPfE12traceOffsets+0x110]
+	xorps xmm0, [_data16_80000000]
 	pxor xmm1, xmm1
 	ucomiss xmm0, xmm1
 	jb VEH_SlideMove_500
@@ -3132,7 +3130,7 @@ VEH_StepSlideMove_50:
 	ucomiss xmm1, xmm0
 	jb VEH_StepSlideMove_60
 	movaps xmm0, xmm4
-	xorps xmm0, [_ZZ11Melee_TraceP9gentity_sP11weaponParmsifffP7trace_tPfE12traceOffsets+0x120]
+	xorps xmm0, [_data16_80000000]
 	mulss xmm0, [ebp-0x64]
 	movaps xmm1, xmm5
 	mulss xmm1, [ebp-0x60]
@@ -3218,7 +3216,7 @@ IntegratePosAndRot:
 	pxor xmm1, xmm1
 IntegratePosAndRot_190:
 	movss xmm0, dword [edi+0x4c]
-	xorps xmm0, [_ZZ11Melee_TraceP9gentity_sP11weaponParmsifffP7trace_tPfE12traceOffsets+0x130]
+	xorps xmm0, [_data16_80000000]
 	mulss xmm0, [_float_90_00000000]
 	mulss xmm0, xmm1
 	movss [edi+0x94], xmm0
@@ -3394,7 +3392,7 @@ IntegratePosAndRot_390:
 	sqrtss xmm0, xmm0
 	movss [ebp-0x6c], xmm0
 	movss xmm0, dword [ebp-0x7c]
-	andps xmm0, [_ZZ11Melee_TraceP9gentity_sP11weaponParmsifffP7trace_tPfE12traceOffsets+0x140]
+	andps xmm0, [_data16_7fffffff]
 	ucomiss xmm0, [_float_0_01000000]
 	jp IntegratePosAndRot_90
 	jae IntegratePosAndRot_90
@@ -3414,7 +3412,7 @@ IntegratePosAndRot_310:
 	jz IntegratePosAndRot_110
 	mov eax, [vehTestWeight]
 	movss xmm0, dword [eax+0xc]
-	xorps xmm0, [_ZZ11Melee_TraceP9gentity_sP11weaponParmsifffP7trace_tPfE12traceOffsets+0x130]
+	xorps xmm0, [_data16_80000000]
 	movaps xmm1, xmm0
 	mulss xmm1, [esi]
 	addss xmm3, xmm1
@@ -3615,7 +3613,7 @@ IntegratePosAndRot_70:
 	ucomiss xmm1, xmm0
 	jb IntegratePosAndRot_230
 	movaps xmm0, xmm4
-	xorps xmm0, [_ZZ11Melee_TraceP9gentity_sP11weaponParmsifffP7trace_tPfE12traceOffsets+0x130]
+	xorps xmm0, [_data16_80000000]
 	mulss xmm0, [s_phys_dup_1+0x4]
 	movaps xmm1, xmm5
 	mulss xmm1, [s_phys_dup_1+0x8]
@@ -3690,7 +3688,7 @@ IntegratePosAndRot_100:
 	mov eax, [vehTestWeight]
 	movss xmm0, dword [_float_0_10000000]
 	mulss xmm0, [eax+0xc]
-	xorps xmm0, [_ZZ11Melee_TraceP9gentity_sP11weaponParmsifffP7trace_tPfE12traceOffsets+0x130]
+	xorps xmm0, [_data16_80000000]
 	movaps xmm3, xmm0
 	mulss xmm3, [esi]
 	pxor xmm1, xmm1
@@ -3742,7 +3740,7 @@ IntegratePosAndRot_140:
 	addss xmm7, xmm2
 	sqrtss xmm2, xmm7
 	movaps xmm0, xmm2
-	xorps xmm0, [_ZZ11Melee_TraceP9gentity_sP11weaponParmsifffP7trace_tPfE12traceOffsets+0x130]
+	xorps xmm0, [_data16_80000000]
 	ucomiss xmm0, [_float_0_00000000]
 	jb IntegratePosAndRot_340
 	movss xmm1, dword [_float_1_00000000]
@@ -3850,7 +3848,7 @@ IntegratePosAndRot_520:
 	addss xmm2, xmm0
 	sqrtss xmm2, xmm2
 	movaps xmm0, xmm2
-	xorps xmm0, [_ZZ11Melee_TraceP9gentity_sP11weaponParmsifffP7trace_tPfE12traceOffsets+0x130]
+	xorps xmm0, [_data16_80000000]
 	pxor xmm1, xmm1
 	ucomiss xmm0, xmm1
 	jb IntegratePosAndRot_380
@@ -3974,7 +3972,7 @@ IntegratePosAndRot_490:
 	addss xmm0, xmm2
 	sqrtss xmm2, xmm0
 	movaps xmm0, xmm2
-	xorps xmm0, [_ZZ11Melee_TraceP9gentity_sP11weaponParmsifffP7trace_tPfE12traceOffsets+0x130]
+	xorps xmm0, [_data16_80000000]
 	pxor xmm1, xmm1
 	ucomiss xmm0, xmm1
 	jb IntegratePosAndRot_450
@@ -4020,7 +4018,7 @@ IntegratePosAndRot_410:
 	ucomiss xmm1, xmm5
 	jb IntegratePosAndRot_480
 	movaps xmm0, xmm3
-	xorps xmm0, [_ZZ11Melee_TraceP9gentity_sP11weaponParmsifffP7trace_tPfE12traceOffsets+0x130]
+	xorps xmm0, [_data16_80000000]
 	mulss xmm0, [s_phys_dup_1+0x4]
 	movaps xmm1, xmm4
 	mulss xmm1, [s_phys_dup_1+0x8]
@@ -4084,7 +4082,7 @@ IntegratePosAndRot_370:
 	pxor xmm0, xmm0
 	ucomiss xmm1, xmm0
 	jae IntegratePosAndRot_520
-	movss xmm1, dword [_ZZ11Melee_TraceP9gentity_sP11weaponParmsifffP7trace_tPfE12traceOffsets+0x130]
+	movss xmm1, dword [_data16_80000000]
 	movss xmm0, dword [ebp-0x24]
 	xorps xmm0, xmm1
 	movss [ebp-0x24], xmm0
@@ -4289,7 +4287,7 @@ SpawnVehicle_80:
 	mov [edi+0x19c], eax
 	mov byte [edi+0x16b], 0x1
 	mov byte [edi+0x16c], 0x1
-	mov dword [edi+0x190], g_clients+0xaa011
+	mov dword [edi+0x190], 0x810211
 	lea eax, [edi+0x114]
 	mov [esp+0x8], eax
 	lea eax, [edi+0x108]
@@ -4680,7 +4678,7 @@ VEH_JoltBody_copy:
 	movss xmm0, dword [edi+0x8]
 	mulss xmm0, [ebp-0x28]
 	addss xmm1, xmm0
-	xorps xmm1, [_ZZ11Melee_TraceP9gentity_sP11weaponParmsifffP7trace_tPfE12traceOffsets+0xb0]
+	xorps xmm1, [_data16_80000000]
 	movss [ebx+0x2c4], xmm1
 	mov dword [ebx+0x2c8], 0x3f800000
 	movss xmm3, dword [ebp-0x68]
@@ -6008,7 +6006,7 @@ G_VehEntHandler_Think_40:
 	mov edi, [edx+0x164]
 	jmp G_VehEntHandler_Think_30
 G_VehEntHandler_Think_260:
-	xorps xmm3, [_ZZ11Melee_TraceP9gentity_sP11weaponParmsifffP7trace_tPfE12traceOffsets+0x150]
+	xorps xmm3, [_data16_80000000]
 	jmp G_VehEntHandler_Think_340
 G_VehEntHandler_Think_230:
 	movss [ebx+0x48], xmm2
@@ -6597,9 +6595,11 @@ _float_90_00000000:		dd 0x42b40000	; 90
 _float_0_00277778:		dd 0x3b360b61	; 0.00277778
 _float_0_50000000:		dd 0x3f000000	; 0.5
 _float_360_00000000:		dd 0x43b40000	; 360
+_data16_7fffffff:		dd 0x7fffffff, 0x0, 0x0, 0x0	; OWORD
 _float_20_00000000:		dd 0x41a00000	; 20
 _float_0_01000000:		dd 0x3c23d70a	; 0.01
 _float_127_00000000:		dd 0x42fe0000	; 127
+_data16_80000000:		dd 0x80000000, 0x0, 0x0, 0x0	; OWORD
 _float_0_00000000:		dd 0x0	; 0
 _float_1_00000000:		dd 0x3f800000	; 1
 _float_2_00000000:		dd 0x40000000	; 2

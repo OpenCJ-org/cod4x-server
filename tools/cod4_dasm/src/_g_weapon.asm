@@ -51,7 +51,6 @@
 	extern G_random
 	extern cosf
 	extern sinf
-	extern s_correctSolidDeltas
 	extern G_FireRocket
 
 ;Exports of g_weapon:
@@ -1257,7 +1256,7 @@ Weapon_Throw_Grenade_40:
 	addss xmm1, xmm2
 	sqrtss xmm1, xmm1
 	movaps xmm0, xmm1
-	xorps xmm0, [_ZZ11Melee_TraceP9gentity_sP11weaponParmsifffP7trace_tPfE12traceOffsets+0x30]
+	xorps xmm0, [_data16_80000000]
 	ucomiss xmm0, [_float_0_00000000]
 	jb Weapon_Throw_Grenade_30
 	movss xmm3, dword [_float_1_00000000]
@@ -1597,7 +1596,7 @@ Weapon_RocketLauncher_Fire:
 	addss xmm1, xmm2
 	sqrtss xmm1, xmm1
 	movaps xmm0, xmm1
-	xorps xmm0, [s_correctSolidDeltas+0x220]
+	xorps xmm0, [_data16_80000000]
 	ucomiss xmm0, [_float_0_00000000]
 	jb Weapon_RocketLauncher_Fire_10
 	movss xmm2, dword [_float_1_00000000]
@@ -1709,7 +1708,7 @@ Weapon_GrenadeLauncher_Fire:
 	addss xmm1, xmm2
 	sqrtss xmm1, xmm1
 	movaps xmm0, xmm1
-	xorps xmm0, [_ZZ11Melee_TraceP9gentity_sP11weaponParmsifffP7trace_tPfE12traceOffsets+0x40]
+	xorps xmm0, [_data16_80000000]
 	ucomiss xmm0, [_float_0_00000000]
 	jb Weapon_GrenadeLauncher_Fire_10
 	movss xmm3, dword [_float_1_00000000]
@@ -1783,6 +1782,7 @@ _float_0_00000000:		dd 0x0	; 0
 _float_1_00000000:		dd 0x3f800000	; 1
 _float_0_50000000:		dd 0x3f000000	; 0.5
 _float_1_50000000:		dd 0x3fc00000	; 1.5
+_data16_80000000:		dd 0x80000000, 0x0, 0x0, 0x0	; OWORD
 _double_0_01745329:		dq 0x3f91df46a2529d39	; 0.0174533
 _float_16_00000000:		dd 0x41800000	; 16
 _float_360_00000000:		dd 0x43b40000	; 360

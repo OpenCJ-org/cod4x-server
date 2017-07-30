@@ -9,7 +9,7 @@
 	extern level
 	extern BG_CanItemBeGrabbed
 	extern Q_strncpyz
-	extern I_CleanStr
+	extern Q_CleanStr
 	extern SV_GetGuid
 	extern G_LogPrintf
 	extern BG_PlayerCanPickUpWeaponType
@@ -441,7 +441,7 @@ Touch_Item_40:
 	mov [esp], ebx
 	call Q_strncpyz
 	mov [esp], ebx
-	call I_CleanStr
+	call Q_CleanStr
 	mov ecx, [ebp-0xd8]
 	mov [esp], ecx
 	call BG_GetWeaponDef

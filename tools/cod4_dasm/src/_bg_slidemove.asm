@@ -4,7 +4,6 @@
 	extern Trace_GetEntityHitId
 	extern PM_AddTouchEnt
 	extern PM_ClipVelocity
-	extern _ZZ14PM_GetMoveAnimP13playerState_s17PmStanceFrontBackiiE13moveAnimTable
 	extern PM_ProjectVelocity
 	extern floorf
 	extern PM_ShouldMakeFootsteps
@@ -346,7 +345,7 @@ PM_SlideMove_160:
 	movss xmm0, dword [ebp+eax*4-0x68]
 	ucomiss xmm0, [_float_0_10000000]
 	jae PM_SlideMove_240
-	xorps xmm0, [_ZZ14PM_GetMoveAnimP13playerState_s17PmStanceFrontBackiiE13moveAnimTable+0x1a0]
+	xorps xmm0, [_data16_80000000]
 	mov edx, [ebp-0x154]
 	ucomiss xmm0, [edx+0x64]
 	ja PM_SlideMove_250
@@ -456,7 +455,7 @@ PM_SlideMove_270:
 	addss xmm0, xmm1
 	sqrtss xmm2, xmm0
 	movaps xmm0, xmm2
-	xorps xmm0, [_ZZ14PM_GetMoveAnimP13playerState_s17PmStanceFrontBackiiE13moveAnimTable+0x1a0]
+	xorps xmm0, [_data16_80000000]
 	pxor xmm1, xmm1
 	ucomiss xmm0, xmm1
 	jb PM_SlideMove_300
@@ -901,7 +900,7 @@ PM_StepSlideMove_350:
 	movss xmm1, dword [esi+0x24]
 	subss xmm1, [ebp-0x2c]
 	movaps xmm0, xmm1
-	andps xmm0, [_ZZ14PM_GetMoveAnimP13playerState_s17PmStanceFrontBackiiE13moveAnimTable+0x1b0]
+	andps xmm0, [_data16_7fffffff]
 	ucomiss xmm0, [_float_0_50000000]
 	jbe PM_StepSlideMove_180
 	movaps xmm0, xmm1
@@ -921,7 +920,7 @@ PM_StepSlideMove_350:
 PM_StepSlideMove_380:
 	movss xmm0, dword [esi+0x24]
 	subss xmm0, [ebp-0x20]
-	andps xmm0, [_ZZ14PM_GetMoveAnimP13playerState_s17PmStanceFrontBackiiE13moveAnimTable+0x1b0]
+	andps xmm0, [_data16_7fffffff]
 	divss xmm0, dword [ebp-0x1c]
 	movss xmm1, dword [_float_1_00000000]
 	subss xmm1, xmm0
@@ -1232,9 +1231,11 @@ _float_0_00000000:		dd 0x0	; 0
 _float_1_00000000:		dd 0x3f800000	; 1
 _float_0_99900001:		dd 0x3f7fbe77	; 0.999
 _float_0_10000000:		dd 0x3dcccccd	; 0.1
+_data16_80000000:		dd 0x80000000, 0x0, 0x0, 0x0	; OWORD
 _float_0_89999998:		dd 0x3f666666	; 0.9
 _float_9_00000000:		dd 0x41100000	; 9
 _float_0_00100000:		dd 0x3a83126f	; 0.001
+_data16_7fffffff:		dd 0x7fffffff, 0x0, 0x0, 0x0	; OWORD
 _float_0_80000001:		dd 0x3f4ccccd	; 0.8
 _float_0_19999999:		dd 0x3e4ccccc	; 0.2
 _float_4_00000000:		dd 0x40800000	; 4

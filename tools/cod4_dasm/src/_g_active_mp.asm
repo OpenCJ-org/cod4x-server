@@ -46,7 +46,6 @@
 	extern G_SafeDObjFree
 	extern turret_think_client
 	extern memset
-	extern g_clients
 	extern Pmove
 	extern SV_UnlinkEntity
 	extern Cmd_FollowCycle_f
@@ -591,7 +590,7 @@ StuckInClient_80:
 	or dword [eax+0xc], 0x80
 	mov eax, [ebx+0x15c]
 	movaps xmm0, xmm1
-	xorps xmm0, [_ZZ15G_TouchTriggersP9gentity_sE5range+0x20]
+	xorps xmm0, [_data16_80000000]
 	movaps xmm1, xmm0
 	mulss xmm1, [ebp-0x20]
 	movss [eax+0x28], xmm1
@@ -1301,7 +1300,7 @@ SpectatorThink_60:
 	mov [ebp-0x10c], eax
 	mov eax, [edi+0x1c]
 	mov [ebp-0x108], eax
-	mov dword [ebp-0xe4], g_clients+0x9a611
+	mov dword [ebp-0xe4], 0x800811
 	mov byte [ebp-0x1c], 0x1
 	mov [esp], ebx
 	call Pmove
@@ -1659,7 +1658,7 @@ ClientThink_real_100:
 	mov [ebp-0x1f4], eax
 	mov eax, [edi+0x2fcc]
 	mov [ebp-0x1f0], eax
-	mov eax, g_clients+0xa9e11
+	mov eax, 0x810011
 	cmp dword [edi+0x4], 0x7
 	mov edx, 0x2810011
 	cmovl eax, edx
@@ -2226,7 +2225,7 @@ P_DamageFeedback_50:
 	test eax, eax
 	jz P_DamageFeedback_60
 	mov dword [ebx+0x3110], 0x0
-	xorps xmm6, [_ZZ15G_TouchTriggersP9gentity_sE5range+0x10]
+	xorps xmm6, [_data16_80000000]
 	movss [ebx+0x3114], xmm6
 	mov dword [ebx+0x140], 0xff
 	mov dword [ebx+0x13c], 0xff
@@ -2265,7 +2264,7 @@ P_DamageFeedback_60:
 	call AnglesToAxis
 	movss xmm6, dword [ebp-0x58]
 	movaps xmm5, xmm6
-	xorps xmm5, [_ZZ15G_TouchTriggersP9gentity_sE5range+0x10]
+	xorps xmm5, [_data16_80000000]
 	movss xmm0, dword [ebx+0x30b0]
 	movaps xmm2, xmm0
 	mulss xmm2, [ebp-0x3c]
@@ -3103,6 +3102,7 @@ _cstring_game_droppedfori:		db "GAME_DROPPEDFORINACTIVITY",0
 ;All constant floats and doubles:
 SECTION .rdata
 _float_0_00010000:		dd 0x38d1b717	; 0.0001
+_data16_80000000:		dd 0x80000000, 0x0, 0x0, 0x0	; OWORD
 _float_255_00000000:		dd 0x437f0000	; 255
 _float_20_00000000:		dd 0x41a00000	; 20
 _float_0_00100000:		dd 0x3a83126f	; 0.001

@@ -21,7 +21,6 @@
 	extern entityHandlers
 	extern G_GetModelBounds
 	extern AngleVectors
-	extern _ZZ13MissileImpactP9gentity_sP7trace_tPfS3_E19MY_STRAIGHTUPNORMAL
 	extern G_TraceCapsule
 	extern Trace_GetEntityHitId
 
@@ -898,7 +897,7 @@ G_TryPushingEntity:
 	mov eax, [ebp+0x14]
 	mov [esp], eax
 	call AngleVectors
-	movss xmm1, dword [_ZZ13MissileImpactP9gentity_sP7trace_tPfS3_E19MY_STRAIGHTUPNORMAL+0x90]
+	movss xmm1, dword [_data16_80000000]
 	movss xmm0, dword [ebp-0x6c]
 	xorps xmm0, xmm1
 	movss [ebp-0x6c], xmm0
@@ -1001,7 +1000,7 @@ G_TryPushingEntity_20:
 	mov [ebp-0xa4], eax
 	movaps xmm7, xmm0
 G_TryPushingEntity_180:
-	xorps xmm7, [_ZZ13MissileImpactP9gentity_sP7trace_tPfS3_E19MY_STRAIGHTUPNORMAL+0x90]
+	xorps xmm7, [_data16_80000000]
 	movss xmm0, dword [ebp-0x90]
 	ucomiss xmm0, xmm7
 	jb G_TryPushingEntity_60
@@ -1015,7 +1014,7 @@ G_TryPushingEntity_170:
 	movss xmm4, dword [_float_4_00000000]
 G_TryPushingEntity_150:
 	movaps xmm5, xmm4
-	xorps xmm5, [_ZZ13MissileImpactP9gentity_sP7trace_tPfS3_E19MY_STRAIGHTUPNORMAL+0x90]
+	xorps xmm5, [_data16_80000000]
 	ucomiss xmm4, xmm5
 	jb G_TryPushingEntity_80
 	movaps xmm1, xmm4
@@ -1037,7 +1036,7 @@ G_TryPushingEntity_110:
 	jbe G_TryPushingEntity_90
 G_TryPushingEntity_100:
 	movaps xmm1, xmm2
-	xorps xmm1, [_ZZ13MissileImpactP9gentity_sP7trace_tPfS3_E19MY_STRAIGHTUPNORMAL+0x90]
+	xorps xmm1, [_data16_80000000]
 	ucomiss xmm2, xmm1
 	jb G_TryPushingEntity_110
 	movss xmm0, dword [ebp-0x7c]
@@ -1402,6 +1401,7 @@ _cstring_hint_friendly:		db "HINT_FRIENDLY",0
 ;All constant floats and doubles:
 SECTION .rdata
 _float_1_00000000:		dd 0x3f800000	; 1
+_data16_80000000:		dd 0x80000000, 0x0, 0x0, 0x0	; OWORD
 _double_0_50000000:		dq 0x3fe0000000000000	; 0.5
 _double_4_00000000:		dq 0x4010000000000000	; 4
 _double_0_00000000:		dq 0x0	; 0
