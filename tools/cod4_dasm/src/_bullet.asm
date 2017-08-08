@@ -18,7 +18,7 @@
 	extern CL_AddDebugStar
 	extern G_AntiLagRewindClientPos
 	extern bullet_penetrationEnabled
-	extern Cvar_GetInt
+	extern Cvar_VariableIntegerValue
 	extern OnSameTeam
 	extern BG_AdvanceTrace
 	extern G_AntiLag_RestoreClientPos
@@ -563,7 +563,7 @@ Bullet_Fire_90:
 	test eax, eax
 	jz Bullet_Fire_60
 	mov dword [esp], _cstring_scr_friendlyfire
-	call Cvar_GetInt
+	call Cvar_VariableIntegerValue
 	test eax, eax
 	jnz Bullet_Fire_80
 	mov edx, [ebp+0x8]

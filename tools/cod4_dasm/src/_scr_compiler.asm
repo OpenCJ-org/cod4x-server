@@ -43,7 +43,6 @@
 	extern atoi
 	extern IsObjectFree
 	extern GetObjectType
-	extern g_assetEntryPool
 	extern Scr_GetMethod
 	extern qsort
 	extern IsValidArrayIndex
@@ -6141,7 +6140,7 @@ EmitVariableExpression_120:
 	ja EmitVariableExpression_140
 	mov eax, 0x1
 	shl eax, cl
-	test eax, g_assetEntryPool+0x4ec0
+	test eax, 0x43c000
 	jz EmitVariableExpression_140
 	xor ecx, ecx
 	mov edx, 0x1

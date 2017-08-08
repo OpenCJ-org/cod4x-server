@@ -40,7 +40,6 @@
 	extern Scr_AddArray
 	extern Scr_AddConstString
 	extern Scr_AddInt
-	extern high_lsp_cdbk
 	extern SL_GetString_
 	extern SetEntityFieldValue
 	extern Scr_GetAnims
@@ -7800,7 +7799,7 @@ Scr_EvalEquality_170:
 	mov dword [esi+0x4], 0x6
 	movss xmm0, dword [esi]
 	subss xmm0, [edi]
-	andps xmm0, [high_lsp_cdbk+0x8b0]
+	andps xmm0, [_data16_7fffffff]
 	movss xmm1, dword [_float_0_00000100]
 	xor edx, edx
 	ucomiss xmm1, xmm0
@@ -14169,5 +14168,6 @@ _cstring_vehiclenode:		db "vehiclenode",0
 SECTION .rdata
 _float_1_00000000:		dd 0x3f800000	; 1
 _float_0_00000000:		dd 0x0	; 0
+_data16_7fffffff:		dd 0x7fffffff, 0x0, 0x0, 0x0	; OWORD
 _float_0_00000100:		dd 0x358637bd	; 1e-06
 

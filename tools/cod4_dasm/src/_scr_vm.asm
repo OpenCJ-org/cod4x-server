@@ -48,7 +48,6 @@
 	extern var_typename
 	extern va
 	extern AllocChildThread
-	extern cg_entitiesArray
 	extern AllocThread
 	extern GetNewObjectVariableReverse
 	extern Scr_DumpScriptThreads
@@ -132,15 +131,13 @@
 	extern AllocValue
 	extern scrAnimPub
 	extern FindNextSibling
-	extern g_user
-	extern Scr_GetObjectField
 	extern Scr_SetObjectField
 	extern tolower
 
 ;Exports of scr_vm:
 	global scrVmGlob
 	global thread_count
-	global fs
+	global gFs
 	global caseCount
 	global opcode
 	global error_message
@@ -150,7 +147,7 @@
 	global VM_TrimStack
 	global Scr_CancelWaittill
 	global VM_Notify
-	global VM_Execute
+	global VM_ExecuteInternal
 	global VM_Resume
 	global VM_Execute
 	global Scr_AddInt
@@ -201,7 +198,6 @@
 	global Scr_SetStructField
 	global Scr_ShutdownSystem
 	global Scr_TraverseScript
-	global GetEntityFieldValue
 	global SetEntityFieldValue
 	global Scr_CancelNotifyList
 	global Scr_ExecEntThreadNum
@@ -281,9 +277,9 @@ VM_ArchiveStack:
 	push esi
 	push ebx
 	sub esp, 0x3c
-	mov eax, [fs+0xc]
+	mov eax, [gFs+0xc]
 	mov [ebp-0x20], eax
-	sub eax, [fs+0x10]
+	sub eax, [gFs+0x10]
 	sar eax, 0x3
 	mov [ebp-0x2c], eax
 	lea esi, [eax+eax*4]
@@ -292,19 +288,19 @@ VM_ArchiveStack:
 	mov [esp], ebx
 	call MT_Alloc
 	mov [ebp-0x28], eax
-	mov edx, [fs+0x4]
+	mov edx, [gFs+0x4]
 	mov [ebp-0x24], edx
 	mov [eax+0x8], dx
 	movzx edx, word [ebp-0x2c]
 	mov [eax+0x4], dx
 	mov [eax+0x6], bx
-	mov eax, [fs]
+	mov eax, [gFs]
 	mov edx, [ebp-0x28]
 	mov [edx], eax
 	mov eax, scrVarPub
 	mov eax, [eax+0x14]
 	mov [edx+0xa], al
-	mov eax, [fs+0x8]
+	mov eax, [gFs+0x8]
 	shl eax, 0x2
 	sub [scrVmPub], eax
 	lea eax, [edx+esi+0xb]
@@ -361,7 +357,7 @@ VM_ArchiveStack_10:
 	mov [esp], eax
 	call AddRefToObject
 	mov edx, [ebp-0x24]
-	mov [fs+0x4], edx
+	mov [gFs+0x4], edx
 	mov eax, [ebp-0x28]
 	add esp, 0x3c
 	pop ebx
@@ -1239,8 +1235,8 @@ VM_Notify_300:
 	nop
 
 
-;VM_Execute()
-VM_Execute:
+;VM_ExecuteInternal()
+VM_ExecuteInternal:
 	push ebp
 	mov ebp, esp
 	push edi
@@ -1253,50 +1249,50 @@ VM_Execute:
 	mov dword [ebp-0x38], 0x0
 	mov dword [ebp-0x2c], 0x0
 	mov dword [ebp-0x30], 0x0
-VM_Execute_1760:
+VM_ExecuteInternal_1760:
 	mov eax, [g_script_error_level]
 	lea eax, [eax+eax*8]
 	lea eax, [eax*8+g_script_error]
 	mov [esp], eax
 	call setjmp
 	test eax, eax
-	jnz VM_Execute_10
-VM_Execute_810:
-	mov ecx, [fs]
-VM_Execute_40:
+	jnz VM_ExecuteInternal_10
+VM_ExecuteInternal_810:
+	mov ecx, [gFs]
+VM_ExecuteInternal_40:
 	movzx eax, byte [ecx]
 	mov [opcode], eax
 	lea edx, [ecx+0x1]
-	mov [fs], edx
+	mov [gFs], edx
 	cmp eax, 0x86
-	ja VM_Execute_20
-VM_Execute_30:
-	jmp dword [eax*4+VM_Execute_jumptab_0]
-VM_Execute_3710:
-	mov eax, [fs+0xc]
+	ja VM_ExecuteInternal_20
+VM_ExecuteInternal_30:
+	jmp dword [eax*4+VM_ExecuteInternal_jumptab_0]
+VM_ExecuteInternal_3710:
+	mov eax, [gFs+0xc]
 	add eax, 0x8
-	mov [fs+0xc], eax
+	mov [gFs+0xc], eax
 	mov dword [eax+0x4], 0x8
-	mov ecx, [fs]
+	mov ecx, [gFs]
 	movzx eax, byte [ecx]
 	mov [opcode], eax
 	lea edx, [ecx+0x1]
-	mov [fs], edx
+	mov [gFs], edx
 	cmp eax, 0x86
-	jbe VM_Execute_30
-VM_Execute_20:
+	jbe VM_ExecuteInternal_30
+VM_ExecuteInternal_20:
 	mov ecx, edx
-	jmp VM_Execute_40
-VM_Execute_3520:
-	mov eax, [fs+0x4]
+	jmp VM_ExecuteInternal_40
+VM_ExecuteInternal_3520:
+	mov eax, [gFs+0x4]
 	mov [esp], eax
 	call Scr_GetSelf
 	mov [ebp-0x34], eax
-VM_Execute_1150:
-	mov eax, [fs]
+VM_ExecuteInternal_1150:
+	mov eax, [gFs]
 	movzx edx, word [eax]
 	add eax, 0x2
-	mov [fs], eax
+	mov [gFs], eax
 	mov [esp+0x4], edx
 	mov eax, [ebp-0x34]
 	mov [esp], eax
@@ -1305,64 +1301,64 @@ VM_Execute_1150:
 	mov [esp], eax
 	call Scr_GetVarId
 	mov [ebp-0x38], eax
-	mov ecx, [fs]
-	jmp VM_Execute_40
-VM_Execute_3720:
-	mov eax, [fs+0xc]
+	mov ecx, [gFs]
+	jmp VM_ExecuteInternal_40
+VM_ExecuteInternal_3720:
+	mov eax, [gFs+0xc]
 	add eax, 0x8
-	mov [fs+0xc], eax
+	mov [gFs+0xc], eax
 	mov dword [eax+0x4], 0x8
-VM_Execute_3730:
+VM_ExecuteInternal_3730:
 	cmp dword [scrVmPub+0x8], 0x1e
-	jle VM_Execute_50
+	jle VM_ExecuteInternal_50
 	mov ebx, scrVarPub
 	mov edi, [ebx+0xc]
 	test edi, edi
-	jz VM_Execute_60
-VM_Execute_2410:
+	jz VM_ExecuteInternal_60
+VM_ExecuteInternal_2410:
 	cmp byte [ebx+0x8], 0x0
-	jnz VM_Execute_70
+	jnz VM_ExecuteInternal_70
 	mov eax, scrCompilePub
 	cmp byte [eax+0x20020], 0x0
-	jz VM_Execute_80
-VM_Execute_70:
+	jz VM_ExecuteInternal_80
+VM_ExecuteInternal_70:
 	cmp byte [scrVmPub+0x16], 0x0
-	jz VM_Execute_90
-VM_Execute_2040:
+	jz VM_ExecuteInternal_90
+VM_ExecuteInternal_2040:
 	mov eax, scrVarPub
 	mov eax, [eax+0xc]
 	mov [esp+0x4], eax
 	mov dword [esp], _cstring_s
 	call Sys_Error
-VM_Execute_90:
-	mov eax, [fs+0xc]
+VM_ExecuteInternal_90:
+	mov eax, [gFs+0xc]
 	cmp dword [eax+0x4], 0x9
-	jnz VM_Execute_100
+	jnz VM_ExecuteInternal_100
 	cmp dword [scrVmPub+0x8], 0x1e
-	jle VM_Execute_110
+	jle VM_ExecuteInternal_110
 	mov ebx, scrVarPub
 	mov dword [ebx+0x10], 0x1
 	mov ecx, [ebx+0xc]
 	test ecx, ecx
-	jz VM_Execute_120
-VM_Execute_2610:
+	jz VM_ExecuteInternal_120
+VM_ExecuteInternal_2610:
 	cmp byte [ebx+0x8], 0x0
-	jnz VM_Execute_130
+	jnz VM_ExecuteInternal_130
 	mov eax, scrCompilePub
 	cmp byte [eax+0x20020], 0x0
-	jz VM_Execute_140
-VM_Execute_130:
+	jz VM_ExecuteInternal_140
+VM_ExecuteInternal_130:
 	cmp byte [scrVmPub+0x16], 0x0
-	jz VM_Execute_150
-VM_Execute_2190:
+	jz VM_ExecuteInternal_150
+VM_ExecuteInternal_2190:
 	mov eax, scrVarPub
 	mov eax, [eax+0xc]
 	mov [esp+0x4], eax
 	mov dword [esp], _cstring_s
 	call Sys_Error
-VM_Execute_150:
-	mov eax, [fs+0xc]
-VM_Execute_100:
+VM_ExecuteInternal_150:
+	mov eax, [gFs+0xc]
+VM_ExecuteInternal_100:
 	mov edx, [eax+0x4]
 	mov eax, var_typename
 	mov eax, [eax+edx*4]
@@ -1372,37 +1368,37 @@ VM_Execute_100:
 	mov ebx, scrVarPub
 	mov edi, [ebx+0xc]
 	test edi, edi
-	jz VM_Execute_160
-VM_Execute_2360:
+	jz VM_ExecuteInternal_160
+VM_ExecuteInternal_2360:
 	cmp byte [ebx+0x8], 0x0
-	jnz VM_Execute_170
+	jnz VM_ExecuteInternal_170
 	mov eax, scrCompilePub
 	cmp byte [eax+0x20020], 0x0
-	jz VM_Execute_180
-VM_Execute_170:
+	jz VM_ExecuteInternal_180
+VM_ExecuteInternal_170:
 	cmp byte [scrVmPub+0x16], 0x0
-	jz VM_Execute_190
-VM_Execute_1860:
+	jz VM_ExecuteInternal_190
+VM_ExecuteInternal_1860:
 	mov eax, scrVarPub
 	mov eax, [eax+0xc]
 	mov [esp+0x4], eax
 	mov dword [esp], _cstring_s
 	call Sys_Error
-VM_Execute_190:
-	mov edx, [fs+0xc]
+VM_ExecuteInternal_190:
+	mov edx, [gFs+0xc]
 	cmp dword [edx+0x4], 0x1
-	jnz VM_Execute_200
+	jnz VM_ExecuteInternal_200
 	cmp dword [scrVmPub+0x8], 0x1e
-	jg VM_Execute_210
-	mov eax, [fs+0x4]
+	jg VM_ExecuteInternal_210
+	mov eax, [gFs+0x4]
 	mov [esp+0x4], eax
 	mov eax, [edx]
 	mov [esp], eax
 	call AllocChildThread
-	mov [fs+0x4], eax
-	sub dword [fs+0xc], 0x8
-VM_Execute_1770:
-	mov edx, [fs]
+	mov [gFs+0x4], eax
+	sub dword [gFs+0xc], 0x8
+VM_ExecuteInternal_1770:
+	mov edx, [gFs]
 	mov eax, [scrVmPub+0xc]
 	mov [eax], edx
 	mov edx, [scrVmPub+0xc]
@@ -1410,36 +1406,36 @@ VM_Execute_1770:
 	mov ecx, [eax]
 	add eax, 0x4
 	mov [edx], eax
-	mov [fs], ecx
-VM_Execute_530:
-	mov edx, [fs+0x8]
+	mov [gFs], ecx
+VM_ExecuteInternal_530:
+	mov edx, [gFs+0x8]
 	mov eax, [scrVmPub+0xc]
 	mov [eax+0x8], edx
-	mov dword [fs+0x8], 0x0
+	mov dword [gFs+0x8], 0x0
 	add dword [scrVmPub+0x8], 0x1
 	mov edx, [scrVmPub+0xc]
 	add edx, 0x18
 	mov [scrVmPub+0xc], edx
-	mov eax, [fs+0x4]
+	mov eax, [gFs+0x4]
 	mov [edx+0x4], eax
-	mov ecx, [fs]
-	jmp VM_Execute_40
-VM_Execute_3690:
+	mov ecx, [gFs]
+	jmp VM_ExecuteInternal_40
+VM_ExecuteInternal_3690:
 	sub eax, 0x45
 	mov [scrVmPub+0x1c], eax
-VM_Execute_1400:
-	mov ecx, [fs+0xc]
+VM_ExecuteInternal_1400:
+	mov ecx, [gFs+0xc]
 	lea eax, [ecx-0x8]
 	mov [scrVmPub+0x10], eax
-	mov eax, [fs]
+	mov eax, [gFs]
 	movzx edx, word [eax]
 	add eax, 0x2
-	mov [fs], eax
+	mov [gFs], eax
 	mov esi, edx
 	cmp dword [ecx+0x4], 0x1
-	jz VM_Execute_220
+	jz VM_ExecuteInternal_220
 	mov eax, ecx
-VM_Execute_1820:
+VM_ExecuteInternal_1820:
 	mov ebx, [eax+0x4]
 	mov eax, [eax]
 	mov [esp+0x4], eax
@@ -1454,47 +1450,47 @@ VM_Execute_1820:
 	call va
 	mov edi, [esi+0xc]
 	test edi, edi
-	jz VM_Execute_230
-VM_Execute_2380:
+	jz VM_ExecuteInternal_230
+VM_ExecuteInternal_2380:
 	cmp byte [esi+0x8], 0x0
-	jnz VM_Execute_240
+	jnz VM_ExecuteInternal_240
 	mov eax, scrCompilePub
 	cmp byte [eax+0x20020], 0x0
-	jz VM_Execute_250
-VM_Execute_240:
+	jz VM_ExecuteInternal_250
+VM_ExecuteInternal_240:
 	cmp byte [scrVmPub+0x16], 0x0
-	jz VM_Execute_260
-VM_Execute_1900:
+	jz VM_ExecuteInternal_260
+VM_ExecuteInternal_1900:
 	mov eax, scrVarPub
 	mov eax, [eax+0xc]
 	mov [esp+0x4], eax
 	mov dword [esp], _cstring_s
 	call Sys_Error
-VM_Execute_260:
-	mov eax, [fs+0xc]
+VM_ExecuteInternal_260:
+	mov eax, [gFs+0xc]
 	mov edx, [eax+0x4]
 	cmp edx, 0x5
-	jz VM_Execute_270
+	jz VM_ExecuteInternal_270
 	cmp edx, 0x6
-	jnz VM_Execute_280
+	jnz VM_ExecuteInternal_280
 	mov eax, [eax]
 	lea eax, [eax+eax*4]
 	shl eax, 0x2
 	mov [ebp-0x30], eax
-VM_Execute_1650:
+VM_ExecuteInternal_1650:
 	mov esi, eax
-VM_Execute_1630:
-	cmp esi, cg_entitiesArray+0x979e
-	ja VM_Execute_290
+VM_ExecuteInternal_1630:
+	cmp esi, 0xfffffe
+	ja VM_ExecuteInternal_290
 	mov eax, [ebp-0x30]
 	test eax, eax
-	jnz VM_Execute_300
-VM_Execute_2010:
+	jnz VM_ExecuteInternal_300
+VM_ExecuteInternal_2010:
 	mov ebx, scrVarPub
 	add esi, [ebx+0x14]
 	and esi, 0xffffff
 	mov [ebp-0x30], esi
-	sub dword [fs+0xc], 0x8
+	sub dword [gFs+0xc], 0x8
 	mov dword [ebp-0x24], 0xa
 	call VM_ArchiveStack
 	mov [ebp-0x28], eax
@@ -1505,7 +1501,7 @@ VM_Execute_2010:
 	call GetVariable
 	mov [esp], eax
 	call GetArray
-	mov edx, [fs+0x4]
+	mov edx, [gFs+0x4]
 	mov [esp+0x4], edx
 	mov [esp], eax
 	call GetNewObjectVariable
@@ -1515,18 +1511,18 @@ VM_Execute_2010:
 	call SetNewVariableValue
 	mov eax, [ebp-0x30]
 	mov [esp+0x4], eax
-	mov eax, [fs+0x4]
+	mov eax, [gFs+0x4]
 	mov [esp], eax
 	call Scr_SetThreadWaitTime
-	jmp VM_Execute_310
-VM_Execute_1250:
+	jmp VM_ExecuteInternal_310
+VM_ExecuteInternal_1250:
 	mov eax, [edx]
 	mov [esp+0x4], eax
 	mov [esp], ecx
 	call RemoveRefToValue
-	mov eax, [fs+0xc]
+	mov eax, [gFs+0xc]
 	sub eax, 0x8
-	mov [fs+0xc], eax
+	mov [gFs+0xc], eax
 	mov edx, [eax+0xc]
 	mov eax, var_typename
 	mov eax, [eax+edx*4]
@@ -1536,84 +1532,84 @@ VM_Execute_1250:
 	mov ebx, scrVarPub
 	mov edi, [ebx+0xc]
 	test edi, edi
-	jz VM_Execute_320
-VM_Execute_2640:
+	jz VM_ExecuteInternal_320
+VM_ExecuteInternal_2640:
 	cmp byte [ebx+0x8], 0x0
-	jnz VM_Execute_330
+	jnz VM_ExecuteInternal_330
 	mov eax, scrCompilePub
 	cmp byte [eax+0x20020], 0x0
-	jnz VM_Execute_330
+	jnz VM_ExecuteInternal_330
 	cmp byte [ebx+0x6], 0x0
-	jz VM_Execute_340
+	jz VM_ExecuteInternal_340
 	mov eax, 0x1
 	mov esi, [scrVmGlob+0x14]
 	test esi, esi
 	movzx edx, byte [scrVmPub+0x16]
 	cmovz eax, edx
 	mov [scrVmPub+0x16], al
-VM_Execute_340:
+VM_ExecuteInternal_340:
 	mov ebx, [scrVmPub+0x8]
 	test ebx, ebx
-	jnz VM_Execute_350
+	jnz VM_ExecuteInternal_350
 	cmp byte [scrVmPub+0x14], 0x0
-	jnz VM_Execute_350
+	jnz VM_ExecuteInternal_350
 	mov eax, scrVarPub
 	mov eax, [eax+0xc]
 	mov [esp+0x4], eax
 	mov dword [esp], _cstring_s
 	call Sys_Error
-VM_Execute_1840:
+VM_ExecuteInternal_1840:
 	cmp dword [scrVmPub+0x8], 0x1e
-	jle VM_Execute_360
+	jle VM_ExecuteInternal_360
 	mov ebx, scrVarPub
 	mov dword [ebx+0x10], 0x1
 	mov ecx, [ebx+0xc]
 	test ecx, ecx
-	jz VM_Execute_370
-VM_Execute_2440:
+	jz VM_ExecuteInternal_370
+VM_ExecuteInternal_2440:
 	cmp byte [ebx+0x8], 0x0
-	jnz VM_Execute_380
+	jnz VM_ExecuteInternal_380
 	mov eax, scrCompilePub
 	cmp byte [eax+0x20020], 0x0
-	jz VM_Execute_390
-VM_Execute_380:
+	jz VM_ExecuteInternal_390
+VM_ExecuteInternal_380:
 	cmp byte [scrVmPub+0x16], 0x0
-	jz VM_Execute_400
-VM_Execute_2090:
+	jz VM_ExecuteInternal_400
+VM_ExecuteInternal_2090:
 	mov eax, scrVarPub
 	mov eax, [eax+0xc]
 	mov [esp+0x4], eax
 	mov dword [esp], _cstring_s
 	call Sys_Error
-VM_Execute_400:
-	mov eax, [fs+0xc]
+VM_ExecuteInternal_400:
+	mov eax, [gFs+0xc]
 	cmp dword [eax+0x4], 0x9
-	jnz VM_Execute_410
+	jnz VM_ExecuteInternal_410
 	cmp dword [scrVmPub+0x8], 0x1e
-	jle VM_Execute_420
+	jle VM_ExecuteInternal_420
 	mov ebx, scrVarPub
 	mov dword [ebx+0x10], 0x1
 	mov edi, [ebx+0xc]
 	test edi, edi
-	jz VM_Execute_430
-VM_Execute_2620:
+	jz VM_ExecuteInternal_430
+VM_ExecuteInternal_2620:
 	cmp byte [ebx+0x8], 0x0
-	jnz VM_Execute_440
+	jnz VM_ExecuteInternal_440
 	mov eax, scrCompilePub
 	cmp byte [eax+0x20020], 0x0
-	jz VM_Execute_450
-VM_Execute_440:
+	jz VM_ExecuteInternal_450
+VM_ExecuteInternal_440:
 	cmp byte [scrVmPub+0x16], 0x0
-	jz VM_Execute_460
-VM_Execute_2290:
+	jz VM_ExecuteInternal_460
+VM_ExecuteInternal_2290:
 	mov eax, scrVarPub
 	mov eax, [eax+0xc]
 	mov [esp+0x4], eax
 	mov dword [esp], _cstring_s
 	call Sys_Error
-VM_Execute_460:
-	mov eax, [fs+0xc]
-VM_Execute_410:
+VM_ExecuteInternal_460:
+	mov eax, [gFs+0xc]
+VM_ExecuteInternal_410:
 	mov edx, [eax+0x4]
 	mov eax, var_typename
 	mov eax, [eax+edx*4]
@@ -1623,38 +1619,38 @@ VM_Execute_410:
 	mov ebx, scrVarPub
 	mov ecx, [ebx+0xc]
 	test ecx, ecx
-	jz VM_Execute_470
-VM_Execute_2400:
+	jz VM_ExecuteInternal_470
+VM_ExecuteInternal_2400:
 	cmp byte [ebx+0x8], 0x0
-	jnz VM_Execute_480
+	jnz VM_ExecuteInternal_480
 	mov eax, scrCompilePub
 	cmp byte [eax+0x20020], 0x0
-	jz VM_Execute_490
-VM_Execute_480:
+	jz VM_ExecuteInternal_490
+VM_ExecuteInternal_480:
 	cmp byte [scrVmPub+0x16], 0x0
-	jz VM_Execute_500
-VM_Execute_1950:
+	jz VM_ExecuteInternal_500
+VM_ExecuteInternal_1950:
 	mov eax, scrVarPub
 	mov eax, [eax+0xc]
 	mov [esp+0x4], eax
 	mov dword [esp], _cstring_s
 	call Sys_Error
-VM_Execute_500:
-	mov eax, [fs+0xc]
+VM_ExecuteInternal_500:
+	mov eax, [gFs+0xc]
 	cmp dword [eax+0x4], 0x1
-	jnz VM_Execute_510
+	jnz VM_ExecuteInternal_510
 	cmp dword [scrVmPub+0x8], 0x1e
-	jg VM_Execute_520
+	jg VM_ExecuteInternal_520
 	mov eax, [eax]
 	mov [esp], eax
 	call AllocThread
-	mov [fs+0x4], eax
-	sub dword [fs+0xc], 0x8
-VM_Execute_1910:
-	mov edx, [fs]
+	mov [gFs+0x4], eax
+	sub dword [gFs+0xc], 0x8
+VM_ExecuteInternal_1910:
+	mov edx, [gFs]
 	mov eax, [scrVmPub+0xc]
 	mov [eax], edx
-	mov edx, [fs+0x10]
+	mov edx, [gFs+0x10]
 	mov eax, [scrVmPub+0xc]
 	mov [eax+0x10], edx
 	mov edx, [scrVmPub+0xc]
@@ -1662,9 +1658,9 @@ VM_Execute_1910:
 	mov ecx, [eax]
 	add eax, 0x4
 	mov [edx], eax
-	mov [fs], ecx
-VM_Execute_2070:
-	mov ecx, [fs+0xc]
+	mov [gFs], ecx
+VM_ExecuteInternal_2070:
+	mov ecx, [gFs+0xc]
 	mov ebx, [scrVmPub+0xc]
 	mov eax, [ebx]
 	mov edx, [eax]
@@ -1672,63 +1668,63 @@ VM_Execute_2070:
 	mov [ebx], eax
 	shl edx, 0x3
 	sub ecx, edx
-	mov [fs+0x10], ecx
+	mov [gFs+0x10], ecx
 	mov edx, ecx
-VM_Execute_1500:
+VM_ExecuteInternal_1500:
 	mov eax, [scrVmPub+0xc]
 	mov [eax+0xc], edx
 	mov edx, [edx+0x4]
 	mov eax, [scrVmPub+0xc]
 	mov [eax+0x14], edx
-	mov eax, [fs+0x10]
+	mov eax, [gFs+0x10]
 	mov dword [eax+0x4], 0x8
 	add dword [thread_count], 0x1
-	jmp VM_Execute_530
-VM_Execute_290:
+	jmp VM_ExecuteInternal_530
+VM_ExecuteInternal_290:
 	mov ebx, scrVarPub
 	mov dword [ebx+0x10], 0x2
 	mov eax, [ebp-0x30]
 	test eax, eax
-	js VM_Execute_540
+	js VM_ExecuteInternal_540
 	mov edi, [ebx+0xc]
 	test edi, edi
-	jz VM_Execute_550
-VM_Execute_2450:
+	jz VM_ExecuteInternal_550
+VM_ExecuteInternal_2450:
 	cmp byte [ebx+0x8], 0x0
-	jnz VM_Execute_560
+	jnz VM_ExecuteInternal_560
 	mov eax, scrCompilePub
 	cmp byte [eax+0x20020], 0x0
-	jz VM_Execute_570
-VM_Execute_560:
+	jz VM_ExecuteInternal_570
+VM_ExecuteInternal_560:
 	cmp byte [scrVmPub+0x16], 0x0
-	jz VM_Execute_580
-VM_Execute_2130:
+	jz VM_ExecuteInternal_580
+VM_ExecuteInternal_2130:
 	mov eax, scrVarPub
 	mov eax, [eax+0xc]
 	mov [esp+0x4], eax
 	mov dword [esp], _cstring_s
 	call Sys_Error
 	mov ebx, scrVarPub
-VM_Execute_540:
+VM_ExecuteInternal_540:
 	mov ecx, [ebx+0xc]
 	test ecx, ecx
-	jz VM_Execute_590
-VM_Execute_1680:
+	jz VM_ExecuteInternal_590
+VM_ExecuteInternal_1680:
 	cmp byte [ebx+0x8], 0x0
-	jnz VM_Execute_600
+	jnz VM_ExecuteInternal_600
 	mov eax, scrCompilePub
 	cmp byte [eax+0x20020], 0x0
-	jz VM_Execute_610
-VM_Execute_600:
+	jz VM_ExecuteInternal_610
+VM_ExecuteInternal_600:
 	cmp byte [scrVmPub+0x16], 0x0
-	jz VM_Execute_620
-VM_Execute_1970:
+	jz VM_ExecuteInternal_620
+VM_ExecuteInternal_1970:
 	mov eax, scrVarPub
 	mov eax, [eax+0xc]
 	mov [esp+0x4], eax
 	mov dword [esp], _cstring_s
 	call Sys_Error
-VM_Execute_620:
+VM_ExecuteInternal_620:
 	mov dword [ebp-0x24], 0xa
 	call VM_ArchiveStack
 	mov [ebp-0x28], eax
@@ -1740,7 +1736,7 @@ VM_Execute_620:
 	call GetVariable
 	mov [esp], eax
 	call GetArray
-	mov edx, [fs+0x4]
+	mov edx, [gFs+0x4]
 	mov [esp+0x4], edx
 	mov [esp], eax
 	call GetNewObjectVariableReverse
@@ -1750,103 +1746,103 @@ VM_Execute_620:
 	call SetNewVariableValue
 	mov eax, [ebx+0x14]
 	mov [esp+0x4], eax
-	mov eax, [fs+0x4]
+	mov eax, [gFs+0x4]
 	mov [esp], eax
 	call Scr_SetThreadWaitTime
-VM_Execute_310:
-	mov eax, [fs+0x10]
+VM_ExecuteInternal_310:
+	mov eax, [gFs+0x10]
 	mov dword [eax+0xc], 0x0
-VM_Execute_1550:
+VM_ExecuteInternal_1550:
 	mov eax, [thread_count]
 	test eax, eax
-	jz VM_Execute_630
+	jz VM_ExecuteInternal_630
 	sub eax, 0x1
 	mov [thread_count], eax
-	mov eax, [fs+0x4]
+	mov eax, [gFs+0x4]
 	mov [esp], eax
 	call RemoveRefToObject
 	mov edx, [scrVmPub+0xc]
 	mov eax, [edx]
-	mov [fs], eax
+	mov [gFs], eax
 	mov eax, [edx+0x4]
-	mov [fs+0x4], eax
+	mov [gFs+0x4], eax
 	mov eax, [edx+0x8]
-	mov [fs+0x8], eax
+	mov [gFs+0x8], eax
 	mov ecx, [edx+0xc]
-	mov [fs+0xc], ecx
+	mov [gFs+0xc], ecx
 	mov eax, [edx+0x10]
-	mov [fs+0x10], eax
+	mov [gFs+0x10], eax
 	mov eax, [edx+0x14]
 	mov [ecx+0x4], eax
-	add dword [fs+0xc], 0x8
-	mov ecx, [fs]
-	jmp VM_Execute_40
-VM_Execute_3120:
-	mov eax, [fs+0xc]
+	add dword [gFs+0xc], 0x8
+	mov ecx, [gFs]
+	jmp VM_ExecuteInternal_40
+VM_ExecuteInternal_3120:
+	mov eax, [gFs+0xc]
 	add eax, 0x8
-	mov [fs+0xc], eax
+	mov [gFs+0xc], eax
 	mov dword [eax+0x4], 0x6
-	mov eax, [fs]
+	mov eax, [gFs]
 	movzx eax, byte [eax]
 	neg eax
-	mov edx, [fs+0xc]
+	mov edx, [gFs+0xc]
 	mov [edx], eax
-VM_Execute_4140:
-	add dword [fs], 0x1
-	mov ecx, [fs]
-	jmp VM_Execute_40
-VM_Execute_1370:
+VM_ExecuteInternal_4140:
+	add dword [gFs], 0x1
+	mov ecx, [gFs]
+	jmp VM_ExecuteInternal_40
+VM_ExecuteInternal_1370:
 	mov ebx, [scrVmGlob+0x14]
 	test ebx, ebx
-	jnz VM_Execute_640
+	jnz VM_ExecuteInternal_640
 	cmp byte [scrVmPub+0x15], 0x0
-	jz VM_Execute_650
+	jz VM_ExecuteInternal_650
 	call Scr_DumpScriptThreads
 	call Scr_DumpScriptVariablesDefault
 	mov byte [scrVmPub+0x16], 0x1
 	mov ebx, scrVarPub
 	mov ecx, [ebx+0xc]
 	test ecx, ecx
-	jz VM_Execute_660
-VM_Execute_2710:
+	jz VM_ExecuteInternal_660
+VM_ExecuteInternal_2710:
 	cmp byte [ebx+0x8], 0x0
-	jnz VM_Execute_670
+	jnz VM_ExecuteInternal_670
 	mov eax, scrCompilePub
 	cmp byte [eax+0x20020], 0x0
-	jnz VM_Execute_670
+	jnz VM_ExecuteInternal_670
 	cmp byte [ebx+0x6], 0x0
-	jz VM_Execute_680
+	jz VM_ExecuteInternal_680
 	mov eax, 0x1
 	mov edx, [scrVmGlob+0x14]
 	test edx, edx
 	movzx edx, byte [scrVmPub+0x16]
 	cmovz eax, edx
 	mov [scrVmPub+0x16], al
-VM_Execute_680:
+VM_ExecuteInternal_680:
 	mov eax, [scrVmPub+0x8]
 	test eax, eax
-	jnz VM_Execute_350
+	jnz VM_ExecuteInternal_350
 	cmp byte [scrVmPub+0x14], 0x0
-	jnz VM_Execute_350
-VM_Execute_2330:
+	jnz VM_ExecuteInternal_350
+VM_ExecuteInternal_2330:
 	mov eax, scrVarPub
 	mov eax, [eax+0xc]
 	mov [esp+0x4], eax
 	mov dword [esp], _cstring_s
 	call Sys_Error
-VM_Execute_2340:
-	mov ebx, [fs+0xc]
+VM_ExecuteInternal_2340:
+	mov ebx, [gFs+0xc]
 	lea eax, [ebx+0x8]
-	mov [fs+0xc], eax
+	mov [gFs+0xc], eax
 	mov eax, [ebp-0x38]
 	mov [esp], eax
 	call Scr_EvalVariableField
 	mov [ebx+0x8], eax
 	mov [ebx+0xc], edx
-	mov eax, [fs+0xc]
+	mov eax, [gFs+0xc]
 	mov edx, [eax+0x4]
 	cmp edx, 0x6
-	jz VM_Execute_690
+	jz VM_ExecuteInternal_690
 	mov eax, var_typename
 	mov eax, [eax+edx*4]
 	mov [esp+0x4], eax
@@ -1855,35 +1851,35 @@ VM_Execute_2340:
 	mov ebx, scrVarPub
 	mov edi, [ebx+0xc]
 	test edi, edi
-	jz VM_Execute_700
-VM_Execute_2630:
+	jz VM_ExecuteInternal_700
+VM_ExecuteInternal_2630:
 	cmp byte [ebx+0x8], 0x0
-	jnz VM_Execute_710
+	jnz VM_ExecuteInternal_710
 	mov eax, scrCompilePub
 	cmp byte [eax+0x20020], 0x0
-	jz VM_Execute_720
-VM_Execute_710:
+	jz VM_ExecuteInternal_720
+VM_ExecuteInternal_710:
 	cmp byte [scrVmPub+0x16], 0x0
-	jz VM_Execute_730
-VM_Execute_2170:
+	jz VM_ExecuteInternal_730
+VM_ExecuteInternal_2170:
 	mov eax, scrVarPub
 	mov eax, [eax+0xc]
 	mov [esp+0x4], eax
 	mov dword [esp], _cstring_s
 	call Sys_Error
-VM_Execute_730:
-	mov ebx, [fs+0xc]
+VM_ExecuteInternal_730:
+	mov ebx, [gFs+0xc]
 	lea eax, [ebx+0x8]
-	mov [fs+0xc], eax
+	mov [gFs+0xc], eax
 	mov eax, [ebp-0x38]
 	mov [esp], eax
 	call Scr_EvalVariableField
 	mov [ebx+0x8], eax
 	mov [ebx+0xc], edx
-	mov eax, [fs+0xc]
+	mov eax, [gFs+0xc]
 	mov edx, [eax+0x4]
 	cmp edx, 0x6
-	jz VM_Execute_740
+	jz VM_ExecuteInternal_740
 	mov eax, var_typename
 	mov eax, [eax+edx*4]
 	mov [esp+0x4], eax
@@ -1892,69 +1888,69 @@ VM_Execute_730:
 	mov ebx, scrVarPub
 	mov ecx, [ebx+0xc]
 	test ecx, ecx
-	jz VM_Execute_750
-VM_Execute_2420:
+	jz VM_ExecuteInternal_750
+VM_ExecuteInternal_2420:
 	cmp byte [ebx+0x8], 0x0
-	jnz VM_Execute_760
+	jnz VM_ExecuteInternal_760
 	mov eax, scrCompilePub
 	cmp byte [eax+0x20020], 0x0
-	jz VM_Execute_770
-VM_Execute_760:
+	jz VM_ExecuteInternal_770
+VM_ExecuteInternal_760:
 	cmp byte [scrVmPub+0x16], 0x0
-	jz VM_Execute_780
-VM_Execute_2060:
+	jz VM_ExecuteInternal_780
+VM_ExecuteInternal_2060:
 	mov eax, scrVarPub
 	mov eax, [eax+0xc]
 	mov [esp+0x4], eax
 	mov dword [esp], _cstring_s
 	call Sys_Error
-VM_Execute_780:
-	mov eax, [fs+0xc]
+VM_ExecuteInternal_780:
+	mov eax, [gFs+0xc]
 	mov [esp+0x4], eax
 	sub eax, 0x8
 	mov [esp], eax
 	call Scr_EvalOr
-VM_Execute_800:
-	sub dword [fs+0xc], 0x8
-	mov ecx, [fs]
-	jmp VM_Execute_40
-VM_Execute_1010:
-	mov eax, [fs+0xc]
+VM_ExecuteInternal_800:
+	sub dword [gFs+0xc], 0x8
+	mov ecx, [gFs]
+	jmp VM_ExecuteInternal_40
+VM_ExecuteInternal_1010:
+	mov eax, [gFs+0xc]
 	add eax, 0x8
-	mov [fs+0xc], eax
+	mov [gFs+0xc], eax
 	mov dword [eax+0x4], 0x0
-	mov ecx, [fs]
-	jmp VM_Execute_40
-VM_Execute_3480:
-	mov eax, [fs+0x4]
+	mov ecx, [gFs]
+	jmp VM_ExecuteInternal_40
+VM_ExecuteInternal_3480:
+	mov eax, [gFs+0x4]
 	mov [esp], eax
 	call Scr_GetSelf
 	mov [ebp-0x34], eax
 	mov [esp], eax
 	call IsFieldObject
 	test al, al
-	jz VM_Execute_790
-VM_Execute_3490:
-	mov ebx, [fs+0xc]
+	jz VM_ExecuteInternal_790
+VM_ExecuteInternal_3490:
+	mov ebx, [gFs+0xc]
 	lea eax, [ebx+0x8]
-	mov [fs+0xc], eax
-	mov eax, [fs]
+	mov [gFs+0xc], eax
+	mov eax, [gFs]
 	movzx edx, word [eax]
 	add eax, 0x2
-	mov [fs], eax
+	mov [gFs], eax
 	mov [esp+0x4], edx
 	mov eax, [ebp-0x34]
 	mov [esp], eax
 	call Scr_FindVariableField
 	mov [ebx+0x8], eax
 	mov [ebx+0xc], edx
-	mov ecx, [fs]
-	jmp VM_Execute_40
-VM_Execute_3380:
-	mov ebx, [fs+0xc]
+	mov ecx, [gFs]
+	jmp VM_ExecuteInternal_40
+VM_ExecuteInternal_3380:
+	mov ebx, [gFs+0xc]
 	lea eax, [ebx+0x8]
-	mov [fs+0xc], eax
-	mov eax, [fs]
+	mov [gFs+0xc], eax
+	mov eax, [gFs]
 	movzx edx, byte [eax]
 	shl edx, 0x2
 	mov eax, [scrVmPub]
@@ -1964,44 +1960,44 @@ VM_Execute_3380:
 	call Scr_EvalVariable
 	mov [ebx+0x8], eax
 	mov [ebx+0xc], edx
-	add dword [fs], 0x1
-VM_Execute_3390:
-	mov edx, [fs+0xc]
+	add dword [gFs], 0x1
+VM_ExecuteInternal_3390:
+	mov edx, [gFs+0xc]
 	lea eax, [edx-0x8]
 	mov [esp+0x4], eax
 	mov [esp], edx
 	call Scr_EvalArray
-	jmp VM_Execute_800
-VM_Execute_3540:
+	jmp VM_ExecuteInternal_800
+VM_ExecuteInternal_3540:
 	mov ebx, [scrVmPub]
 	lea eax, [ebx+0x4]
 	mov [scrVmPub], eax
-	add dword [fs+0x8], 0x1
-	mov eax, [fs]
+	add dword [gFs+0x8], 0x1
+	mov eax, [gFs]
 	movzx edx, word [eax]
 	add eax, 0x2
-	mov [fs], eax
+	mov [gFs], eax
 	mov [esp+0x4], edx
-	mov eax, [fs+0x4]
+	mov eax, [gFs+0x4]
 	mov [esp], eax
 	call GetNewVariable
 	mov [ebx+0x4], eax
-VM_Execute_3550:
-	mov eax, [fs+0xc]
+VM_ExecuteInternal_3550:
+	mov eax, [gFs+0xc]
 	cmp dword [eax+0x4], 0x8
-	jz VM_Execute_810
-VM_Execute_980:
+	jz VM_ExecuteInternal_810
+VM_ExecuteInternal_980:
 	mov [esp+0x4], eax
 	mov eax, [scrVmPub]
 	mov eax, [eax]
 	mov [esp], eax
 	call SetVariableValue
-	jmp VM_Execute_800
-VM_Execute_3640:
+	jmp VM_ExecuteInternal_800
+VM_ExecuteInternal_3640:
 	movzx ebx, word [edx]
 	lea eax, [ecx+0x3]
-	mov [fs], eax
-	mov eax, [fs+0x4]
+	mov [gFs], eax
+	mov eax, [gFs+0x4]
 	mov [esp], eax
 	call Scr_GetSelf
 	mov [ebp-0x34], eax
@@ -2012,58 +2008,58 @@ VM_Execute_3640:
 	mov [esp], eax
 	call Scr_GetVarId
 	mov [ebp-0x38], eax
-VM_Execute_3620:
+VM_ExecuteInternal_3620:
 	mov edi, [ebp-0x3c]
 	test edi, edi
-	jz VM_Execute_820
-	mov eax, [fs+0xc]
+	jz VM_ExecuteInternal_820
+	mov eax, [gFs+0xc]
 	mov esi, [eax+0x4]
 	test esi, esi
-	jz VM_Execute_830
+	jz VM_ExecuteInternal_830
 	mov [esp+0x4], eax
 	mov eax, [ebp-0x38]
 	mov [esp], eax
 	call SetVariableValue
-	jmp VM_Execute_800
-VM_Execute_3590:
-	mov eax, [fs+0xc]
+	jmp VM_ExecuteInternal_800
+VM_ExecuteInternal_3590:
+	mov eax, [gFs+0xc]
 	cmp dword [eax+0x4], 0x8
-	jz VM_Execute_840
+	jz VM_ExecuteInternal_840
 	mov ebx, scrVarPub
 	mov ecx, [ebx+0xc]
 	test ecx, ecx
-	jz VM_Execute_850
-VM_Execute_2600:
+	jz VM_ExecuteInternal_850
+VM_ExecuteInternal_2600:
 	cmp byte [ebx+0x8], 0x0
-	jnz VM_Execute_860
+	jnz VM_ExecuteInternal_860
 	mov eax, scrCompilePub
 	cmp byte [eax+0x20020], 0x0
-	jz VM_Execute_870
-VM_Execute_860:
+	jz VM_ExecuteInternal_870
+VM_ExecuteInternal_860:
 	cmp byte [scrVmPub+0x16], 0x0
-	jz VM_Execute_880
-VM_Execute_2270:
+	jz VM_ExecuteInternal_880
+VM_ExecuteInternal_2270:
 	mov eax, scrVarPub
 	mov eax, [eax+0xc]
 	mov [esp+0x4], eax
 	mov dword [esp], _cstring_s
 	call Sys_Error
-VM_Execute_880:
+VM_ExecuteInternal_880:
 	mov eax, [scrVmPub]
 	mov eax, [eax]
 	mov [ebp-0x38], eax
-VM_Execute_1120:
+VM_ExecuteInternal_1120:
 	mov dword [ebp-0x3c], 0x0
-	mov ecx, [fs]
-	jmp VM_Execute_40
-VM_Execute_1490:
+	mov ecx, [gFs]
+	jmp VM_ExecuteInternal_40
+VM_ExecuteInternal_1490:
 	mov eax, [edx]
 	mov [esp+0x4], eax
 	mov [esp], ecx
 	call RemoveRefToValue
-	mov eax, [fs+0xc]
+	mov eax, [gFs+0xc]
 	sub eax, 0x8
-	mov [fs+0xc], eax
+	mov [gFs+0xc], eax
 	mov edx, [eax+0xc]
 	mov eax, var_typename
 	mov eax, [eax+edx*4]
@@ -2073,58 +2069,58 @@ VM_Execute_1490:
 	mov ebx, scrVarPub
 	mov ecx, [ebx+0xc]
 	test ecx, ecx
-	jz VM_Execute_890
-VM_Execute_2650:
+	jz VM_ExecuteInternal_890
+VM_ExecuteInternal_2650:
 	cmp byte [ebx+0x8], 0x0
-	jnz VM_Execute_900
+	jnz VM_ExecuteInternal_900
 	mov eax, scrCompilePub
 	cmp byte [eax+0x20020], 0x0
-	jnz VM_Execute_900
+	jnz VM_ExecuteInternal_900
 	cmp byte [ebx+0x6], 0x0
-	jz VM_Execute_910
+	jz VM_ExecuteInternal_910
 	mov eax, 0x1
 	mov edx, [scrVmGlob+0x14]
 	test edx, edx
 	movzx edx, byte [scrVmPub+0x16]
 	cmovz eax, edx
 	mov [scrVmPub+0x16], al
-VM_Execute_910:
+VM_ExecuteInternal_910:
 	mov eax, [scrVmPub+0x8]
 	test eax, eax
-	jnz VM_Execute_350
+	jnz VM_ExecuteInternal_350
 	cmp byte [scrVmPub+0x14], 0x0
-	jnz VM_Execute_350
+	jnz VM_ExecuteInternal_350
 	mov eax, scrVarPub
 	mov eax, [eax+0xc]
 	mov [esp+0x4], eax
 	mov dword [esp], _cstring_s
 	call Sys_Error
-VM_Execute_1870:
-	mov eax, [fs+0xc]
+VM_ExecuteInternal_1870:
+	mov eax, [gFs+0xc]
 	mov edx, [eax]
 	mov [esp+0x4], edx
 	mov eax, [eax+0x4]
 	mov [esp], eax
 	call RemoveRefToValue
-	jmp VM_Execute_800
-VM_Execute_1510:
+	jmp VM_ExecuteInternal_800
+VM_ExecuteInternal_1510:
 	lea eax, [ecx+0x2]
-	mov [fs], eax
+	mov [gFs], eax
 	mov ecx, eax
-	jmp VM_Execute_40
-VM_Execute_3420:
+	jmp VM_ExecuteInternal_40
+VM_ExecuteInternal_3420:
 	mov eax, [ebp-0x38]
-VM_Execute_1390:
+VM_ExecuteInternal_1390:
 	mov [esp], eax
 	call Scr_EvalArrayRef
 	mov [ebp-0x34], eax
-	mov eax, [fs+0xc]
+	mov eax, [gFs+0xc]
 	mov edx, [eax+0x4]
 	cmp edx, 0x6
-	jz VM_Execute_920
-VM_Execute_1040:
+	jz VM_ExecuteInternal_920
+VM_ExecuteInternal_1040:
 	cmp edx, 0x2
-	jz VM_Execute_930
+	jz VM_ExecuteInternal_930
 	mov eax, var_typename
 	mov eax, [eax+edx*4]
 	mov [esp+0x4], eax
@@ -2133,34 +2129,34 @@ VM_Execute_1040:
 	mov ebx, scrVarPub
 	mov edx, [ebx+0xc]
 	test edx, edx
-	jz VM_Execute_940
-VM_Execute_2370:
+	jz VM_ExecuteInternal_940
+VM_ExecuteInternal_2370:
 	cmp byte [ebx+0x8], 0x0
-	jnz VM_Execute_950
+	jnz VM_ExecuteInternal_950
 	mov eax, scrCompilePub
 	cmp byte [eax+0x20020], 0x0
-	jz VM_Execute_960
-VM_Execute_950:
+	jz VM_ExecuteInternal_960
+VM_ExecuteInternal_950:
 	cmp byte [scrVmPub+0x16], 0x0
-	jz VM_Execute_970
-VM_Execute_1930:
+	jz VM_ExecuteInternal_970
+VM_ExecuteInternal_1930:
 	mov eax, scrVarPub
 	mov eax, [eax+0xc]
 	mov [esp+0x4], eax
 	mov dword [esp], _cstring_s
 	call Sys_Error
-VM_Execute_970:
+VM_ExecuteInternal_970:
 	mov eax, [ebp-0x3c]
-VM_Execute_1670:
+VM_ExecuteInternal_1670:
 	mov [esp], eax
 	call Scr_GetVarId
 	mov [ebp-0x38], eax
-	jmp VM_Execute_800
-VM_Execute_3650:
-	mov eax, [fs+0xc]
-	jmp VM_Execute_980
-VM_Execute_3660:
-	mov eax, [fs+0xc]
+	jmp VM_ExecuteInternal_800
+VM_ExecuteInternal_3650:
+	mov eax, [gFs+0xc]
+	jmp VM_ExecuteInternal_980
+VM_ExecuteInternal_3660:
+	mov eax, [gFs+0xc]
 	mov [esp+0x4], eax
 	movzx edx, byte [edx]
 	shl edx, 0x2
@@ -2169,84 +2165,84 @@ VM_Execute_3660:
 	mov eax, [eax]
 	mov [esp], eax
 	call SetVariableValue
-	add dword [fs], 0x1
-	jmp VM_Execute_800
-VM_Execute_3670:
+	add dword [gFs], 0x1
+	jmp VM_ExecuteInternal_800
+VM_ExecuteInternal_3670:
 	sub eax, 0x3e
 	mov [scrVmPub+0x1c], eax
-VM_Execute_1020:
-	mov eax, [fs]
+VM_ExecuteInternal_1020:
+	mov eax, [gFs]
 	movzx ecx, word [eax]
 	add eax, 0x2
-	mov [fs], eax
+	mov [gFs], eax
 	mov edx, [scrVmPub+0xc]
 	mov [edx], eax
-	mov eax, [fs+0xc]
+	mov eax, [gFs+0xc]
 	mov [scrVmPub+0x10], eax
 	mov eax, scrCompilePub
 	call dword [eax+ecx*4+0x20034]
-VM_Execute_2390:
+VM_ExecuteInternal_2390:
 	mov edx, [scrVmPub+0x10]
-	mov [fs+0xc], edx
+	mov [gFs+0xc], edx
 	mov eax, [scrVmPub+0xc]
 	mov eax, [eax]
-	mov [fs], eax
+	mov [gFs], eax
 	mov esi, [scrVmPub+0x1c]
 	test esi, esi
-	jz VM_Execute_990
+	jz VM_ExecuteInternal_990
 	mov dword [scrVmPub+0x1c], 0x0
 	lea eax, [esi*8]
 	sub edx, eax
 	mov [scrVmPub+0x10], edx
 	xor ebx, ebx
-VM_Execute_1000:
-	mov eax, [fs+0xc]
+VM_ExecuteInternal_1000:
+	mov eax, [gFs+0xc]
 	mov edx, [eax]
 	mov [esp+0x4], edx
 	mov eax, [eax+0x4]
 	mov [esp], eax
 	call RemoveRefToValue
-	sub dword [fs+0xc], 0x8
+	sub dword [gFs+0xc], 0x8
 	add ebx, 0x1
 	cmp esi, ebx
-	jnz VM_Execute_1000
-VM_Execute_990:
+	jnz VM_ExecuteInternal_1000
+VM_ExecuteInternal_990:
 	mov ebx, [scrVmPub+0x18]
 	test ebx, ebx
-	jz VM_Execute_1010
+	jz VM_ExecuteInternal_1010
 	mov dword [scrVmPub+0x18], 0x0
-	mov ecx, [fs]
-	jmp VM_Execute_40
-VM_Execute_3680:
+	mov ecx, [gFs]
+	jmp VM_ExecuteInternal_40
+VM_ExecuteInternal_3680:
 	movzx eax, byte [edx]
 	mov [scrVmPub+0x1c], eax
-	add dword [fs], 0x1
-	jmp VM_Execute_1020
-VM_Execute_3630:
-	mov ebx, [fs+0xc]
+	add dword [gFs], 0x1
+	jmp VM_ExecuteInternal_1020
+VM_ExecuteInternal_3630:
+	mov ebx, [gFs+0xc]
 	movzx eax, word [edx]
 	lea edx, [ecx+0x3]
-	mov [fs], edx
+	mov [gFs], edx
 	mov [esp+0x4], eax
 	mov eax, scrVarPub
 	mov eax, [eax+0x28]
-VM_Execute_1030:
+VM_ExecuteInternal_1030:
 	mov [esp], eax
 	call GetVariable
 	mov [esp+0x4], ebx
 	mov [esp], eax
 	call SetVariableValue
-	jmp VM_Execute_800
-VM_Execute_3610:
-	mov ebx, [fs+0xc]
+	jmp VM_ExecuteInternal_800
+VM_ExecuteInternal_3610:
+	mov ebx, [gFs+0xc]
 	movzx eax, word [edx]
 	lea edx, [ecx+0x3]
-	mov [fs], edx
+	mov [gFs], edx
 	mov [esp+0x4], eax
 	mov eax, scrVarPub
 	mov eax, [eax+0x20]
-	jmp VM_Execute_1030
-VM_Execute_3410:
+	jmp VM_ExecuteInternal_1030
+VM_ExecuteInternal_3410:
 	movzx eax, byte [edx]
 	shl eax, 0x2
 	mov edx, [scrVmPub]
@@ -2254,22 +2250,22 @@ VM_Execute_3410:
 	mov edx, [edx]
 	mov [ebp-0x38], edx
 	lea eax, [ecx+0x2]
-	mov [fs], eax
+	mov [gFs], eax
 	mov eax, edx
 	mov [esp], eax
 	call Scr_EvalArrayRef
 	mov [ebp-0x34], eax
-	mov eax, [fs+0xc]
+	mov eax, [gFs+0xc]
 	mov edx, [eax+0x4]
 	cmp edx, 0x6
-	jnz VM_Execute_1040
-VM_Execute_920:
+	jnz VM_ExecuteInternal_1040
+VM_ExecuteInternal_920:
 	mov eax, [eax]
 	mov [esp], eax
 	call IsValidArrayIndex
 	test al, al
-	jnz VM_Execute_1050
-	mov eax, [fs+0xc]
+	jnz VM_ExecuteInternal_1050
+	mov eax, [gFs+0xc]
 	mov eax, [eax]
 	mov [esp+0x4], eax
 	mov dword [esp], _cstring_array_index_d_ou
@@ -2277,290 +2273,290 @@ VM_Execute_920:
 	mov ebx, scrVarPub
 	mov esi, [ebx+0xc]
 	test esi, esi
-	jz VM_Execute_1060
-VM_Execute_2700:
+	jz VM_ExecuteInternal_1060
+VM_ExecuteInternal_2700:
 	cmp byte [ebx+0x8], 0x0
-	jnz VM_Execute_1070
+	jnz VM_ExecuteInternal_1070
 	mov eax, scrCompilePub
 	cmp byte [eax+0x20020], 0x0
-	jnz VM_Execute_1070
+	jnz VM_ExecuteInternal_1070
 	cmp byte [ebx+0x6], 0x0
-	jz VM_Execute_1080
+	jz VM_ExecuteInternal_1080
 	mov eax, 0x1
 	mov ebx, [scrVmGlob+0x14]
 	test ebx, ebx
 	movzx edx, byte [scrVmPub+0x16]
 	cmovz eax, edx
 	mov [scrVmPub+0x16], al
-VM_Execute_1080:
+VM_ExecuteInternal_1080:
 	mov ecx, [scrVmPub+0x8]
 	test ecx, ecx
-	jnz VM_Execute_350
+	jnz VM_ExecuteInternal_350
 	cmp byte [scrVmPub+0x14], 0x0
-	jz VM_Execute_1090
-	jmp VM_Execute_350
-VM_Execute_3150:
-	mov eax, [fs+0xc]
+	jz VM_ExecuteInternal_1090
+	jmp VM_ExecuteInternal_350
+VM_ExecuteInternal_3150:
+	mov eax, [gFs+0xc]
 	add eax, 0x8
-	mov [fs+0xc], eax
+	mov [gFs+0xc], eax
 	mov dword [eax+0x4], 0x6
-VM_Execute_1110:
-	mov eax, [fs]
+VM_ExecuteInternal_1110:
+	mov eax, [gFs]
 	mov edx, [eax]
 	add eax, 0x4
-	mov [fs], eax
-	mov eax, [fs+0xc]
+	mov [gFs], eax
+	mov eax, [gFs+0xc]
 	mov [eax], edx
-	mov ecx, [fs]
-	jmp VM_Execute_40
-VM_Execute_3160:
-	mov eax, [fs+0xc]
+	mov ecx, [gFs]
+	jmp VM_ExecuteInternal_40
+VM_ExecuteInternal_3160:
+	mov eax, [gFs+0xc]
 	add eax, 0x8
-	mov [fs+0xc], eax
+	mov [gFs+0xc], eax
 	mov dword [eax+0x4], 0x5
-	mov eax, [fs]
+	mov eax, [gFs]
 	mov edx, [eax]
 	add eax, 0x4
-	mov [fs], eax
-	mov eax, [fs+0xc]
+	mov [gFs], eax
+	mov eax, [gFs+0xc]
 	mov [eax], edx
-	mov ecx, [fs]
-	jmp VM_Execute_40
-VM_Execute_3170:
-	mov eax, [fs+0xc]
+	mov ecx, [gFs]
+	jmp VM_ExecuteInternal_40
+VM_ExecuteInternal_3170:
+	mov eax, [gFs+0xc]
 	add eax, 0x8
-	mov [fs+0xc], eax
+	mov [gFs+0xc], eax
 	mov dword [eax+0x4], 0x2
-VM_Execute_1100:
-	mov eax, [fs]
+VM_ExecuteInternal_1100:
+	mov eax, [gFs]
 	movzx edx, word [eax]
 	add eax, 0x2
-	mov [fs], eax
-	mov eax, [fs+0xc]
+	mov [gFs], eax
+	mov eax, [gFs+0xc]
 	mov [eax], edx
-	mov eax, [fs+0xc]
+	mov eax, [gFs+0xc]
 	mov eax, [eax]
 	mov [esp], eax
 	call SL_AddRefToString
-	mov ecx, [fs]
-	jmp VM_Execute_40
-VM_Execute_3180:
-	mov eax, [fs+0xc]
+	mov ecx, [gFs]
+	jmp VM_ExecuteInternal_40
+VM_ExecuteInternal_3180:
+	mov eax, [gFs+0xc]
 	add eax, 0x8
-	mov [fs+0xc], eax
+	mov [gFs+0xc], eax
 	mov dword [eax+0x4], 0x3
-	jmp VM_Execute_1100
-VM_Execute_3190:
-	mov eax, [fs+0xc]
+	jmp VM_ExecuteInternal_1100
+VM_ExecuteInternal_3190:
+	mov eax, [gFs+0xc]
 	add eax, 0x8
-	mov [fs+0xc], eax
+	mov [gFs+0xc], eax
 	mov dword [eax+0x4], 0x4
-	mov edx, [fs]
+	mov edx, [gFs]
 	lea eax, [edx+0xc]
-	mov [fs], eax
-	mov eax, [fs+0xc]
+	mov [gFs], eax
+	mov eax, [gFs+0xc]
 	mov [eax], edx
-	mov ecx, [fs]
-	jmp VM_Execute_40
-VM_Execute_3200:
+	mov ecx, [gFs]
+	jmp VM_ExecuteInternal_40
+VM_ExecuteInternal_3200:
 	mov eax, scrVarPub
 	mov eax, [eax+0x20]
 	mov [ebp-0x34], eax
-	mov ecx, [fs]
-	jmp VM_Execute_40
-VM_Execute_3210:
+	mov ecx, [gFs]
+	jmp VM_ExecuteInternal_40
+VM_ExecuteInternal_3210:
 	mov eax, scrVarPub
 	mov eax, [eax+0x28]
 	mov [ebp-0x34], eax
-	mov ecx, [fs]
-	jmp VM_Execute_40
-VM_Execute_3220:
-	mov eax, [fs+0xc]
+	mov ecx, [gFs]
+	jmp VM_ExecuteInternal_40
+VM_ExecuteInternal_3220:
+	mov eax, [gFs+0xc]
 	add eax, 0x8
-	mov [fs+0xc], eax
+	mov [gFs+0xc], eax
 	mov dword [eax+0x4], 0x1
-	mov ebx, [fs+0xc]
-	mov eax, [fs+0x4]
+	mov ebx, [gFs+0xc]
+	mov eax, [gFs+0x4]
 	mov [esp], eax
 	call Scr_GetSelf
 	mov [ebx], eax
-VM_Execute_1430:
-	mov eax, [fs+0xc]
+VM_ExecuteInternal_1430:
+	mov eax, [gFs+0xc]
 	mov eax, [eax]
 	mov [esp], eax
 	call AddRefToObject
-	mov ecx, [fs]
-	jmp VM_Execute_40
-VM_Execute_3110:
-	mov eax, [fs+0xc]
+	mov ecx, [gFs]
+	jmp VM_ExecuteInternal_40
+VM_ExecuteInternal_3110:
+	mov eax, [gFs+0xc]
 	add eax, 0x8
-	mov [fs+0xc], eax
+	mov [gFs+0xc], eax
 	mov dword [eax+0x4], 0x6
-	mov eax, [fs]
+	mov eax, [gFs]
 	movzx edx, byte [eax]
-	mov eax, [fs+0xc]
+	mov eax, [gFs+0xc]
 	mov [eax], edx
-	add dword [fs], 0x1
-	mov ecx, [fs]
-	jmp VM_Execute_40
-VM_Execute_3130:
-	mov eax, [fs+0xc]
+	add dword [gFs], 0x1
+	mov ecx, [gFs]
+	jmp VM_ExecuteInternal_40
+VM_ExecuteInternal_3130:
+	mov eax, [gFs+0xc]
 	add eax, 0x8
-	mov [fs+0xc], eax
+	mov [gFs+0xc], eax
 	mov dword [eax+0x4], 0x6
-	mov eax, [fs]
+	mov eax, [gFs]
 	movzx edx, word [eax]
 	add eax, 0x2
-	mov [fs], eax
-	mov eax, [fs+0xc]
+	mov [gFs], eax
+	mov eax, [gFs+0xc]
 	mov [eax], edx
-	mov ecx, [fs]
-	jmp VM_Execute_40
-VM_Execute_3140:
-	mov eax, [fs+0xc]
+	mov ecx, [gFs]
+	jmp VM_ExecuteInternal_40
+VM_ExecuteInternal_3140:
+	mov eax, [gFs+0xc]
 	add eax, 0x8
-	mov [fs+0xc], eax
+	mov [gFs+0xc], eax
 	mov dword [eax+0x4], 0x6
-	mov eax, [fs]
+	mov eax, [gFs]
 	movzx edx, word [eax]
 	add eax, 0x2
-	mov [fs], eax
+	mov [gFs], eax
 	neg edx
-	mov eax, [fs+0xc]
+	mov eax, [gFs+0xc]
 	mov [eax], edx
-	mov ecx, [fs]
-	jmp VM_Execute_40
-VM_Execute_3100:
-	mov eax, [fs+0xc]
+	mov ecx, [gFs]
+	jmp VM_ExecuteInternal_40
+VM_ExecuteInternal_3100:
+	mov eax, [gFs+0xc]
 	add eax, 0x8
-	mov [fs+0xc], eax
+	mov [gFs+0xc], eax
 	mov dword [eax+0x4], 0x6
-	mov eax, [fs+0xc]
+	mov eax, [gFs+0xc]
 	mov dword [eax], 0x0
-	mov ecx, [fs]
-	jmp VM_Execute_40
-VM_Execute_3230:
-	mov eax, [fs+0xc]
+	mov ecx, [gFs]
+	jmp VM_ExecuteInternal_40
+VM_ExecuteInternal_3230:
+	mov eax, [gFs+0xc]
 	add eax, 0x8
-	mov [fs+0xc], eax
+	mov [gFs+0xc], eax
 	mov dword [eax+0x4], 0x1
 	mov ecx, scrVarPub
 	mov edx, [ecx+0x20]
-	mov eax, [fs+0xc]
+	mov eax, [gFs+0xc]
 	mov [eax], edx
 	mov eax, [ecx+0x20]
 	mov [esp], eax
 	call AddRefToObject
-	mov ecx, [fs]
-	jmp VM_Execute_40
-VM_Execute_3240:
-	mov ebx, [fs+0xc]
+	mov ecx, [gFs]
+	jmp VM_ExecuteInternal_40
+VM_ExecuteInternal_3240:
+	mov ebx, [gFs+0xc]
 	lea eax, [ebx+0x8]
-	mov [fs+0xc], eax
+	mov [gFs+0xc], eax
 	mov eax, scrVarPub
 	mov eax, [eax+0x24]
-VM_Execute_1140:
+VM_ExecuteInternal_1140:
 	mov [esp], eax
 	call Scr_EvalVariable
 	mov [ebx+0x8], eax
 	mov [ebx+0xc], edx
-	mov ecx, [fs]
-	jmp VM_Execute_40
-VM_Execute_3250:
-	mov eax, [fs+0xc]
+	mov ecx, [gFs]
+	jmp VM_ExecuteInternal_40
+VM_ExecuteInternal_3250:
+	mov eax, [gFs+0xc]
 	add eax, 0x8
-	mov [fs+0xc], eax
+	mov [gFs+0xc], eax
 	mov dword [eax+0x4], 0x1
 	mov ecx, scrVarPub
 	mov edx, [ecx+0x28]
-	mov eax, [fs+0xc]
+	mov eax, [gFs+0xc]
 	mov [eax], edx
 	mov eax, [ecx+0x28]
 	mov [esp], eax
 	call AddRefToObject
-	mov ecx, [fs]
-	jmp VM_Execute_40
-VM_Execute_3260:
-	mov eax, [fs+0xc]
+	mov ecx, [gFs]
+	jmp VM_ExecuteInternal_40
+VM_ExecuteInternal_3260:
+	mov eax, [gFs+0xc]
 	add eax, 0x8
-	mov [fs+0xc], eax
+	mov [gFs+0xc], eax
 	mov dword [eax+0x4], 0xb
-	jmp VM_Execute_1110
-VM_Execute_3270:
+	jmp VM_ExecuteInternal_1110
+VM_ExecuteInternal_3270:
 	mov eax, scrVarPub
 	mov eax, [eax+0x24]
 	mov [ebp-0x38], eax
-	jmp VM_Execute_1120
-VM_Execute_3280:
-	mov eax, [fs+0xc]
+	jmp VM_ExecuteInternal_1120
+VM_ExecuteInternal_3280:
+	mov eax, [gFs+0xc]
 	add eax, 0x8
-	mov [fs+0xc], eax
+	mov [gFs+0xc], eax
 	mov dword [eax+0x4], 0x9
-	jmp VM_Execute_1110
-VM_Execute_3290:
+	jmp VM_ExecuteInternal_1110
+VM_ExecuteInternal_3290:
 	mov ebx, [scrVmPub]
 	lea eax, [ebx+0x4]
 	mov [scrVmPub], eax
-	add dword [fs+0x8], 0x1
-	mov eax, [fs]
+	add dword [gFs+0x8], 0x1
+	mov eax, [gFs]
 	movzx edx, word [eax]
 	add eax, 0x2
-	mov [fs], eax
+	mov [gFs], eax
 	mov [esp+0x4], edx
-	mov eax, [fs+0x4]
+	mov eax, [gFs+0x4]
 	mov [esp], eax
 	call GetNewVariable
 	mov [ebx+0x4], eax
-	mov ecx, [fs]
-	jmp VM_Execute_40
-VM_Execute_3300:
+	mov ecx, [gFs]
+	jmp VM_ExecuteInternal_40
+VM_ExecuteInternal_3300:
 	movzx esi, byte [edx]
 	lea eax, [ecx+0x2]
-	mov [fs], eax
+	mov [gFs], eax
 	mov eax, esi
 	movzx edx, al
 	lea eax, [edx*4]
 	sub [scrVmPub], eax
-	sub [fs+0x8], edx
+	sub [gFs+0x8], edx
 	mov eax, esi
 	test al, al
-	jz VM_Execute_810
+	jz VM_ExecuteInternal_810
 	xor ebx, ebx
-VM_Execute_1130:
-	mov eax, [fs+0x4]
+VM_ExecuteInternal_1130:
+	mov eax, [gFs+0x4]
 	mov [esp], eax
 	call RemoveNextVariable
 	sub bl, 0x1
 	mov eax, esi
 	add al, bl
-	jnz VM_Execute_1130
-	jmp VM_Execute_810
-VM_Execute_3310:
-	mov ebx, [fs+0xc]
+	jnz VM_ExecuteInternal_1130
+	jmp VM_ExecuteInternal_810
+VM_ExecuteInternal_3310:
+	mov ebx, [gFs+0xc]
 	lea eax, [ebx+0x8]
-	mov [fs+0xc], eax
+	mov [gFs+0xc], eax
 	mov eax, [scrVmPub]
 	mov eax, [eax]
-	jmp VM_Execute_1140
-VM_Execute_3350:
-	mov ebx, [fs+0xc]
+	jmp VM_ExecuteInternal_1140
+VM_ExecuteInternal_3350:
+	mov ebx, [gFs+0xc]
 	lea eax, [ebx+0x8]
-	mov [fs+0xc], eax
+	mov [gFs+0xc], eax
 	mov eax, [scrVmPub]
 	mov eax, [eax-0x10]
-	jmp VM_Execute_1140
-VM_Execute_3360:
-	mov ebx, [fs+0xc]
+	jmp VM_ExecuteInternal_1140
+VM_ExecuteInternal_3360:
+	mov ebx, [gFs+0xc]
 	lea eax, [ebx+0x8]
-	mov [fs+0xc], eax
+	mov [gFs+0xc], eax
 	mov eax, [scrVmPub]
 	mov eax, [eax-0x14]
-	jmp VM_Execute_1140
-VM_Execute_3370:
-	mov ebx, [fs+0xc]
+	jmp VM_ExecuteInternal_1140
+VM_ExecuteInternal_3370:
+	mov ebx, [gFs+0xc]
 	lea eax, [ebx+0x8]
-	mov [fs+0xc], eax
-	mov eax, [fs]
+	mov [gFs+0xc], eax
+	mov eax, [gFs]
 	movzx edx, byte [eax]
 	shl edx, 0x2
 	mov eax, [scrVmPub]
@@ -2570,66 +2566,66 @@ VM_Execute_3370:
 	call Scr_EvalVariable
 	mov [ebx+0x8], eax
 	mov [ebx+0xc], edx
-	add dword [fs], 0x1
-	mov ecx, [fs]
-	jmp VM_Execute_40
-VM_Execute_3330:
-	mov ebx, [fs+0xc]
+	add dword [gFs], 0x1
+	mov ecx, [gFs]
+	jmp VM_ExecuteInternal_40
+VM_ExecuteInternal_3330:
+	mov ebx, [gFs+0xc]
 	lea eax, [ebx+0x8]
-	mov [fs+0xc], eax
+	mov [gFs+0xc], eax
 	mov eax, [scrVmPub]
 	mov eax, [eax-0x8]
-	jmp VM_Execute_1140
-VM_Execute_3340:
-	mov ebx, [fs+0xc]
+	jmp VM_ExecuteInternal_1140
+VM_ExecuteInternal_3340:
+	mov ebx, [gFs+0xc]
 	lea eax, [ebx+0x8]
-	mov [fs+0xc], eax
+	mov [gFs+0xc], eax
 	mov eax, [scrVmPub]
 	mov eax, [eax-0xc]
-	jmp VM_Execute_1140
-VM_Execute_3320:
-	mov ebx, [fs+0xc]
+	jmp VM_ExecuteInternal_1140
+VM_ExecuteInternal_3320:
+	mov ebx, [gFs+0xc]
 	lea eax, [ebx+0x8]
-	mov [fs+0xc], eax
+	mov [gFs+0xc], eax
 	mov eax, [scrVmPub]
 	mov eax, [eax-0x4]
-	jmp VM_Execute_1140
-VM_Execute_3500:
+	jmp VM_ExecuteInternal_1140
+VM_ExecuteInternal_3500:
 	mov eax, scrVarPub
 	mov eax, [eax+0x20]
 	mov [ebp-0x34], eax
-	jmp VM_Execute_1150
-VM_Execute_3470:
+	jmp VM_ExecuteInternal_1150
+VM_ExecuteInternal_3470:
 	mov eax, scrVarPub
 	mov eax, [eax+0x28]
 	mov [ebp-0x34], eax
-VM_Execute_1240:
-	mov ebx, [fs+0xc]
+VM_ExecuteInternal_1240:
+	mov ebx, [gFs+0xc]
 	lea eax, [ebx+0x8]
-	mov [fs+0xc], eax
-	mov eax, [fs]
+	mov [gFs+0xc], eax
+	mov eax, [gFs]
 	movzx edx, word [eax]
 	add eax, 0x2
-	mov [fs], eax
+	mov [gFs], eax
 	mov [esp+0x4], edx
 	mov eax, [ebp-0x34]
 	mov [esp], eax
 	call FindVariable
-	jmp VM_Execute_1140
-VM_Execute_4060:
+	jmp VM_ExecuteInternal_1140
+VM_ExecuteInternal_4060:
 	mov eax, [edx]
 	lea eax, [ecx+eax+0x5]
-	mov [fs], eax
+	mov [gFs], eax
 	movzx edx, word [eax]
 	add eax, 0x2
-	mov [fs], eax
+	mov [gFs], eax
 	mov [caseCount], edx
-	mov eax, [fs+0xc]
+	mov eax, [gFs+0xc]
 	mov edx, [eax+0x4]
 	cmp edx, 0x2
-	jz VM_Execute_1160
+	jz VM_ExecuteInternal_1160
 	cmp edx, 0x6
-	jz VM_Execute_1170
+	jz VM_ExecuteInternal_1170
 	mov eax, var_typename
 	mov eax, [eax+edx*4]
 	mov [esp+0x4], eax
@@ -2638,106 +2634,106 @@ VM_Execute_4060:
 	mov ebx, scrVarPub
 	mov edx, [ebx+0xc]
 	test edx, edx
-	jz VM_Execute_1180
-VM_Execute_2670:
+	jz VM_ExecuteInternal_1180
+VM_ExecuteInternal_2670:
 	cmp byte [ebx+0x8], 0x0
-	jnz VM_Execute_1190
+	jnz VM_ExecuteInternal_1190
 	mov eax, scrCompilePub
 	cmp byte [eax+0x20020], 0x0
-	jnz VM_Execute_1190
+	jnz VM_ExecuteInternal_1190
 	cmp byte [ebx+0x6], 0x0
-	jnz VM_Execute_1200
-VM_Execute_2470:
+	jnz VM_ExecuteInternal_1200
+VM_ExecuteInternal_2470:
 	mov esi, [scrVmPub+0x8]
 	test esi, esi
-	jnz VM_Execute_350
+	jnz VM_ExecuteInternal_350
 	cmp byte [scrVmPub+0x14], 0x0
-	jnz VM_Execute_350
+	jnz VM_ExecuteInternal_350
 	mov eax, scrVarPub
 	mov eax, [eax+0xc]
 	mov [esp+0x4], eax
 	mov dword [esp], _cstring_s
 	call Sys_Error
-VM_Execute_1580:
+VM_ExecuteInternal_1580:
 	mov esi, [caseCount]
 	test esi, esi
-	jz VM_Execute_800
+	jz VM_ExecuteInternal_800
 	mov ecx, esi
 	xor ebx, ebx
-VM_Execute_1220:
-	mov eax, [fs]
+VM_ExecuteInternal_1220:
+	mov eax, [gFs]
 	mov edi, [eax]
 	lea edx, [eax+0x4]
-	mov [fs], edx
+	mov [gFs], edx
 	mov edx, [eax+0x4]
 	add eax, 0x8
-	mov [fs], eax
+	mov [gFs], eax
 	cmp [ebp-0x2c], edi
-	jz VM_Execute_1210
+	jz VM_ExecuteInternal_1210
 	sub ecx, 0x1
 	add ebx, 0x1
 	cmp esi, ebx
-	jnz VM_Execute_1220
+	jnz VM_ExecuteInternal_1220
 	mov [caseCount], ecx
 	test edi, edi
-	jnz VM_Execute_800
-	mov [fs], edx
-	jmp VM_Execute_800
-VM_Execute_3530:
+	jnz VM_ExecuteInternal_800
+	mov [gFs], edx
+	jmp VM_ExecuteInternal_800
+VM_ExecuteInternal_3530:
 	movzx eax, word [edx]
 	lea edx, [ecx+0x3]
-	mov [fs], edx
-	mov edx, [fs+0xc]
+	mov [gFs], edx
+	mov edx, [gFs+0xc]
 	mov [esp+0x8], edx
 	mov [esp+0x4], eax
 	mov eax, [ebp-0x34]
 	mov [esp], eax
 	call ClearVariableField
-	mov ecx, [fs]
-	jmp VM_Execute_40
-VM_Execute_3510:
+	mov ecx, [gFs]
+	jmp VM_ExecuteInternal_40
+VM_ExecuteInternal_3510:
 	mov eax, scrVarPub
 	mov eax, [eax+0x28]
 	mov [ebp-0x34], eax
-	jmp VM_Execute_1150
-VM_Execute_3430:
-	mov eax, [fs+0xc]
+	jmp VM_ExecuteInternal_1150
+VM_ExecuteInternal_3430:
+	mov eax, [gFs+0xc]
 	mov [esp+0x4], eax
 	mov eax, [ebp-0x38]
 	mov [esp], eax
 	call ClearArray
-	jmp VM_Execute_800
-VM_Execute_3440:
-	mov eax, [fs+0xc]
+	jmp VM_ExecuteInternal_800
+VM_ExecuteInternal_3440:
+	mov eax, [gFs+0xc]
 	add eax, 0x8
-	mov [fs+0xc], eax
+	mov [gFs+0xc], eax
 	mov dword [eax+0x4], 0x1
-	mov ebx, [fs+0xc]
+	mov ebx, [gFs+0xc]
 	call Scr_AllocArray
 	mov [ebx], eax
-	mov ecx, [fs]
-	jmp VM_Execute_40
-VM_Execute_3450:
-	mov eax, [fs+0x4]
+	mov ecx, [gFs]
+	jmp VM_ExecuteInternal_40
+VM_ExecuteInternal_3450:
+	mov eax, [gFs+0x4]
 	mov [esp], eax
 	call Scr_GetSelf
 	mov [ebp-0x34], eax
 	mov [esp], eax
 	call IsFieldObject
 	test al, al
-	jnz VM_Execute_810
-VM_Execute_2950:
+	jnz VM_ExecuteInternal_810
+VM_ExecuteInternal_2950:
 	mov eax, [ebp-0x34]
 	mov [esp], eax
 	call GetObjectType
 	mov edx, eax
-	jmp VM_Execute_1230
-VM_Execute_3460:
+	jmp VM_ExecuteInternal_1230
+VM_ExecuteInternal_3460:
 	mov eax, scrVarPub
 	mov eax, [eax+0x20]
 	mov [ebp-0x34], eax
-	jmp VM_Execute_1240
-VM_Execute_3600:
+	jmp VM_ExecuteInternal_1240
+VM_ExecuteInternal_3600:
 	movzx eax, byte [edx]
 	shl eax, 0x2
 	mov edx, [scrVmPub]
@@ -2745,202 +2741,202 @@ VM_Execute_3600:
 	mov edx, [edx]
 	mov [ebp-0x38], edx
 	lea eax, [ecx+0x2]
-	mov [fs], eax
+	mov [gFs], eax
 	mov dword [ebp-0x3c], 0x0
 	mov ecx, eax
-	jmp VM_Execute_40
-VM_Execute_3760:
-	mov eax, [fs+0xc]
+	jmp VM_ExecuteInternal_40
+VM_ExecuteInternal_3760:
+	mov eax, [gFs+0xc]
 	mov [esp+0x4], eax
 	mov eax, scrVarPub
 	mov eax, [eax+0x30]
 	mov [esp], eax
 	call Scr_EvalFieldObject
 	mov [ebp-0x34], eax
-	jmp VM_Execute_800
-VM_Execute_3740:
-	mov edx, [fs+0xc]
+	jmp VM_ExecuteInternal_800
+VM_ExecuteInternal_3740:
+	mov edx, [gFs+0xc]
 	mov ecx, [edx+0x4]
 	cmp ecx, 0x9
-	jnz VM_Execute_1250
+	jnz VM_ExecuteInternal_1250
 	mov ebx, [edx]
 	lea eax, [edx-0x8]
-	mov [fs+0xc], eax
+	mov [gFs+0xc], eax
 	cmp dword [eax+0x4], 0x1
-	jnz VM_Execute_510
+	jnz VM_ExecuteInternal_510
 	cmp dword [scrVmPub+0x8], 0x1e
-	jg VM_Execute_520
-	mov eax, [fs+0x4]
+	jg VM_ExecuteInternal_520
+	mov eax, [gFs+0x4]
 	mov [esp+0x4], eax
 	mov eax, [edx-0x8]
 	mov [esp], eax
 	call AllocChildThread
-	mov [fs+0x4], eax
-	sub dword [fs+0xc], 0x8
-	mov edx, [fs]
+	mov [gFs+0x4], eax
+	sub dword [gFs+0xc], 0x8
+	mov edx, [gFs]
 	mov eax, [scrVmPub+0xc]
 	mov [eax], edx
-	mov [fs], ebx
-	jmp VM_Execute_530
-VM_Execute_4130:
+	mov [gFs], ebx
+	jmp VM_ExecuteInternal_530
+VM_ExecuteInternal_4130:
 	movzx eax, word [edx]
 	lea edx, [ecx+0x3]
-	mov [fs], edx
+	mov [gFs], edx
 	mov [esp+0x4], eax
-	mov eax, [fs+0x4]
+	mov eax, [gFs+0x4]
 	mov [esp], eax
 	call FindVariable
 	mov [ebp-0x38], eax
 	test eax, eax
-	jnz VM_Execute_1120
+	jnz VM_ExecuteInternal_1120
 	mov ebx, scrVarPub
 	mov eax, [ebx+0xc]
 	test eax, eax
-	jz VM_Execute_1260
-VM_Execute_2660:
+	jz VM_ExecuteInternal_1260
+VM_ExecuteInternal_2660:
 	cmp byte [ebx+0x8], 0x0
-	jnz VM_Execute_1270
+	jnz VM_ExecuteInternal_1270
 	mov eax, scrCompilePub
 	cmp byte [eax+0x20020], 0x0
-	jnz VM_Execute_1270
+	jnz VM_ExecuteInternal_1270
 	cmp byte [ebx+0x6], 0x0
-	jnz VM_Execute_1280
-VM_Execute_2480:
+	jnz VM_ExecuteInternal_1280
+VM_ExecuteInternal_2480:
 	mov esi, [scrVmPub+0x8]
 	test esi, esi
-	jnz VM_Execute_350
+	jnz VM_ExecuteInternal_350
 	cmp byte [scrVmPub+0x14], 0x0
-	jnz VM_Execute_350
+	jnz VM_ExecuteInternal_350
 	mov eax, scrVarPub
 	mov eax, [eax+0xc]
 	mov [esp+0x4], eax
 	mov dword [esp], _cstring_s
 	call Sys_Error
-VM_Execute_1570:
+VM_ExecuteInternal_1570:
 	mov dword [ebp-0x3c], 0x0
 	mov dword [ebp-0x38], 0x0
-	add dword [fs], 0x1
-	mov ecx, [fs]
-	jmp VM_Execute_40
-VM_Execute_4090:
+	add dword [gFs], 0x1
+	mov ecx, [gFs]
+	jmp VM_ExecuteInternal_40
+VM_ExecuteInternal_4090:
 	sub dword [g_script_error_level], 0x1
 	xor eax, eax
-VM_Execute_2750:
+VM_ExecuteInternal_2750:
 	add esp, 0x4c
 	pop ebx
 	pop esi
 	pop edi
 	pop ebp
 	ret
-VM_Execute_3900:
-	mov eax, [fs+0xc]
+VM_ExecuteInternal_3900:
+	mov eax, [gFs+0xc]
 	mov [esp+0x4], eax
 	sub eax, 0x8
 	mov [esp], eax
 	call Scr_EvalInequality
-	jmp VM_Execute_800
-VM_Execute_3910:
-	mov eax, [fs+0xc]
+	jmp VM_ExecuteInternal_800
+VM_ExecuteInternal_3910:
+	mov eax, [gFs+0xc]
 	mov [esp+0x4], eax
 	sub eax, 0x8
 	mov [esp], eax
 	call Scr_EvalLess
-	jmp VM_Execute_800
-VM_Execute_3920:
-	mov eax, [fs+0xc]
+	jmp VM_ExecuteInternal_800
+VM_ExecuteInternal_3920:
+	mov eax, [gFs+0xc]
 	mov [esp+0x4], eax
 	sub eax, 0x8
 	mov [esp], eax
 	call Scr_EvalGreater
-	jmp VM_Execute_800
-VM_Execute_3930:
-	mov eax, [fs+0xc]
+	jmp VM_ExecuteInternal_800
+VM_ExecuteInternal_3930:
+	mov eax, [gFs+0xc]
 	mov [esp+0x4], eax
 	sub eax, 0x8
 	mov [esp], eax
 	call Scr_EvalLessEqual
-	jmp VM_Execute_800
-VM_Execute_3940:
-	mov eax, [fs+0xc]
+	jmp VM_ExecuteInternal_800
+VM_ExecuteInternal_3940:
+	mov eax, [gFs+0xc]
 	mov [esp+0x4], eax
 	sub eax, 0x8
 	mov [esp], eax
 	call Scr_EvalGreaterEqual
-	jmp VM_Execute_800
-VM_Execute_3950:
-	mov eax, [fs+0xc]
+	jmp VM_ExecuteInternal_800
+VM_ExecuteInternal_3950:
+	mov eax, [gFs+0xc]
 	mov [esp+0x4], eax
 	sub eax, 0x8
 	mov [esp], eax
 	call Scr_EvalShiftLeft
-	jmp VM_Execute_800
-VM_Execute_3960:
-	mov eax, [fs+0xc]
+	jmp VM_ExecuteInternal_800
+VM_ExecuteInternal_3960:
+	mov eax, [gFs+0xc]
 	mov [esp+0x4], eax
 	sub eax, 0x8
 	mov [esp], eax
 	call Scr_EvalShiftRight
-	jmp VM_Execute_800
-VM_Execute_3970:
-	mov eax, [fs+0xc]
+	jmp VM_ExecuteInternal_800
+VM_ExecuteInternal_3970:
+	mov eax, [gFs+0xc]
 	mov [esp+0x4], eax
 	sub eax, 0x8
 	mov [esp], eax
 	call Scr_EvalPlus
-	jmp VM_Execute_800
-VM_Execute_3980:
-	mov eax, [fs+0xc]
+	jmp VM_ExecuteInternal_800
+VM_ExecuteInternal_3980:
+	mov eax, [gFs+0xc]
 	mov [esp+0x4], eax
 	sub eax, 0x8
 	mov [esp], eax
 	call Scr_EvalMinus
-	jmp VM_Execute_800
-VM_Execute_3990:
-	mov eax, [fs+0xc]
+	jmp VM_ExecuteInternal_800
+VM_ExecuteInternal_3990:
+	mov eax, [gFs+0xc]
 	mov [esp+0x4], eax
 	sub eax, 0x8
 	mov [esp], eax
 	call Scr_EvalMultiply
-	jmp VM_Execute_800
-VM_Execute_4000:
-	mov eax, [fs+0xc]
+	jmp VM_ExecuteInternal_800
+VM_ExecuteInternal_4000:
+	mov eax, [gFs+0xc]
 	mov [esp+0x4], eax
 	sub eax, 0x8
 	mov [esp], eax
 	call Scr_EvalDivide
-	jmp VM_Execute_800
-VM_Execute_4010:
-	mov eax, [fs+0xc]
+	jmp VM_ExecuteInternal_800
+VM_ExecuteInternal_4010:
+	mov eax, [gFs+0xc]
 	mov [esp+0x4], eax
 	sub eax, 0x8
 	mov [esp], eax
 	call Scr_EvalMod
-	jmp VM_Execute_800
-VM_Execute_4020:
-	mov eax, [fs+0xc]
+	jmp VM_ExecuteInternal_800
+VM_ExecuteInternal_4020:
+	mov eax, [gFs+0xc]
 	mov [esp], eax
 	call Scr_EvalSizeValue
-	mov ecx, [fs]
-	jmp VM_Execute_40
-VM_Execute_4030:
-	mov eax, [fs+0xc]
+	mov ecx, [gFs]
+	jmp VM_ExecuteInternal_40
+VM_ExecuteInternal_4030:
+	mov eax, [gFs+0xc]
 	cmp dword [eax+0x4], 0x1
-	jnz VM_Execute_510
+	jnz VM_ExecuteInternal_510
 	mov eax, [eax]
 	mov [esp], eax
 	call IsFieldObject
 	test al, al
-	jz VM_Execute_1290
-	mov edx, [fs+0xc]
+	jz VM_ExecuteInternal_1290
+	mov edx, [gFs+0xc]
 	mov eax, [edx]
 	mov [ebp-0x20], eax
 	lea eax, [edx-0x8]
-	mov [fs+0xc], eax
+	mov [gFs+0xc], eax
 	cmp dword [eax+0x4], 0x2
-	jnz VM_Execute_1300
+	jnz VM_ExecuteInternal_1300
 	mov esi, [edx-0x8]
 	lea eax, [edx-0x10]
-	mov [fs+0xc], eax
+	mov [gFs+0xc], eax
 	mov dword [ebp-0x24], 0xa
 	call VM_ArchiveStack
 	mov [ebp-0x28], eax
@@ -2955,7 +2951,7 @@ VM_Execute_4030:
 	call GetVariable
 	mov [esp], eax
 	call GetArray
-	mov edx, [fs+0x4]
+	mov edx, [gFs+0x4]
 	mov [esp+0x4], edx
 	mov [esp], eax
 	call GetNewObjectVariable
@@ -2964,7 +2960,7 @@ VM_Execute_4030:
 	mov [esp], eax
 	call SetNewVariableValue
 	mov dword [ebp-0x1c], 0x1
-	mov ebx, [fs+0x4]
+	mov ebx, [gFs+0x4]
 	mov [esp], ebx
 	call Scr_GetSelf
 	mov [esp+0x4], eax
@@ -2982,28 +2978,28 @@ VM_Execute_4030:
 	mov [esp], eax
 	call SetNewVariableValue
 	mov [esp+0x4], esi
-	mov eax, [fs+0x4]
+	mov eax, [gFs+0x4]
 	mov [esp], eax
 	call Scr_SetThreadNotifyName
-	jmp VM_Execute_310
-VM_Execute_4040:
-	mov eax, [fs+0xc]
+	jmp VM_ExecuteInternal_310
+VM_ExecuteInternal_4040:
+	mov eax, [gFs+0xc]
 	cmp dword [eax+0x4], 0x1
-	jnz VM_Execute_510
+	jnz VM_ExecuteInternal_510
 	mov esi, [eax]
 	mov [esp], esi
 	call IsFieldObject
 	test al, al
-	jz VM_Execute_1290
-	mov edx, [fs+0xc]
+	jz VM_ExecuteInternal_1290
+	mov edx, [gFs+0xc]
 	lea eax, [edx-0x8]
-	mov [fs+0xc], eax
+	mov [gFs+0xc], eax
 	cmp dword [eax+0x4], 0x2
-	jnz VM_Execute_1310
+	jnz VM_ExecuteInternal_1310
 	mov ebx, [edx-0x8]
 	lea ecx, [edx-0x10]
-	mov [fs+0xc], ecx
-	mov edx, [fs]
+	mov [gFs+0xc], ecx
+	mov edx, [gFs]
 	mov eax, [scrVmPub+0xc]
 	mov [eax], edx
 	mov edx, ebx
@@ -3011,49 +3007,49 @@ VM_Execute_4040:
 	call VM_Notify
 	mov eax, [scrVmPub+0xc]
 	mov eax, [eax]
-	mov [fs], eax
+	mov [gFs], eax
 	mov [esp], esi
 	call RemoveRefToObject
 	mov [esp], ebx
 	call SL_RemoveRefToString
-	mov eax, [fs+0xc]
+	mov eax, [gFs+0xc]
 	mov edx, [eax+0x4]
 	cmp edx, 0x8
-	jz VM_Execute_800
-VM_Execute_1320:
+	jz VM_ExecuteInternal_800
+VM_ExecuteInternal_1320:
 	mov eax, [eax]
 	mov [esp+0x4], eax
 	mov [esp], edx
 	call RemoveRefToValue
-	mov eax, [fs+0xc]
+	mov eax, [gFs+0xc]
 	sub eax, 0x8
-	mov [fs+0xc], eax
+	mov [gFs+0xc], eax
 	mov edx, [eax+0x4]
 	cmp edx, 0x8
-	jnz VM_Execute_1320
-	jmp VM_Execute_800
-VM_Execute_4050:
-	mov eax, [fs+0xc]
+	jnz VM_ExecuteInternal_1320
+	jmp VM_ExecuteInternal_800
+VM_ExecuteInternal_4050:
+	mov eax, [gFs+0xc]
 	cmp dword [eax+0x4], 0x1
-	jnz VM_Execute_200
+	jnz VM_ExecuteInternal_200
 	mov eax, [eax]
 	mov [esp], eax
 	call IsFieldObject
 	test al, al
-	jz VM_Execute_1330
-	mov eax, [fs+0xc]
+	jz VM_ExecuteInternal_1330
+	mov eax, [gFs+0xc]
 	cmp dword [eax-0x4], 0x2
-	jnz VM_Execute_1340
+	jnz VM_ExecuteInternal_1340
 	mov esi, [eax-0x8]
-	mov eax, [fs+0x4]
+	mov eax, [gFs+0x4]
 	mov [esp], eax
 	call AddRefToObject
-	mov eax, [fs+0x4]
+	mov eax, [gFs+0x4]
 	mov [esp], eax
 	call AllocThread
 	mov ebx, eax
 	mov dword [esp+0x4], 0x18000
-	mov eax, [fs+0xc]
+	mov eax, [gFs+0xc]
 	mov eax, [eax]
 	mov [esp], eax
 	call GetVariable
@@ -3070,10 +3066,10 @@ VM_Execute_4050:
 	mov [esp], ebx
 	call RemoveRefToObject
 	mov dword [ebp-0x1c], 0x1
-	mov eax, [fs+0xc]
+	mov eax, [gFs+0xc]
 	mov eax, [eax]
 	mov [ebp-0x20], eax
-	mov eax, [fs+0x4]
+	mov eax, [gFs+0x4]
 	mov [esp+0x4], eax
 	mov eax, scrVarPub
 	mov eax, [eax+0x1c]
@@ -3091,10 +3087,10 @@ VM_Execute_4050:
 	mov [esp+0x4], esi
 	mov [esp], ebx
 	call Scr_SetThreadNotifyName
-	sub dword [fs+0xc], 0x10
-	mov ecx, [fs]
-	jmp VM_Execute_40
-VM_Execute_3770:
+	sub dword [gFs+0xc], 0x10
+	mov ecx, [gFs]
+	jmp VM_ExecuteInternal_40
+VM_ExecuteInternal_3770:
 	movzx eax, byte [edx]
 	shl eax, 0x2
 	mov edx, [scrVmPub]
@@ -3103,294 +3099,294 @@ VM_Execute_3770:
 	mov [esp], eax
 	call Scr_EvalVariableObject
 	mov [ebp-0x34], eax
-	add dword [fs], 0x1
-	mov ecx, [fs]
-	jmp VM_Execute_40
-VM_Execute_3780:
-	mov eax, [fs+0xc]
+	add dword [gFs], 0x1
+	mov ecx, [gFs]
+	jmp VM_ExecuteInternal_40
+VM_ExecuteInternal_3780:
+	mov eax, [gFs+0xc]
 	mov [esp], eax
 	call Scr_CastBool
-	mov ecx, [fs]
-	jmp VM_Execute_40
-VM_Execute_3790:
-	mov eax, [fs+0xc]
+	mov ecx, [gFs]
+	jmp VM_ExecuteInternal_40
+VM_ExecuteInternal_3790:
+	mov eax, [gFs+0xc]
 	mov [esp], eax
 	call Scr_EvalBoolNot
-	mov ecx, [fs]
-	jmp VM_Execute_40
-VM_Execute_3800:
-	mov eax, [fs+0xc]
+	mov ecx, [gFs]
+	jmp VM_ExecuteInternal_40
+VM_ExecuteInternal_3800:
+	mov eax, [gFs+0xc]
 	mov [esp], eax
 	call Scr_EvalBoolComplement
-	mov ecx, [fs]
-	jmp VM_Execute_40
-VM_Execute_3810:
-	mov eax, [fs+0xc]
+	mov ecx, [gFs]
+	jmp VM_ExecuteInternal_40
+VM_ExecuteInternal_3810:
+	mov eax, [gFs+0xc]
 	mov [esp], eax
 	call Scr_CastBool
-	mov eax, [fs]
+	mov eax, [gFs]
 	movzx edx, word [eax]
 	lea ecx, [eax+0x2]
-	mov [fs], ecx
-	mov eax, [fs+0xc]
+	mov [gFs], ecx
+	mov eax, [gFs+0xc]
 	mov eax, [eax]
 	test eax, eax
-	jnz VM_Execute_800
-VM_Execute_1350:
+	jnz VM_ExecuteInternal_800
+VM_ExecuteInternal_1350:
 	lea eax, [ecx+edx]
-	mov [fs], eax
-	jmp VM_Execute_800
-VM_Execute_3820:
-	mov eax, [fs+0xc]
+	mov [gFs], eax
+	jmp VM_ExecuteInternal_800
+VM_ExecuteInternal_3820:
+	mov eax, [gFs+0xc]
 	mov [esp], eax
 	call Scr_CastBool
-	mov eax, [fs]
+	mov eax, [gFs]
 	movzx edx, word [eax]
 	lea ecx, [eax+0x2]
-	mov [fs], ecx
-	mov eax, [fs+0xc]
+	mov [gFs], ecx
+	mov eax, [gFs+0xc]
 	mov eax, [eax]
 	test eax, eax
-	jz VM_Execute_800
-	jmp VM_Execute_1350
-VM_Execute_3830:
-	mov eax, [fs+0xc]
+	jz VM_ExecuteInternal_800
+	jmp VM_ExecuteInternal_1350
+VM_ExecuteInternal_3830:
+	mov eax, [gFs+0xc]
 	mov [esp], eax
 	call Scr_CastBool
-	mov eax, [fs]
+	mov eax, [gFs]
 	movzx edx, word [eax]
 	lea ecx, [eax+0x2]
-	mov [fs], ecx
-	mov eax, [fs+0xc]
+	mov [gFs], ecx
+	mov eax, [gFs+0xc]
 	mov edi, [eax]
 	test edi, edi
-	jnz VM_Execute_800
-VM_Execute_1360:
+	jnz VM_ExecuteInternal_800
+VM_ExecuteInternal_1360:
 	lea eax, [ecx+edx]
-	mov [fs], eax
+	mov [gFs], eax
 	mov ecx, eax
-	jmp VM_Execute_40
-VM_Execute_3840:
-	mov eax, [fs+0xc]
+	jmp VM_ExecuteInternal_40
+VM_ExecuteInternal_3840:
+	mov eax, [gFs+0xc]
 	mov [esp], eax
 	call Scr_CastBool
-	mov eax, [fs]
+	mov eax, [gFs]
 	movzx edx, word [eax]
 	lea ecx, [eax+0x2]
-	mov [fs], ecx
-	mov eax, [fs+0xc]
+	mov [gFs], ecx
+	mov eax, [gFs+0xc]
 	mov esi, [eax]
 	test esi, esi
-	jz VM_Execute_800
-	jmp VM_Execute_1360
-VM_Execute_3870:
-	mov eax, [fs+0xc]
+	jz VM_ExecuteInternal_800
+	jmp VM_ExecuteInternal_1360
+VM_ExecuteInternal_3870:
+	mov eax, [gFs+0xc]
 	mov [esp+0x4], eax
 	sub eax, 0x8
 	mov [esp], eax
 	call Scr_EvalExOr
-	jmp VM_Execute_800
-VM_Execute_3850:
+	jmp VM_ExecuteInternal_800
+VM_ExecuteInternal_3850:
 	lea eax, [ecx+0x5]
 	add eax, [edx]
-	mov [fs], eax
+	mov [gFs], eax
 	mov ecx, eax
-	jmp VM_Execute_40
-VM_Execute_3860:
+	jmp VM_ExecuteInternal_40
+VM_ExecuteInternal_3860:
 	call Sys_Milliseconds
 	sub eax, [scrVmGlob+0x18]
 	cmp eax, 0x9c3
-	jg VM_Execute_1370
-	mov eax, [fs]
+	jg VM_ExecuteInternal_1370
+	mov eax, [gFs]
 	lea edx, [eax+0x2]
 	movzx eax, word [eax]
 	sub edx, eax
-	mov [fs], edx
+	mov [gFs], edx
 	mov ecx, edx
-	jmp VM_Execute_40
-VM_Execute_3580:
-	mov eax, [fs+0xc]
+	jmp VM_ExecuteInternal_40
+VM_ExecuteInternal_3580:
+	mov eax, [gFs+0xc]
 	mov edx, [eax+0x4]
 	cmp edx, 0x7
-	jz VM_Execute_810
-VM_Execute_1380:
+	jz VM_ExecuteInternal_810
+VM_ExecuteInternal_1380:
 	mov eax, [eax]
 	mov [esp+0x4], eax
 	mov [esp], edx
 	call RemoveRefToValue
-	mov eax, [fs+0xc]
+	mov eax, [gFs+0xc]
 	sub eax, 0x8
-	mov [fs+0xc], eax
+	mov [gFs+0xc], eax
 	mov edx, [eax+0x4]
 	cmp edx, 0x7
-	jnz VM_Execute_1380
-	jmp VM_Execute_810
-VM_Execute_3400:
+	jnz VM_ExecuteInternal_1380
+	jmp VM_ExecuteInternal_810
+VM_ExecuteInternal_3400:
 	mov eax, [scrVmPub]
 	mov eax, [eax]
 	mov [ebp-0x38], eax
-	jmp VM_Execute_1390
-VM_Execute_3700:
+	jmp VM_ExecuteInternal_1390
+VM_ExecuteInternal_3700:
 	movzx eax, byte [edx]
 	mov [scrVmPub+0x1c], eax
-	add dword [fs], 0x1
-	jmp VM_Execute_1400
-VM_Execute_3080:
-	mov eax, [fs+0x4]
+	add dword [gFs], 0x1
+	jmp VM_ExecuteInternal_1400
+VM_ExecuteInternal_3080:
+	mov eax, [gFs+0x4]
 	mov [esp], eax
 	call GetSafeParentLocalId
 	mov ebx, eax
-	mov eax, [fs+0x4]
+	mov eax, [gFs+0x4]
 	mov [esp], eax
 	call Scr_KillThread
-	mov eax, [fs+0x8]
+	mov eax, [gFs+0x8]
 	shl eax, 0x2
 	sub [scrVmPub], eax
-	mov eax, [fs+0xc]
+	mov eax, [gFs+0xc]
 	mov edx, [eax+0x4]
 	cmp edx, 0x7
-	jz VM_Execute_1410
-VM_Execute_1420:
+	jz VM_ExecuteInternal_1410
+VM_ExecuteInternal_1420:
 	mov eax, [eax]
 	mov [esp+0x4], eax
 	mov [esp], edx
 	call RemoveRefToValue
-	mov eax, [fs+0xc]
+	mov eax, [gFs+0xc]
 	sub eax, 0x8
-	mov [fs+0xc], eax
+	mov [gFs+0xc], eax
 	mov edx, [eax+0x4]
 	cmp edx, 0x7
-	jnz VM_Execute_1420
-VM_Execute_1410:
+	jnz VM_ExecuteInternal_1420
+VM_ExecuteInternal_1410:
 	sub dword [scrVmPub+0x8], 0x1
 	sub dword [scrVmPub+0xc], 0x18
 	test ebx, ebx
-	jz VM_Execute_310
-	mov eax, [fs+0xc]
+	jz VM_ExecuteInternal_310
+	mov eax, [gFs+0xc]
 	mov dword [eax+0x4], 0x0
-VM_Execute_1880:
-	mov eax, [fs+0x4]
+VM_ExecuteInternal_1880:
+	mov eax, [gFs+0x4]
 	mov [esp], eax
 	call RemoveRefToObject
 	mov edx, [scrVmPub+0xc]
 	mov eax, [edx]
-	mov [fs], eax
+	mov [gFs], eax
 	mov eax, [edx+0x8]
-	mov [fs+0x8], eax
-	mov [fs+0x4], ebx
-	mov ecx, [fs]
-	jmp VM_Execute_40
-VM_Execute_3880:
-	mov eax, [fs+0xc]
+	mov [gFs+0x8], eax
+	mov [gFs+0x4], ebx
+	mov ecx, [gFs]
+	jmp VM_ExecuteInternal_40
+VM_ExecuteInternal_3880:
+	mov eax, [gFs+0xc]
 	mov [esp+0x4], eax
 	sub eax, 0x8
 	mov [esp], eax
 	call Scr_EvalAnd
-	jmp VM_Execute_800
-VM_Execute_3890:
-	mov eax, [fs+0xc]
+	jmp VM_ExecuteInternal_800
+VM_ExecuteInternal_3890:
+	mov eax, [gFs+0xc]
 	mov [esp+0x4], eax
 	sub eax, 0x8
 	mov [esp], eax
 	call Scr_EvalEquality
-	jmp VM_Execute_800
-VM_Execute_4110:
-	mov ecx, [fs+0xc]
+	jmp VM_ExecuteInternal_800
+VM_ExecuteInternal_4110:
+	mov ecx, [gFs+0xc]
 	lea eax, [ecx+0x8]
-	mov [fs+0xc], eax
-	mov eax, [fs]
+	mov [gFs+0xc], eax
+	mov eax, [gFs]
 	movzx edx, word [eax]
 	add eax, 0x2
-	mov [fs], eax
+	mov [gFs], eax
 	mov [ecx+0x8], edx
-VM_Execute_1480:
-	mov eax, [fs+0xc]
-VM_Execute_1440:
+VM_ExecuteInternal_1480:
+	mov eax, [gFs+0xc]
+VM_ExecuteInternal_1440:
 	mov dword [eax+0x4], 0x1
-	jmp VM_Execute_1430
-VM_Execute_4120:
-	mov ebx, [fs+0xc]
+	jmp VM_ExecuteInternal_1430
+VM_ExecuteInternal_4120:
+	mov ebx, [gFs+0xc]
 	lea eax, [ebx+0x8]
-	mov [fs+0xc], eax
-	mov eax, [fs]
+	mov [gFs+0xc], eax
+	mov eax, [gFs]
 	movzx edx, word [eax]
 	add eax, 0x2
-	mov [fs], eax
+	mov [gFs], eax
 	mov [esp+0x4], edx
-	mov eax, [fs+0x4]
+	mov eax, [gFs+0x4]
 	mov [esp], eax
 	call FindVariable
-	jmp VM_Execute_1140
-VM_Execute_4100:
-	mov ebx, [fs+0xc]
+	jmp VM_ExecuteInternal_1140
+VM_ExecuteInternal_4100:
+	mov ebx, [gFs+0xc]
 	lea eax, [ebx+0x8]
-	mov [fs+0xc], eax
-	mov eax, [fs]
+	mov [gFs+0xc], eax
+	mov eax, [gFs]
 	mov ecx, [eax]
 	lea edx, [eax+0x4]
-	mov [fs], edx
+	mov [gFs], edx
 	mov edx, [eax+0x4]
 	add eax, 0x8
-	mov [fs], eax
+	mov [gFs], eax
 	mov [esp+0x4], ecx
 	mov [esp], edx
 	call FindEntityId
 	mov [ebx+0x8], eax
-	mov eax, [fs+0xc]
+	mov eax, [gFs+0xc]
 	mov ebx, [eax]
 	test ebx, ebx
-	jnz VM_Execute_1440
+	jnz VM_ExecuteInternal_1440
 	mov dword [eax+0x4], 0x0
 	mov ebx, scrVarPub
 	mov ecx, [ebx+0xc]
 	test ecx, ecx
-	jz VM_Execute_1450
-VM_Execute_2690:
+	jz VM_ExecuteInternal_1450
+VM_ExecuteInternal_2690:
 	cmp byte [ebx+0x8], 0x0
-	jnz VM_Execute_1460
+	jnz VM_ExecuteInternal_1460
 	mov eax, scrCompilePub
 	cmp byte [eax+0x20020], 0x0
-	jnz VM_Execute_1460
+	jnz VM_ExecuteInternal_1460
 	cmp byte [ebx+0x6], 0x0
-	jnz VM_Execute_1470
-VM_Execute_2490:
+	jnz VM_ExecuteInternal_1470
+VM_ExecuteInternal_2490:
 	mov eax, [scrVmPub+0x8]
 	test eax, eax
-	jnz VM_Execute_350
+	jnz VM_ExecuteInternal_350
 	cmp byte [scrVmPub+0x14], 0x0
-	jnz VM_Execute_350
+	jnz VM_ExecuteInternal_350
 	mov eax, scrVarPub
 	mov eax, [eax+0xc]
 	mov [esp+0x4], eax
 	mov dword [esp], _cstring_s
 	call Sys_Error
-	jmp VM_Execute_1480
-VM_Execute_3750:
-	mov edx, [fs+0xc]
+	jmp VM_ExecuteInternal_1480
+VM_ExecuteInternal_3750:
+	mov edx, [gFs+0xc]
 	mov ecx, [edx+0x4]
 	cmp ecx, 0x9
-	jnz VM_Execute_1490
+	jnz VM_ExecuteInternal_1490
 	mov esi, [edx]
 	lea eax, [edx-0x8]
-	mov [fs+0xc], eax
+	mov [gFs+0xc], eax
 	cmp dword [eax+0x4], 0x1
-	jnz VM_Execute_510
+	jnz VM_ExecuteInternal_510
 	cmp dword [scrVmPub+0x8], 0x1e
-	jg VM_Execute_520
+	jg VM_ExecuteInternal_520
 	mov eax, [edx-0x8]
 	mov [esp], eax
 	call AllocThread
-	mov [fs+0x4], eax
-	mov ebx, [fs+0xc]
+	mov [gFs+0x4], eax
+	mov ebx, [gFs+0xc]
 	sub ebx, 0x8
-	mov [fs+0xc], ebx
-	mov edx, [fs]
+	mov [gFs+0xc], ebx
+	mov edx, [gFs]
 	mov eax, [scrVmPub+0xc]
 	mov [eax], edx
-	mov edx, [fs+0x10]
+	mov edx, [gFs+0x10]
 	mov eax, [scrVmPub+0xc]
 	mov [eax+0x10], edx
-	mov [fs], esi
+	mov [gFs], esi
 	mov ecx, [scrVmPub+0xc]
 	mov eax, [ecx]
 	mov edx, [eax]
@@ -3398,14 +3394,14 @@ VM_Execute_3750:
 	mov [ecx], eax
 	shl edx, 0x3
 	sub ebx, edx
-	mov [fs+0x10], ebx
+	mov [gFs+0x10], ebx
 	mov edx, ebx
-	jmp VM_Execute_1500
-VM_Execute_3560:
-	mov eax, [fs+0xc]
+	jmp VM_ExecuteInternal_1500
+VM_ExecuteInternal_3560:
+	mov eax, [gFs+0xc]
 	cmp dword [eax+0x4], 0x8
-	jz VM_Execute_1510
-VM_Execute_1560:
+	jz VM_ExecuteInternal_1510
+VM_ExecuteInternal_1560:
 	mov [esp+0x4], eax
 	movzx eax, byte [edx]
 	shl eax, 0x2
@@ -3414,70 +3410,70 @@ VM_Execute_1560:
 	mov eax, [edx]
 	mov [esp], eax
 	call SetVariableValue
-	add dword [fs], 0x1
-	jmp VM_Execute_800
-VM_Execute_4070:
+	add dword [gFs], 0x1
+	jmp VM_ExecuteInternal_800
+VM_ExecuteInternal_4070:
 	movzx eax, word [edx]
 	mov [caseCount], eax
 	lea eax, [ecx+eax*8+0x3]
-	mov [fs], eax
+	mov [gFs], eax
 	mov ecx, eax
-	jmp VM_Execute_40
-VM_Execute_4080:
-	mov eax, [fs+0xc]
+	jmp VM_ExecuteInternal_40
+VM_ExecuteInternal_4080:
+	mov eax, [gFs+0xc]
 	sub eax, 0x10
-	mov [fs+0xc], eax
+	mov [gFs+0xc], eax
 	mov [esp], eax
 	call Scr_CastVector
-	mov ecx, [fs]
-	jmp VM_Execute_40
-VM_Execute_3090:
-	mov eax, [fs+0x4]
+	mov ecx, [gFs]
+	jmp VM_ExecuteInternal_40
+VM_ExecuteInternal_3090:
+	mov eax, [gFs+0x4]
 	mov [esp], eax
 	call GetSafeParentLocalId
 	mov ebx, eax
-	mov eax, [fs+0x4]
+	mov eax, [gFs+0x4]
 	mov [esp], eax
 	call Scr_KillThread
-	mov eax, [fs+0x8]
+	mov eax, [gFs+0x8]
 	shl eax, 0x2
 	sub [scrVmPub], eax
-	mov ecx, [fs+0xc]
+	mov ecx, [gFs+0xc]
 	mov eax, [ecx]
 	mov edx, [ecx+0x4]
 	mov [ebp-0x20], eax
 	mov [ebp-0x1c], edx
 	lea eax, [ecx-0x8]
-	mov [fs+0xc], eax
+	mov [gFs+0xc], eax
 	mov edx, [eax+0x4]
 	cmp edx, 0x7
-	jz VM_Execute_1520
-VM_Execute_1530:
+	jz VM_ExecuteInternal_1520
+VM_ExecuteInternal_1530:
 	mov eax, [eax]
 	mov [esp+0x4], eax
 	mov [esp], edx
 	call RemoveRefToValue
-	mov eax, [fs+0xc]
+	mov eax, [gFs+0xc]
 	sub eax, 0x8
-	mov [fs+0xc], eax
+	mov [gFs+0xc], eax
 	mov edx, [eax+0x4]
 	cmp edx, 0x7
-	jnz VM_Execute_1530
-VM_Execute_1520:
+	jnz VM_ExecuteInternal_1530
+VM_ExecuteInternal_1520:
 	sub dword [scrVmPub+0x8], 0x1
 	sub dword [scrVmPub+0xc], 0x18
 	test ebx, ebx
-	jnz VM_Execute_1540
+	jnz VM_ExecuteInternal_1540
 	mov eax, [ebp-0x20]
 	mov edx, [ebp-0x1c]
-	mov ecx, [fs+0xc]
+	mov ecx, [gFs+0xc]
 	mov [ecx+0x8], eax
 	mov [ecx+0xc], edx
-	jmp VM_Execute_1550
-VM_Execute_3570:
-	mov eax, [fs+0xc]
+	jmp VM_ExecuteInternal_1550
+VM_ExecuteInternal_3570:
+	mov eax, [gFs+0xc]
 	cmp dword [eax+0x4], 0x7
-	jnz VM_Execute_1560
+	jnz VM_ExecuteInternal_1560
 	movzx eax, byte [edx]
 	shl eax, 0x2
 	mov edx, [scrVmPub]
@@ -3485,48 +3481,48 @@ VM_Execute_3570:
 	mov eax, [edx]
 	mov [esp], eax
 	call ClearVariableValue
-	add dword [fs], 0x1
-	mov ecx, [fs]
-	jmp VM_Execute_40
-VM_Execute_1270:
+	add dword [gFs], 0x1
+	mov ecx, [gFs]
+	jmp VM_ExecuteInternal_40
+VM_ExecuteInternal_1270:
 	cmp byte [scrVmPub+0x16], 0x0
-	jz VM_Execute_1570
+	jz VM_ExecuteInternal_1570
 	mov eax, scrVarPub
 	mov eax, [eax+0xc]
 	mov [esp+0x4], eax
 	mov dword [esp], _cstring_s
 	call Sys_Error
-	jmp VM_Execute_1570
-VM_Execute_1190:
+	jmp VM_ExecuteInternal_1570
+VM_ExecuteInternal_1190:
 	cmp byte [scrVmPub+0x16], 0x0
-	jz VM_Execute_1580
+	jz VM_ExecuteInternal_1580
 	mov eax, scrVarPub
 	mov eax, [eax+0xc]
 	mov [esp+0x4], eax
 	mov dword [esp], _cstring_s
 	call Sys_Error
-	jmp VM_Execute_1580
-VM_Execute_1460:
+	jmp VM_ExecuteInternal_1580
+VM_ExecuteInternal_1460:
 	cmp byte [scrVmPub+0x16], 0x0
-	jz VM_Execute_1480
+	jz VM_ExecuteInternal_1480
 	mov eax, scrVarPub
 	mov eax, [eax+0xc]
 	mov [esp+0x4], eax
 	mov dword [esp], _cstring_s
 	call Sys_Error
-	jmp VM_Execute_1480
-VM_Execute_740:
+	jmp VM_ExecuteInternal_1480
+VM_ExecuteInternal_740:
 	sub dword [eax], 0x1
-VM_Execute_2020:
-	add dword [fs], 0x1
-VM_Execute_820:
-	mov eax, [fs+0xc]
+VM_ExecuteInternal_2020:
+	add dword [gFs], 0x1
+VM_ExecuteInternal_820:
+	mov eax, [gFs+0xc]
 	mov [esp+0x4], eax
 	mov eax, [ebp-0x38]
 	mov [esp], eax
 	call SetVariableFieldValue
-	jmp VM_Execute_800
-VM_Execute_280:
+	jmp VM_ExecuteInternal_800
+VM_ExecuteInternal_280:
 	mov ebx, scrVarPub
 	mov dword [ebx+0x10], 0x2
 	mov eax, [eax+0x4]
@@ -3537,32 +3533,32 @@ VM_Execute_280:
 	call va
 	mov ecx, [ebx+0xc]
 	test ecx, ecx
-	jz VM_Execute_1590
-VM_Execute_2460:
+	jz VM_ExecuteInternal_1590
+VM_ExecuteInternal_2460:
 	cmp byte [ebx+0x8], 0x0
-	jnz VM_Execute_1600
+	jnz VM_ExecuteInternal_1600
 	mov eax, scrCompilePub
 	cmp byte [eax+0x20020], 0x0
-	jz VM_Execute_1610
-VM_Execute_1600:
+	jz VM_ExecuteInternal_1610
+VM_ExecuteInternal_1600:
 	cmp byte [scrVmPub+0x16], 0x0
-	jz VM_Execute_1620
-VM_Execute_2110:
+	jz VM_ExecuteInternal_1620
+VM_ExecuteInternal_2110:
 	mov eax, scrVarPub
 	mov eax, [eax+0xc]
 	mov [esp+0x4], eax
 	mov dword [esp], _cstring_s
 	call Sys_Error
-VM_Execute_1620:
+VM_ExecuteInternal_1620:
 	mov esi, [ebp-0x30]
-	jmp VM_Execute_1630
-VM_Execute_270:
+	jmp VM_ExecuteInternal_1630
+VM_ExecuteInternal_270:
 	movss xmm0, dword [eax]
 	movss [ebp-0x40], xmm0
 	ucomiss xmm0, [_float_0_00000000]
-	jp VM_Execute_1640
-	jb VM_Execute_580
-VM_Execute_1640:
+	jp VM_ExecuteInternal_1640
+	jb VM_ExecuteInternal_580
+VM_ExecuteInternal_1640:
 	mulss xmm0, [_float_20_00000000]
 	addss xmm0, [_float_0_50000000]
 	movss [esp], xmm0
@@ -3571,76 +3567,76 @@ VM_Execute_1640:
 	cvttss2si eax, [ebp-0x44]
 	mov [ebp-0x30], eax
 	test eax, eax
-	jnz VM_Execute_1650
+	jnz VM_ExecuteInternal_1650
 	movss xmm0, dword [ebp-0x40]
 	ucomiss xmm0, [_float_0_00000000]
-	jp VM_Execute_1660
-	jnz VM_Execute_1660
+	jp VM_ExecuteInternal_1660
+	jnz VM_ExecuteInternal_1660
 	mov dword [ebp-0x30], 0x0
 	xor esi, esi
-	jmp VM_Execute_1630
-VM_Execute_930:
+	jmp VM_ExecuteInternal_1630
+VM_ExecuteInternal_930:
 	mov eax, [eax]
 	mov [esp+0x4], eax
 	mov eax, [ebp-0x34]
 	mov [esp], eax
 	call GetVariableIndexInternal
 	mov [ebp-0x3c], eax
-	mov eax, [fs+0xc]
+	mov eax, [gFs+0xc]
 	mov eax, [eax]
 	mov [esp], eax
 	call SL_RemoveRefToString
 	mov eax, [ebp-0x3c]
-	jmp VM_Execute_1670
-VM_Execute_830:
+	jmp VM_ExecuteInternal_1670
+VM_ExecuteInternal_830:
 	mov eax, [ebp-0x3c]
 	mov [esp+0x4], eax
 	mov eax, [ebp-0x34]
 	mov [esp], eax
 	call RemoveVariableValue
-	jmp VM_Execute_800
-VM_Execute_580:
+	jmp VM_ExecuteInternal_800
+VM_ExecuteInternal_580:
 	mov ebx, scrVarPub
 	mov ecx, [ebx+0xc]
 	test ecx, ecx
-	jnz VM_Execute_1680
-VM_Execute_590:
+	jnz VM_ExecuteInternal_1680
+VM_ExecuteInternal_590:
 	mov dword [esp+0x8], 0x400
 	mov dword [esp+0x4], _cstring_negative_wait_is
 	mov dword [esp], error_message
 	call Q_strncpyz
 	mov dword [ebx+0xc], error_message
-	jmp VM_Execute_1680
-VM_Execute_520:
+	jmp VM_ExecuteInternal_1680
+VM_ExecuteInternal_520:
 	mov ebx, scrVarPub
 	mov dword [ebx+0x10], 0x1
 	mov edi, [ebx+0xc]
 	test edi, edi
-	jnz VM_Execute_1690
+	jnz VM_ExecuteInternal_1690
 	mov dword [esp+0x8], 0x400
 	mov dword [esp+0x4], _cstring_script_stack_ove
 	mov dword [esp], error_message
 	call Q_strncpyz
 	mov dword [ebx+0xc], error_message
-VM_Execute_1690:
+VM_ExecuteInternal_1690:
 	cmp byte [ebx+0x8], 0x0
-	jz VM_Execute_1700
-VM_Execute_2970:
+	jz VM_ExecuteInternal_1700
+VM_ExecuteInternal_2970:
 	cmp byte [scrVmPub+0x16], 0x0
-	jz VM_Execute_510
-VM_Execute_2990:
+	jz VM_ExecuteInternal_510
+VM_ExecuteInternal_2990:
 	mov eax, scrVarPub
 	mov eax, [eax+0xc]
 	mov [esp+0x4], eax
 	mov dword [esp], _cstring_s
 	call Sys_Error
-VM_Execute_510:
-	mov eax, [fs+0xc]
+VM_ExecuteInternal_510:
+	mov eax, [gFs+0xc]
 	mov edx, [eax+0x4]
-VM_Execute_2830:
+VM_ExecuteInternal_2830:
 	mov eax, scrVarPub
 	mov dword [eax+0x10], 0x2
-VM_Execute_1230:
+VM_ExecuteInternal_1230:
 	mov eax, var_typename
 	mov eax, [eax+edx*4]
 	mov [esp+0x4], eax
@@ -3650,41 +3646,41 @@ VM_Execute_1230:
 	mov eax, scrVarPub
 	mov ebx, [eax+0xc]
 	test ebx, ebx
-	jz VM_Execute_1710
-VM_Execute_3070:
+	jz VM_ExecuteInternal_1710
+VM_ExecuteInternal_3070:
 	mov edx, scrVarPub
 	cmp byte [edx+0x8], 0x0
-	jnz VM_Execute_1720
+	jnz VM_ExecuteInternal_1720
 	mov eax, scrCompilePub
 	cmp byte [eax+0x20020], 0x0
-	jz VM_Execute_1730
-VM_Execute_1720:
+	jz VM_ExecuteInternal_1730
+VM_ExecuteInternal_1720:
 	cmp byte [scrVmPub+0x16], 0x0
-	jz VM_Execute_10
-VM_Execute_3010:
+	jz VM_ExecuteInternal_10
+VM_ExecuteInternal_3010:
 	mov eax, scrVarPub
 	mov eax, [eax+0xc]
 	mov [esp+0x4], eax
 	mov dword [esp], _cstring_s
 	call Sys_Error
-VM_Execute_10:
+VM_ExecuteInternal_10:
 	mov eax, [opcode]
 	sub eax, 0x21
 	cmp eax, 0x63
-	ja VM_Execute_1740
-	jmp dword [eax*4+VM_Execute_jumptab_1]
-VM_Execute_2540:
-	jl VM_Execute_1750
-VM_Execute_1740:
+	ja VM_ExecuteInternal_1740
+	jmp dword [eax*4+VM_ExecuteInternal_jumptab_1]
+VM_ExecuteInternal_2540:
+	jl VM_ExecuteInternal_1750
+VM_ExecuteInternal_1740:
 	mov ebx, scrVarPub
-VM_Execute_2550:
+VM_ExecuteInternal_2550:
 	mov eax, [scrVmGlob+0x10]
 	mov [esp+0xc], eax
 	mov eax, [ebx+0xc]
 	mov [esp+0x8], eax
 	mov eax, [ebx+0x10]
 	mov [esp+0x4], eax
-	mov eax, [fs]
+	mov eax, [gFs]
 	mov [esp], eax
 	call RuntimeError
 	mov dword [ebx+0xc], 0x0
@@ -3693,28 +3689,28 @@ VM_Execute_2550:
 	mov eax, [opcode]
 	sub eax, 0x1f
 	cmp eax, 0x65
-	ja VM_Execute_1760
-	jmp dword [eax*4+VM_Execute_jumptab_2]
-VM_Execute_50:
-	mov eax, [fs+0x4]
+	ja VM_ExecuteInternal_1760
+	jmp dword [eax*4+VM_ExecuteInternal_jumptab_2]
+VM_ExecuteInternal_50:
+	mov eax, [gFs+0x4]
 	mov [esp], eax
 	call Scr_GetSelf
 	mov ebx, eax
 	mov [esp], eax
 	call AddRefToObject
-	mov eax, [fs+0x4]
+	mov eax, [gFs+0x4]
 	mov [esp+0x4], eax
 	mov [esp], ebx
 	call AllocChildThread
-	mov [fs+0x4], eax
-	jmp VM_Execute_1770
-VM_Execute_220:
+	mov [gFs+0x4], eax
+	jmp VM_ExecuteInternal_1770
+VM_ExecuteInternal_220:
 	mov ecx, [ecx]
 	mov [ebp-0x34], ecx
 	mov [esp], ecx
 	call GetObjectType
 	cmp eax, 0x14
-	jz VM_Execute_1780
+	jz VM_ExecuteInternal_1780
 	mov eax, [ebp-0x34]
 	mov [esp], eax
 	call GetObjectType
@@ -3731,97 +3727,97 @@ VM_Execute_220:
 	call va
 	mov ecx, [esi+0xc]
 	test ecx, ecx
-	jz VM_Execute_1790
-VM_Execute_2680:
+	jz VM_ExecuteInternal_1790
+VM_ExecuteInternal_2680:
 	cmp byte [esi+0x8], 0x0
-	jnz VM_Execute_1800
+	jnz VM_ExecuteInternal_1800
 	mov eax, scrCompilePub
 	cmp byte [eax+0x20020], 0x0
-	jnz VM_Execute_1800
+	jnz VM_ExecuteInternal_1800
 	cmp byte [esi+0x6], 0x0
-	jnz VM_Execute_1810
-VM_Execute_2500:
+	jnz VM_ExecuteInternal_1810
+VM_ExecuteInternal_2500:
 	mov eax, [scrVmPub+0x8]
 	test eax, eax
-	jnz VM_Execute_350
+	jnz VM_ExecuteInternal_350
 	cmp byte [scrVmPub+0x14], 0x0
-	jnz VM_Execute_350
+	jnz VM_ExecuteInternal_350
 	mov eax, scrVarPub
 	mov eax, [eax+0xc]
 	mov [esp+0x4], eax
 	mov dword [esp], _cstring_s
 	call Sys_Error
-VM_Execute_1830:
-	mov eax, [fs+0xc]
-	jmp VM_Execute_1820
-VM_Execute_1800:
+VM_ExecuteInternal_1830:
+	mov eax, [gFs+0xc]
+	jmp VM_ExecuteInternal_1820
+VM_ExecuteInternal_1800:
 	cmp byte [scrVmPub+0x16], 0x0
-	jz VM_Execute_1830
+	jz VM_ExecuteInternal_1830
 	mov eax, scrVarPub
 	mov eax, [eax+0xc]
 	mov [esp+0x4], eax
 	mov dword [esp], _cstring_s
 	call Sys_Error
-	jmp VM_Execute_1830
-VM_Execute_330:
+	jmp VM_ExecuteInternal_1830
+VM_ExecuteInternal_330:
 	cmp byte [scrVmPub+0x16], 0x0
-	jz VM_Execute_1840
+	jz VM_ExecuteInternal_1840
 	mov eax, scrVarPub
 	mov eax, [eax+0xc]
 	mov [esp+0x4], eax
 	mov dword [esp], _cstring_s
 	call Sys_Error
-	jmp VM_Execute_1840
-VM_Execute_180:
+	jmp VM_ExecuteInternal_1840
+VM_ExecuteInternal_180:
 	cmp byte [ebx+0x6], 0x0
-	jz VM_Execute_1850
+	jz VM_ExecuteInternal_1850
 	mov eax, 0x1
 	mov esi, [scrVmGlob+0x14]
 	test esi, esi
 	movzx edx, byte [scrVmPub+0x16]
 	cmovz eax, edx
 	mov [scrVmPub+0x16], al
-VM_Execute_1850:
+VM_ExecuteInternal_1850:
 	mov ebx, [scrVmPub+0x8]
 	test ebx, ebx
-	jnz VM_Execute_350
+	jnz VM_ExecuteInternal_350
 	cmp byte [scrVmPub+0x14], 0x0
-	jz VM_Execute_1860
-	jmp VM_Execute_350
-VM_Execute_900:
+	jz VM_ExecuteInternal_1860
+	jmp VM_ExecuteInternal_350
+VM_ExecuteInternal_900:
 	cmp byte [scrVmPub+0x16], 0x0
-	jz VM_Execute_1870
+	jz VM_ExecuteInternal_1870
 	mov eax, scrVarPub
 	mov eax, [eax+0xc]
 	mov [esp+0x4], eax
 	mov dword [esp], _cstring_s
 	call Sys_Error
-	jmp VM_Execute_1870
-VM_Execute_1540:
+	jmp VM_ExecuteInternal_1870
+VM_ExecuteInternal_1540:
 	mov eax, [ebp-0x20]
 	mov edx, [ebp-0x1c]
-	mov ecx, [fs+0xc]
+	mov ecx, [gFs+0xc]
 	mov [ecx], eax
 	mov [ecx+0x4], edx
-	jmp VM_Execute_1880
-VM_Execute_250:
+	jmp VM_ExecuteInternal_1880
+VM_ExecuteInternal_250:
 	cmp byte [esi+0x6], 0x0
-	jz VM_Execute_1890
+	jz VM_ExecuteInternal_1890
 	mov eax, 0x1
 	mov esi, [scrVmGlob+0x14]
 	test esi, esi
 	movzx edx, byte [scrVmPub+0x16]
 	cmovz eax, edx
 	mov [scrVmPub+0x16], al
-VM_Execute_1890:
+VM_ExecuteInternal_1890:
 	mov ebx, [scrVmPub+0x8]
 	test ebx, ebx
-	jnz VM_Execute_350
+	jnz VM_ExecuteInternal_350
 	cmp byte [scrVmPub+0x14], 0x0
-	jz VM_Execute_1900
-	jmp VM_Execute_350
-VM_Execute_360:
-	mov eax, [fs+0x4]
+	jz VM_ExecuteInternal_1900
+	jmp VM_ExecuteInternal_350
+VM_ExecuteInternal_360:
+	mov eax, [gFs+0x4]
 	mov [esp], eax
 	call Scr_GetSelf
 	mov ebx, eax
@@ -3829,58 +3825,58 @@ VM_Execute_360:
 	call AddRefToObject
 	mov [esp], ebx
 	call AllocThread
-	mov [fs+0x4], eax
-	jmp VM_Execute_1910
-VM_Execute_1070:
+	mov [gFs+0x4], eax
+	jmp VM_ExecuteInternal_1910
+VM_ExecuteInternal_1070:
 	cmp byte [scrVmPub+0x16], 0x0
-	jz VM_Execute_1050
-VM_Execute_1090:
+	jz VM_ExecuteInternal_1050
+VM_ExecuteInternal_1090:
 	mov eax, scrVarPub
 	mov eax, [eax+0xc]
 	mov [esp+0x4], eax
 	mov dword [esp], _cstring_s
 	call Sys_Error
-VM_Execute_1050:
-	mov eax, [fs+0xc]
+VM_ExecuteInternal_1050:
+	mov eax, [gFs+0xc]
 	mov eax, [eax]
 	mov [esp+0x4], eax
 	mov eax, [ebp-0x34]
 	mov [esp], eax
 	call GetArrayVariableIndex
 	mov [ebp-0x3c], eax
-	jmp VM_Execute_1670
-VM_Execute_960:
+	jmp VM_ExecuteInternal_1670
+VM_ExecuteInternal_960:
 	cmp byte [ebx+0x6], 0x0
-	jnz VM_Execute_1920
-VM_Execute_2150:
+	jnz VM_ExecuteInternal_1920
+VM_ExecuteInternal_2150:
 	mov esi, [scrVmPub+0x8]
 	test esi, esi
-	jnz VM_Execute_350
+	jnz VM_ExecuteInternal_350
 	cmp byte [scrVmPub+0x14], 0x0
-	jz VM_Execute_1930
-	jmp VM_Execute_350
-VM_Execute_490:
+	jz VM_ExecuteInternal_1930
+	jmp VM_ExecuteInternal_350
+VM_ExecuteInternal_490:
 	cmp byte [ebx+0x6], 0x0
-	jnz VM_Execute_1940
-VM_Execute_2140:
+	jnz VM_ExecuteInternal_1940
+VM_ExecuteInternal_2140:
 	mov eax, [scrVmPub+0x8]
 	test eax, eax
-	jnz VM_Execute_350
+	jnz VM_ExecuteInternal_350
 	cmp byte [scrVmPub+0x14], 0x0
-	jz VM_Execute_1950
-	jmp VM_Execute_350
-VM_Execute_610:
+	jz VM_ExecuteInternal_1950
+	jmp VM_ExecuteInternal_350
+VM_ExecuteInternal_610:
 	cmp byte [ebx+0x6], 0x0
-	jnz VM_Execute_1960
-VM_Execute_2200:
+	jnz VM_ExecuteInternal_1960
+VM_ExecuteInternal_2200:
 	mov eax, [scrVmPub+0x8]
 	test eax, eax
-	jnz VM_Execute_350
+	jnz VM_ExecuteInternal_350
 	cmp byte [scrVmPub+0x14], 0x0
-	jz VM_Execute_1970
-	jmp VM_Execute_350
-VM_Execute_2350:
-	mov eax, [fs+0xc]
+	jz VM_ExecuteInternal_1970
+	jmp VM_ExecuteInternal_350
+VM_ExecuteInternal_2350:
+	mov eax, [gFs+0xc]
 	mov eax, [eax]
 	mov [esp+0x4], eax
 	mov dword [esp], _cstring_switch_index_d_o
@@ -3888,80 +3884,80 @@ VM_Execute_2350:
 	mov ebx, scrVarPub
 	mov esi, [ebx+0xc]
 	test esi, esi
-	jz VM_Execute_1980
-VM_Execute_3020:
+	jz VM_ExecuteInternal_1980
+VM_ExecuteInternal_3020:
 	cmp byte [ebx+0x8], 0x0
-	jz VM_Execute_1990
-VM_Execute_2510:
+	jz VM_ExecuteInternal_1990
+VM_ExecuteInternal_2510:
 	cmp byte [scrVmPub+0x16], 0x0
-	jz VM_Execute_2000
-VM_Execute_2530:
+	jz VM_ExecuteInternal_2000
+VM_ExecuteInternal_2530:
 	mov eax, scrVarPub
 	mov eax, [eax+0xc]
 	mov [esp+0x4], eax
 	mov dword [esp], _cstring_s
 	call Sys_Error
-VM_Execute_2000:
-	mov eax, [fs+0xc]
-VM_Execute_1160:
+VM_ExecuteInternal_2000:
+	mov eax, [gFs+0xc]
+VM_ExecuteInternal_1160:
 	mov eax, [eax]
 	mov [ebp-0x2c], eax
 	mov [esp], eax
 	call SL_RemoveRefToString
-	jmp VM_Execute_1580
-VM_Execute_300:
+	jmp VM_ExecuteInternal_1580
+VM_ExecuteInternal_300:
 	call Sys_Milliseconds
 	mov [scrVmGlob+0x18], eax
-	jmp VM_Execute_2010
-VM_Execute_690:
+	jmp VM_ExecuteInternal_2010
+VM_ExecuteInternal_690:
 	add dword [eax], 0x1
-	jmp VM_Execute_2020
-VM_Execute_110:
-	mov eax, [fs+0x4]
+	jmp VM_ExecuteInternal_2020
+VM_ExecuteInternal_110:
+	mov eax, [gFs+0x4]
 	mov [esp], eax
 	call Scr_GetSelf
 	mov ebx, eax
 	mov [esp], eax
 	call AddRefToObject
-	mov eax, [fs+0x4]
+	mov eax, [gFs+0x4]
 	mov [esp+0x4], eax
 	mov [esp], ebx
 	call AllocChildThread
-	mov [fs+0x4], eax
-	mov edx, [fs]
+	mov [gFs+0x4], eax
+	mov edx, [gFs]
 	mov eax, [scrVmPub+0xc]
 	mov [eax], edx
-	mov eax, [fs+0xc]
+	mov eax, [gFs+0xc]
 	mov edx, [eax]
-	mov [fs], edx
+	mov [gFs], edx
 	sub eax, 0x8
-	mov [fs+0xc], eax
-	jmp VM_Execute_530
-VM_Execute_80:
+	mov [gFs+0xc], eax
+	jmp VM_ExecuteInternal_530
+VM_ExecuteInternal_80:
 	cmp byte [ebx+0x6], 0x0
-	jnz VM_Execute_2030
-VM_Execute_2210:
+	jnz VM_ExecuteInternal_2030
+VM_ExecuteInternal_2210:
 	mov ebx, [scrVmPub+0x8]
 	test ebx, ebx
-	jnz VM_Execute_350
+	jnz VM_ExecuteInternal_350
 	cmp byte [scrVmPub+0x14], 0x0
-	jz VM_Execute_2040
-	jmp VM_Execute_350
-VM_Execute_770:
+	jz VM_ExecuteInternal_2040
+	jmp VM_ExecuteInternal_350
+VM_ExecuteInternal_770:
 	cmp byte [ebx+0x6], 0x0
-	jnz VM_Execute_2050
-VM_Execute_2220:
+	jnz VM_ExecuteInternal_2050
+VM_ExecuteInternal_2220:
 	mov eax, [scrVmPub+0x8]
 	test eax, eax
-	jnz VM_Execute_350
+	jnz VM_ExecuteInternal_350
 	cmp byte [scrVmPub+0x14], 0x0
-	jz VM_Execute_2060
-	jmp VM_Execute_350
-VM_Execute_420:
+	jz VM_ExecuteInternal_2060
+	jmp VM_ExecuteInternal_350
+VM_ExecuteInternal_420:
 	mov esi, [eax]
 	sub eax, 0x8
-	mov [fs+0xc], eax
-	mov eax, [fs+0x4]
+	mov [gFs+0xc], eax
+	mov eax, [gFs+0x4]
 	mov [esp], eax
 	call Scr_GetSelf
 	mov ebx, eax
@@ -3969,277 +3965,277 @@ VM_Execute_420:
 	call AddRefToObject
 	mov [esp], ebx
 	call AllocThread
-	mov [fs+0x4], eax
-	mov edx, [fs]
+	mov [gFs+0x4], eax
+	mov edx, [gFs]
 	mov eax, [scrVmPub+0xc]
 	mov [eax], edx
-	mov edx, [fs+0x10]
+	mov edx, [gFs+0x10]
 	mov eax, [scrVmPub+0xc]
 	mov [eax+0x10], edx
-	mov [fs], esi
-	jmp VM_Execute_2070
-VM_Execute_840:
+	mov [gFs], esi
+	jmp VM_ExecuteInternal_2070
+VM_ExecuteInternal_840:
 	mov dword [eax+0x4], 0x7
-	mov ecx, [fs]
-	jmp VM_Execute_40
-VM_Execute_390:
+	mov ecx, [gFs]
+	jmp VM_ExecuteInternal_40
+VM_ExecuteInternal_390:
 	cmp byte [ebx+0x6], 0x0
-	jnz VM_Execute_2080
-VM_Execute_2300:
+	jnz VM_ExecuteInternal_2080
+VM_ExecuteInternal_2300:
 	mov eax, [scrVmPub+0x8]
 	test eax, eax
-	jnz VM_Execute_350
+	jnz VM_ExecuteInternal_350
 	cmp byte [scrVmPub+0x14], 0x0
-	jz VM_Execute_2090
-	jmp VM_Execute_350
-VM_Execute_1610:
+	jz VM_ExecuteInternal_2090
+	jmp VM_ExecuteInternal_350
+VM_ExecuteInternal_1610:
 	cmp byte [ebx+0x6], 0x0
-	jnz VM_Execute_2100
-VM_Execute_2320:
+	jnz VM_ExecuteInternal_2100
+VM_ExecuteInternal_2320:
 	mov eax, [scrVmPub+0x8]
 	test eax, eax
-	jnz VM_Execute_350
+	jnz VM_ExecuteInternal_350
 	cmp byte [scrVmPub+0x14], 0x0
-	jz VM_Execute_2110
-	jmp VM_Execute_350
-VM_Execute_570:
+	jz VM_ExecuteInternal_2110
+	jmp VM_ExecuteInternal_350
+VM_ExecuteInternal_570:
 	cmp byte [ebx+0x6], 0x0
-	jnz VM_Execute_2120
-VM_Execute_2310:
+	jnz VM_ExecuteInternal_2120
+VM_ExecuteInternal_2310:
 	mov ebx, [scrVmPub+0x8]
 	test ebx, ebx
-	jnz VM_Execute_350
+	jnz VM_ExecuteInternal_350
 	cmp byte [scrVmPub+0x14], 0x0
-	jz VM_Execute_2130
-	jmp VM_Execute_350
-VM_Execute_1940:
+	jz VM_ExecuteInternal_2130
+	jmp VM_ExecuteInternal_350
+VM_ExecuteInternal_1940:
 	mov eax, 0x1
 	mov edx, [scrVmGlob+0x14]
 	test edx, edx
 	movzx edx, byte [scrVmPub+0x16]
 	cmovz eax, edx
 	mov [scrVmPub+0x16], al
-	jmp VM_Execute_2140
-VM_Execute_1920:
+	jmp VM_ExecuteInternal_2140
+VM_ExecuteInternal_1920:
 	mov eax, 0x1
 	mov edi, [scrVmGlob+0x14]
 	test edi, edi
 	movzx edx, byte [scrVmPub+0x16]
 	cmovz eax, edx
 	mov [scrVmPub+0x16], al
-	jmp VM_Execute_2150
-VM_Execute_720:
+	jmp VM_ExecuteInternal_2150
+VM_ExecuteInternal_720:
 	cmp byte [ebx+0x6], 0x0
-	jz VM_Execute_2160
+	jz VM_ExecuteInternal_2160
 	mov eax, 0x1
 	mov esi, [scrVmGlob+0x14]
 	test esi, esi
 	movzx edx, byte [scrVmPub+0x16]
 	cmovz eax, edx
 	mov [scrVmPub+0x16], al
-VM_Execute_2160:
+VM_ExecuteInternal_2160:
 	mov ebx, [scrVmPub+0x8]
 	test ebx, ebx
-	jnz VM_Execute_350
+	jnz VM_ExecuteInternal_350
 	cmp byte [scrVmPub+0x14], 0x0
-	jz VM_Execute_2170
-	jmp VM_Execute_350
-VM_Execute_140:
+	jz VM_ExecuteInternal_2170
+	jmp VM_ExecuteInternal_350
+VM_ExecuteInternal_140:
 	cmp byte [ebx+0x6], 0x0
-	jz VM_Execute_2180
+	jz VM_ExecuteInternal_2180
 	mov eax, 0x1
 	mov edx, [scrVmGlob+0x14]
 	test edx, edx
 	movzx edx, byte [scrVmPub+0x16]
 	cmovz eax, edx
 	mov [scrVmPub+0x16], al
-VM_Execute_2180:
+VM_ExecuteInternal_2180:
 	mov eax, [scrVmPub+0x8]
 	test eax, eax
-	jnz VM_Execute_350
+	jnz VM_ExecuteInternal_350
 	cmp byte [scrVmPub+0x14], 0x0
-	jz VM_Execute_2190
-	jmp VM_Execute_350
-VM_Execute_1960:
+	jz VM_ExecuteInternal_2190
+	jmp VM_ExecuteInternal_350
+VM_ExecuteInternal_1960:
 	mov eax, 0x1
 	mov edx, [scrVmGlob+0x14]
 	test edx, edx
 	movzx edx, byte [scrVmPub+0x16]
 	cmovz eax, edx
 	mov [scrVmPub+0x16], al
-	jmp VM_Execute_2200
-VM_Execute_2030:
+	jmp VM_ExecuteInternal_2200
+VM_ExecuteInternal_2030:
 	mov eax, 0x1
 	mov esi, [scrVmGlob+0x14]
 	test esi, esi
 	movzx edx, byte [scrVmPub+0x16]
 	cmovz eax, edx
 	mov [scrVmPub+0x16], al
-	jmp VM_Execute_2210
-VM_Execute_2050:
+	jmp VM_ExecuteInternal_2210
+VM_ExecuteInternal_2050:
 	mov eax, 0x1
 	mov edx, [scrVmGlob+0x14]
 	test edx, edx
 	movzx edx, byte [scrVmPub+0x16]
 	cmovz eax, edx
 	mov [scrVmPub+0x16], al
-	jmp VM_Execute_2220
-VM_Execute_650:
+	jmp VM_ExecuteInternal_2220
+VM_ExecuteInternal_650:
 	mov dword [esp+0x4], _cstring_script_runtime_e
 	mov dword [esp], 0x17
 	call Com_PrintError
 	mov dword [esp+0x8], 0x0
-	mov eax, [fs]
+	mov eax, [gFs]
 	mov [esp+0x4], eax
 	mov dword [esp], 0x17
 	call Scr_PrintPrevCodePos
 	call Sys_Milliseconds
 	mov [scrVmGlob+0x18], eax
-	mov eax, [fs+0x4]
-VM_Execute_2250:
+	mov eax, [gFs+0x4]
+VM_ExecuteInternal_2250:
 	mov [esp], eax
 	call GetSafeParentLocalId
 	mov ebx, eax
-	mov eax, [fs+0x4]
+	mov eax, [gFs+0x4]
 	mov [esp], eax
 	call Scr_KillThread
-	mov eax, [fs+0x8]
+	mov eax, [gFs+0x8]
 	shl eax, 0x2
 	sub [scrVmPub], eax
-	mov eax, [fs+0xc]
+	mov eax, [gFs+0xc]
 	mov edx, [eax+0x4]
 	cmp edx, 0x7
-	jz VM_Execute_2230
-VM_Execute_2240:
+	jz VM_ExecuteInternal_2230
+VM_ExecuteInternal_2240:
 	mov eax, [eax]
 	mov [esp+0x4], eax
 	mov [esp], edx
 	call RemoveRefToValue
-	mov eax, [fs+0xc]
+	mov eax, [gFs+0xc]
 	sub eax, 0x8
-	mov [fs+0xc], eax
+	mov [gFs+0xc], eax
 	mov edx, [eax+0x4]
 	cmp edx, 0x7
-	jnz VM_Execute_2240
-VM_Execute_2230:
+	jnz VM_ExecuteInternal_2240
+VM_ExecuteInternal_2230:
 	sub dword [scrVmPub+0x8], 0x1
 	sub dword [scrVmPub+0xc], 0x18
 	test ebx, ebx
-	jz VM_Execute_310
-	mov eax, [fs+0x4]
+	jz VM_ExecuteInternal_310
+	mov eax, [gFs+0x4]
 	mov [esp], eax
 	call RemoveRefToObject
 	mov edx, [scrVmPub+0xc]
 	mov eax, [edx]
-	mov [fs], eax
+	mov [gFs], eax
 	mov eax, [edx+0x8]
-	mov [fs+0x8], eax
-	mov [fs+0x4], ebx
-	sub dword [fs+0xc], 0x8
+	mov [gFs+0x8], eax
+	mov [gFs+0x4], ebx
+	sub dword [gFs+0xc], 0x8
 	mov eax, ebx
-	jmp VM_Execute_2250
-VM_Execute_870:
+	jmp VM_ExecuteInternal_2250
+VM_ExecuteInternal_870:
 	cmp byte [ebx+0x6], 0x0
-	jz VM_Execute_2260
+	jz VM_ExecuteInternal_2260
 	mov eax, 0x1
 	mov edx, [scrVmGlob+0x14]
 	test edx, edx
 	movzx edx, byte [scrVmPub+0x16]
 	cmovz eax, edx
 	mov [scrVmPub+0x16], al
-VM_Execute_2260:
+VM_ExecuteInternal_2260:
 	mov eax, [scrVmPub+0x8]
 	test eax, eax
-	jnz VM_Execute_350
+	jnz VM_ExecuteInternal_350
 	cmp byte [scrVmPub+0x14], 0x0
-	jz VM_Execute_2270
-	jmp VM_Execute_350
-VM_Execute_450:
+	jz VM_ExecuteInternal_2270
+	jmp VM_ExecuteInternal_350
+VM_ExecuteInternal_450:
 	cmp byte [ebx+0x6], 0x0
-	jz VM_Execute_2280
+	jz VM_ExecuteInternal_2280
 	mov eax, 0x1
 	mov esi, [scrVmGlob+0x14]
 	test esi, esi
 	movzx edx, byte [scrVmPub+0x16]
 	cmovz eax, edx
 	mov [scrVmPub+0x16], al
-VM_Execute_2280:
+VM_ExecuteInternal_2280:
 	mov ebx, [scrVmPub+0x8]
 	test ebx, ebx
-	jnz VM_Execute_350
+	jnz VM_ExecuteInternal_350
 	cmp byte [scrVmPub+0x14], 0x0
-	jz VM_Execute_2290
-	jmp VM_Execute_350
-VM_Execute_2080:
+	jz VM_ExecuteInternal_2290
+	jmp VM_ExecuteInternal_350
+VM_ExecuteInternal_2080:
 	mov eax, 0x1
 	mov edx, [scrVmGlob+0x14]
 	test edx, edx
 	movzx edx, byte [scrVmPub+0x16]
 	cmovz eax, edx
 	mov [scrVmPub+0x16], al
-	jmp VM_Execute_2300
-VM_Execute_1660:
+	jmp VM_ExecuteInternal_2300
+VM_ExecuteInternal_1660:
 	mov dword [ebp-0x30], 0x1
 	mov esi, 0x1
-	jmp VM_Execute_1630
-VM_Execute_2120:
+	jmp VM_ExecuteInternal_1630
+VM_ExecuteInternal_2120:
 	mov eax, 0x1
 	mov esi, [scrVmGlob+0x14]
 	test esi, esi
 	movzx edx, byte [scrVmPub+0x16]
 	cmovz eax, edx
 	mov [scrVmPub+0x16], al
-	jmp VM_Execute_2310
-VM_Execute_2100:
+	jmp VM_ExecuteInternal_2310
+VM_ExecuteInternal_2100:
 	mov eax, 0x1
 	mov edx, [scrVmGlob+0x14]
 	test edx, edx
 	movzx edx, byte [scrVmPub+0x16]
 	cmovz eax, edx
 	mov [scrVmPub+0x16], al
-	jmp VM_Execute_2320
-VM_Execute_670:
+	jmp VM_ExecuteInternal_2320
+VM_ExecuteInternal_670:
 	cmp byte [scrVmPub+0x16], 0x0
-	jnz VM_Execute_2330
-	jmp VM_Execute_2340
-VM_Execute_1170:
+	jnz VM_ExecuteInternal_2330
+	jmp VM_ExecuteInternal_2340
+VM_ExecuteInternal_1170:
 	mov eax, [eax]
 	mov [esp], eax
 	call IsValidArrayIndex
 	test al, al
-	jz VM_Execute_2350
-	mov eax, [fs+0xc]
+	jz VM_ExecuteInternal_2350
+	mov eax, [gFs+0xc]
 	mov eax, [eax]
 	mov [esp], eax
 	call GetInternalVariableIndex
 	mov [ebp-0x2c], eax
-	jmp VM_Execute_1580
-VM_Execute_160:
+	jmp VM_ExecuteInternal_1580
+VM_ExecuteInternal_160:
 	mov dword [esp+0x8], 0x400
 	mov [esp+0x4], eax
 	mov dword [esp], error_message
 	call Q_strncpyz
 	mov dword [ebx+0xc], error_message
-	jmp VM_Execute_2360
-VM_Execute_940:
+	jmp VM_ExecuteInternal_2360
+VM_ExecuteInternal_940:
 	mov dword [esp+0x8], 0x400
 	mov [esp+0x4], eax
 	mov dword [esp], error_message
 	call Q_strncpyz
 	mov dword [ebx+0xc], error_message
-	jmp VM_Execute_2370
-VM_Execute_1210:
+	jmp VM_ExecuteInternal_2370
+VM_ExecuteInternal_1210:
 	mov [caseCount], ecx
-	mov [fs], edx
-	jmp VM_Execute_800
-VM_Execute_230:
+	mov [gFs], edx
+	jmp VM_ExecuteInternal_800
+VM_ExecuteInternal_230:
 	mov dword [esp+0x8], 0x400
 	mov [esp+0x4], eax
 	mov dword [esp], error_message
 	call Q_strncpyz
 	mov dword [esi+0xc], error_message
-	jmp VM_Execute_2380
-VM_Execute_1780:
+	jmp VM_ExecuteInternal_2380
+VM_ExecuteInternal_1780:
 	mov eax, [ebp-0x34]
 	mov [esp], eax
 	call Scr_GetEntityIdRef
@@ -4247,293 +4243,293 @@ VM_Execute_1780:
 	mov eax, [ebp-0x34]
 	mov [esp], eax
 	call RemoveRefToObject
-	mov edx, [fs]
+	mov edx, [gFs]
 	mov eax, [scrVmPub+0xc]
 	mov [eax], edx
 	mov eax, scrCompilePub
 	mov eax, [eax+esi*4+0x20034]
 	mov [esp], ebx
 	call eax
-	jmp VM_Execute_2390
-VM_Execute_640:
+	jmp VM_ExecuteInternal_2390
+VM_ExecuteInternal_640:
 	mov dword [esp+0x4], _cstring_script_runtime_w
 	mov dword [esp], 0x17
 	call Com_PrintWarning
 	mov dword [esp+0x8], 0x0
-	mov eax, [fs]
+	mov eax, [gFs]
 	mov [esp+0x4], eax
 	mov dword [esp], 0x17
 	call Scr_PrintPrevCodePos
-	mov edx, [fs]
+	mov edx, [gFs]
 	lea eax, [edx+0x2]
 	movzx edx, word [edx]
 	sub eax, edx
-	mov [fs], eax
+	mov [gFs], eax
 	call Sys_Milliseconds
 	mov [scrVmGlob+0x18], eax
-	mov ecx, [fs]
-	jmp VM_Execute_40
-VM_Execute_470:
+	mov ecx, [gFs]
+	jmp VM_ExecuteInternal_40
+VM_ExecuteInternal_470:
 	mov dword [esp+0x8], 0x400
 	mov [esp+0x4], eax
 	mov dword [esp], error_message
 	call Q_strncpyz
 	mov dword [ebx+0xc], error_message
-	jmp VM_Execute_2400
-VM_Execute_60:
+	jmp VM_ExecuteInternal_2400
+VM_ExecuteInternal_60:
 	mov dword [esp+0x8], 0x400
 	mov dword [esp+0x4], _cstring_script_stack_ove
 	mov dword [esp], error_message
 	call Q_strncpyz
 	mov dword [ebx+0xc], error_message
-	jmp VM_Execute_2410
-VM_Execute_750:
+	jmp VM_ExecuteInternal_2410
+VM_ExecuteInternal_750:
 	mov dword [esp+0x8], 0x400
 	mov [esp+0x4], eax
 	mov dword [esp], error_message
 	call Q_strncpyz
 	mov dword [ebx+0xc], error_message
-	jmp VM_Execute_2420
-VM_Execute_4260:
+	jmp VM_ExecuteInternal_2420
+VM_ExecuteInternal_4260:
 	mov esi, [scrVmPub+0x1c]
 	test esi, esi
-	jz VM_Execute_2430
-VM_Execute_4270:
-	mov eax, [fs+0xc]
+	jz VM_ExecuteInternal_2430
+VM_ExecuteInternal_4270:
+	mov eax, [gFs+0xc]
 	mov edx, [eax]
 	mov [esp+0x4], edx
 	mov eax, [eax+0x4]
 	mov [esp], eax
 	call RemoveRefToValue
 	mov dword [scrVmPub+0x1c], 0x0
-VM_Execute_2430:
-	sub dword [fs+0xc], 0x8
-	jmp VM_Execute_1760
-VM_Execute_370:
+VM_ExecuteInternal_2430:
+	sub dword [gFs+0xc], 0x8
+	jmp VM_ExecuteInternal_1760
+VM_ExecuteInternal_370:
 	mov dword [esp+0x8], 0x400
 	mov dword [esp+0x4], _cstring_script_stack_ove
 	mov dword [esp], error_message
 	call Q_strncpyz
 	mov dword [ebx+0xc], error_message
-	jmp VM_Execute_2440
-VM_Execute_550:
+	jmp VM_ExecuteInternal_2440
+VM_ExecuteInternal_550:
 	mov dword [esp+0x8], 0x400
 	mov dword [esp+0x4], _cstring_wait_is_too_long
 	mov dword [esp], error_message
 	call Q_strncpyz
 	mov dword [ebx+0xc], error_message
-	jmp VM_Execute_2450
-VM_Execute_1590:
+	jmp VM_ExecuteInternal_2450
+VM_ExecuteInternal_1590:
 	mov dword [esp+0x8], 0x400
 	mov [esp+0x4], eax
 	mov dword [esp], error_message
 	call Q_strncpyz
 	mov dword [ebx+0xc], error_message
-	jmp VM_Execute_2460
-VM_Execute_1200:
+	jmp VM_ExecuteInternal_2460
+VM_ExecuteInternal_1200:
 	mov eax, 0x1
 	mov edi, [scrVmGlob+0x14]
 	test edi, edi
 	movzx edx, byte [scrVmPub+0x16]
 	cmovz eax, edx
 	mov [scrVmPub+0x16], al
-	jmp VM_Execute_2470
-VM_Execute_1280:
+	jmp VM_ExecuteInternal_2470
+VM_ExecuteInternal_1280:
 	mov eax, 0x1
 	mov edi, [scrVmGlob+0x14]
 	test edi, edi
 	movzx edx, byte [scrVmPub+0x16]
 	cmovz eax, edx
 	mov [scrVmPub+0x16], al
-	jmp VM_Execute_2480
-VM_Execute_1470:
+	jmp VM_ExecuteInternal_2480
+VM_ExecuteInternal_1470:
 	mov eax, 0x1
 	mov edx, [scrVmGlob+0x14]
 	test edx, edx
 	movzx edx, byte [scrVmPub+0x16]
 	cmovz eax, edx
 	mov [scrVmPub+0x16], al
-	jmp VM_Execute_2490
-VM_Execute_1810:
+	jmp VM_ExecuteInternal_2490
+VM_ExecuteInternal_1810:
 	mov eax, 0x1
 	mov edx, [scrVmGlob+0x14]
 	test edx, edx
 	movzx edx, byte [scrVmPub+0x16]
 	cmovz eax, edx
 	mov [scrVmPub+0x16], al
-	jmp VM_Execute_2500
-VM_Execute_1990:
+	jmp VM_ExecuteInternal_2500
+VM_ExecuteInternal_1990:
 	mov eax, scrCompilePub
 	cmp byte [eax+0x20020], 0x0
-	jnz VM_Execute_2510
+	jnz VM_ExecuteInternal_2510
 	cmp byte [ebx+0x6], 0x0
-	jz VM_Execute_2520
+	jz VM_ExecuteInternal_2520
 	mov eax, 0x1
 	mov ebx, [scrVmGlob+0x14]
 	test ebx, ebx
 	movzx edx, byte [scrVmPub+0x16]
 	cmovz eax, edx
 	mov [scrVmPub+0x16], al
-VM_Execute_2520:
+VM_ExecuteInternal_2520:
 	mov ecx, [scrVmPub+0x8]
 	test ecx, ecx
-	jnz VM_Execute_350
+	jnz VM_ExecuteInternal_350
 	cmp byte [scrVmPub+0x14], 0x0
-	jz VM_Execute_2530
-	jmp VM_Execute_350
-VM_Execute_4180:
+	jz VM_ExecuteInternal_2530
+	jmp VM_ExecuteInternal_350
+VM_ExecuteInternal_4180:
 	mov ecx, scrVarPub
 	mov edx, [ecx+0x10]
 	cmp edx, 0x0
-	jle VM_Execute_2540
+	jle VM_ExecuteInternal_2540
 	mov eax, [scrVmPub+0x1c]
 	sub eax, edx
 	add eax, 0x2
 	mov [ecx+0x10], eax
 	mov ebx, scrVarPub
-	jmp VM_Execute_2550
-VM_Execute_4170:
+	jmp VM_ExecuteInternal_2550
+VM_ExecuteInternal_4170:
 	mov ecx, scrVarPub
 	mov edx, [ecx+0x10]
 	test edx, edx
-	jle VM_Execute_2560
+	jle VM_ExecuteInternal_2560
 	mov eax, [scrVmPub+0x1c]
 	sub eax, edx
 	add eax, 0x1
 	mov [ecx+0x10], eax
 	mov ebx, scrVarPub
-	jmp VM_Execute_2550
-VM_Execute_4150:
+	jmp VM_ExecuteInternal_2550
+VM_ExecuteInternal_4150:
 	mov eax, scrVarPub
 	mov edx, [eax+0x10]
 	test edx, edx
-	js VM_Execute_2570
+	js VM_ExecuteInternal_2570
 	mov ebx, eax
-	jmp VM_Execute_2550
-VM_Execute_4160:
+	jmp VM_ExecuteInternal_2550
+VM_ExecuteInternal_4160:
 	mov eax, scrVarPub
 	mov dword [eax+0x10], 0x0
 	mov ebx, eax
-	jmp VM_Execute_2550
-VM_Execute_4400:
+	jmp VM_ExecuteInternal_2550
+VM_ExecuteInternal_4400:
 	mov ebx, [caseCount]
 	test ebx, ebx
-	jz VM_Execute_2580
+	jz VM_ExecuteInternal_2580
 	xor ecx, ecx
-VM_Execute_2590:
-	mov eax, [fs]
+VM_ExecuteInternal_2590:
+	mov eax, [gFs]
 	mov esi, [eax]
 	lea edx, [eax+0x4]
-	mov [fs], edx
+	mov [gFs], edx
 	mov edx, [eax+0x4]
 	add eax, 0x8
-	mov [fs], eax
+	mov [gFs], eax
 	add ecx, 0x1
 	cmp ebx, ecx
-	jnz VM_Execute_2590
+	jnz VM_ExecuteInternal_2590
 	mov dword [caseCount], 0x0
 	test esi, esi
-	jnz VM_Execute_2580
-	mov [fs], edx
-VM_Execute_2580:
-	mov eax, [fs+0xc]
+	jnz VM_ExecuteInternal_2580
+	mov [gFs], edx
+VM_ExecuteInternal_2580:
+	mov eax, [gFs+0xc]
 	mov edx, [eax]
 	mov [esp+0x4], edx
 	mov eax, [eax+0x4]
 	mov [esp], eax
 	call RemoveRefToValue
-	jmp VM_Execute_2430
-VM_Execute_850:
+	jmp VM_ExecuteInternal_2430
+VM_ExecuteInternal_850:
 	mov dword [esp+0x8], 0x400
 	mov dword [esp+0x4], _cstring_function_called_
 	mov dword [esp], error_message
 	call Q_strncpyz
 	mov dword [ebx+0xc], error_message
-	jmp VM_Execute_2600
-VM_Execute_120:
+	jmp VM_ExecuteInternal_2600
+VM_ExecuteInternal_120:
 	mov dword [esp+0x8], 0x400
 	mov dword [esp+0x4], _cstring_script_stack_ove
 	mov dword [esp], error_message
 	call Q_strncpyz
 	mov dword [ebx+0xc], error_message
-	jmp VM_Execute_2610
-VM_Execute_430:
+	jmp VM_ExecuteInternal_2610
+VM_ExecuteInternal_430:
 	mov dword [esp+0x8], 0x400
 	mov dword [esp+0x4], _cstring_script_stack_ove
 	mov dword [esp], error_message
 	call Q_strncpyz
 	mov dword [ebx+0xc], error_message
-	jmp VM_Execute_2620
-VM_Execute_700:
+	jmp VM_ExecuteInternal_2620
+VM_ExecuteInternal_700:
 	mov dword [esp+0x8], 0x400
 	mov [esp+0x4], eax
 	mov dword [esp], error_message
 	call Q_strncpyz
 	mov dword [ebx+0xc], error_message
-	jmp VM_Execute_2630
-VM_Execute_320:
+	jmp VM_ExecuteInternal_2630
+VM_ExecuteInternal_320:
 	mov dword [esp+0x8], 0x400
 	mov [esp+0x4], eax
 	mov dword [esp], error_message
 	call Q_strncpyz
 	mov dword [ebx+0xc], error_message
-	jmp VM_Execute_2640
-VM_Execute_890:
+	jmp VM_ExecuteInternal_2640
+VM_ExecuteInternal_890:
 	mov dword [esp+0x8], 0x400
 	mov [esp+0x4], eax
 	mov dword [esp], error_message
 	call Q_strncpyz
 	mov dword [ebx+0xc], error_message
-	jmp VM_Execute_2650
-VM_Execute_1260:
+	jmp VM_ExecuteInternal_2650
+VM_ExecuteInternal_1260:
 	mov dword [esp+0x8], 0x400
 	mov dword [esp+0x4], _cstring_cannot_create_a_
 	mov dword [esp], error_message
 	call Q_strncpyz
 	mov dword [ebx+0xc], error_message
-	jmp VM_Execute_2660
-VM_Execute_1180:
+	jmp VM_ExecuteInternal_2660
+VM_ExecuteInternal_1180:
 	mov dword [esp+0x8], 0x400
 	mov [esp+0x4], eax
 	mov dword [esp], error_message
 	call Q_strncpyz
 	mov dword [ebx+0xc], error_message
-	jmp VM_Execute_2670
-VM_Execute_1790:
+	jmp VM_ExecuteInternal_2670
+VM_ExecuteInternal_1790:
 	mov dword [esp+0x8], 0x400
 	mov [esp+0x4], eax
 	mov dword [esp], error_message
 	call Q_strncpyz
 	mov dword [esi+0xc], error_message
-	jmp VM_Execute_2680
-VM_Execute_1450:
+	jmp VM_ExecuteInternal_2680
+VM_ExecuteInternal_1450:
 	mov dword [esp+0x8], 0x400
 	mov dword [esp+0x4], _cstring_unknown_object
 	mov dword [esp], error_message
 	call Q_strncpyz
 	mov dword [ebx+0xc], error_message
-	jmp VM_Execute_2690
-VM_Execute_1060:
+	jmp VM_ExecuteInternal_2690
+VM_ExecuteInternal_1060:
 	mov dword [esp+0x8], 0x400
 	mov [esp+0x4], eax
 	mov dword [esp], error_message
 	call Q_strncpyz
 	mov dword [ebx+0xc], error_message
-	jmp VM_Execute_2700
-VM_Execute_660:
+	jmp VM_ExecuteInternal_2700
+VM_ExecuteInternal_660:
 	mov dword [esp+0x8], 0x400
 	mov dword [esp+0x4], _cstring_potential_infini
 	mov dword [esp], error_message
 	call Q_strncpyz
 	mov dword [ebx+0xc], error_message
-	jmp VM_Execute_2710
-VM_Execute_2570:
+	jmp VM_ExecuteInternal_2710
+VM_ExecuteInternal_2570:
 	mov dword [eax+0x10], 0x1
 	mov ebx, scrVarPub
-	jmp VM_Execute_2550
-VM_Execute_4340:
-	add dword [fs], 0x1
-VM_Execute_4210:
+	jmp VM_ExecuteInternal_2550
+VM_ExecuteInternal_4340:
+	add dword [gFs], 0x1
+VM_ExecuteInternal_4210:
 	mov ebx, scrVarPub
 	mov eax, [ebx+0x30]
 	mov [esp], eax
@@ -4542,58 +4538,58 @@ VM_Execute_4210:
 	mov [esp], eax
 	call GetObjectA
 	mov [ebp-0x34], eax
-	jmp VM_Execute_1760
-VM_Execute_4310:
-	add dword [fs], 0x4
-VM_Execute_4320:
-	mov eax, [fs]
+	jmp VM_ExecuteInternal_1760
+VM_ExecuteInternal_4310:
+	add dword [gFs], 0x4
+VM_ExecuteInternal_4320:
+	mov eax, [gFs]
 	mov edx, [eax]
 	add eax, 0x4
-	mov [fs], eax
+	mov [gFs], eax
 	mov esi, edx
 	test edx, edx
-	jnz VM_Execute_2720
-VM_Execute_3060:
-	mov eax, [fs+0xc]
+	jnz VM_ExecuteInternal_2720
+VM_ExecuteInternal_3060:
+	mov eax, [gFs+0xc]
 	add eax, 0x8
-	mov [fs+0xc], eax
-VM_Execute_2730:
+	mov [gFs+0xc], eax
+VM_ExecuteInternal_2730:
 	mov dword [eax+0x4], 0x0
-	jmp VM_Execute_1760
-VM_Execute_4290:
-	add dword [fs], 0x4
-VM_Execute_4300:
-	mov eax, [fs+0xc]
+	jmp VM_ExecuteInternal_1760
+VM_ExecuteInternal_4290:
+	add dword [gFs], 0x4
+VM_ExecuteInternal_4300:
+	mov eax, [gFs+0xc]
 	mov edx, [eax+0x4]
 	cmp edx, 0x8
-	jz VM_Execute_2730
-VM_Execute_2740:
+	jz VM_ExecuteInternal_2730
+VM_ExecuteInternal_2740:
 	mov eax, [eax]
 	mov [esp+0x4], eax
 	mov [esp], edx
 	call RemoveRefToValue
-	mov eax, [fs+0xc]
+	mov eax, [gFs+0xc]
 	sub eax, 0x8
-	mov [fs+0xc], eax
+	mov [gFs+0xc], eax
 	mov edx, [eax+0x4]
 	cmp edx, 0x8
-	jnz VM_Execute_2740
-	jmp VM_Execute_2730
-VM_Execute_4370:
-	add dword [fs], 0x1
-VM_Execute_4380:
-	mov eax, [fs+0xc]
+	jnz VM_ExecuteInternal_2740
+	jmp VM_ExecuteInternal_2730
+VM_ExecuteInternal_4370:
+	add dword [gFs], 0x1
+VM_ExecuteInternal_4380:
+	mov eax, [gFs+0xc]
 	mov edx, [eax]
 	mov [esp+0x4], edx
 	mov eax, [eax+0x4]
 	mov [esp], eax
 	call RemoveRefToValue
-	sub dword [fs+0xc], 0x8
-	jmp VM_Execute_2580
-VM_Execute_2560:
+	sub dword [gFs+0xc], 0x8
+	jmp VM_ExecuteInternal_2580
+VM_ExecuteInternal_2560:
 	mov ebx, ecx
-	jmp VM_Execute_2550
-VM_Execute_4200:
+	jmp VM_ExecuteInternal_2550
+VM_ExecuteInternal_4200:
 	mov ebx, scrVarPub
 	mov eax, [ebx+0x30]
 	mov [esp], eax
@@ -4601,31 +4597,31 @@ VM_Execute_4200:
 	mov ebx, [ebx+0x30]
 	mov [ebp-0x38], ebx
 	mov dword [ebp-0x3c], 0x0
-	jmp VM_Execute_2580
-VM_Execute_630:
+	jmp VM_ExecuteInternal_2580
+VM_ExecuteInternal_630:
 	sub dword [g_script_error_level], 0x1
-	mov eax, [fs+0x4]
-	jmp VM_Execute_2750
-VM_Execute_4190:
-	mov edx, [fs+0xc]
+	mov eax, [gFs+0x4]
+	jmp VM_ExecuteInternal_2750
+VM_ExecuteInternal_4190:
+	mov edx, [gFs+0xc]
 	mov eax, [edx]
 	mov [esp+0x4], eax
 	mov eax, [edx+0x4]
 	mov [esp], eax
 	call RemoveRefToValue
-	mov eax, [fs+0xc]
+	mov eax, [gFs+0xc]
 	lea edx, [eax-0x8]
-	mov [fs+0xc], edx
+	mov [gFs+0xc], edx
 	mov eax, [eax-0x8]
 	mov [esp+0x4], eax
 	mov eax, [edx+0x4]
 	mov [esp], eax
 	call RemoveRefToValue
-VM_Execute_4220:
-	mov eax, [fs+0xc]
+VM_ExecuteInternal_4220:
+	mov eax, [gFs+0xc]
 	mov dword [eax+0x4], 0x0
-	jmp VM_Execute_1760
-VM_Execute_4230:
+	jmp VM_ExecuteInternal_1760
+VM_ExecuteInternal_4230:
 	mov ebx, scrVarPub
 	mov eax, [ebx+0x30]
 	mov [esp], eax
@@ -4633,125 +4629,125 @@ VM_Execute_4230:
 	mov ebx, [ebx+0x30]
 	mov [ebp-0x38], ebx
 	mov dword [ebp-0x3c], 0x0
-	jmp VM_Execute_1760
-VM_Execute_1340:
+	jmp VM_ExecuteInternal_1760
+VM_ExecuteInternal_1340:
 	mov ebx, scrVarPub
 	mov ecx, [ebx+0xc]
 	test ecx, ecx
-	jnz VM_Execute_2760
+	jnz VM_ExecuteInternal_2760
 	mov dword [esp+0x8], 0x400
 	mov dword [esp+0x4], _cstring_first_parameter_
 	mov dword [esp], error_message
 	call Q_strncpyz
 	mov dword [ebx+0xc], error_message
-VM_Execute_2760:
+VM_ExecuteInternal_2760:
 	cmp byte [ebx+0x8], 0x0
-	jnz VM_Execute_2770
+	jnz VM_ExecuteInternal_2770
 	mov eax, scrCompilePub
 	cmp byte [eax+0x20020], 0x0
-	jz VM_Execute_2780
-VM_Execute_2770:
+	jz VM_ExecuteInternal_2780
+VM_ExecuteInternal_2770:
 	cmp byte [scrVmPub+0x16], 0x0
-	jnz VM_Execute_2790
-VM_Execute_1330:
-	mov eax, [fs+0xc]
+	jnz VM_ExecuteInternal_2790
+VM_ExecuteInternal_1330:
+	mov eax, [gFs+0xc]
 	mov eax, [eax]
 	mov [esp], eax
 	call GetObjectType
 	mov edx, eax
-VM_Execute_2930:
+VM_ExecuteInternal_2930:
 	mov eax, scrVarPub
 	mov dword [eax+0x10], 0x1
-	jmp VM_Execute_1230
-VM_Execute_2780:
+	jmp VM_ExecuteInternal_1230
+VM_ExecuteInternal_2780:
 	cmp byte [ebx+0x6], 0x0
-	jz VM_Execute_2800
+	jz VM_ExecuteInternal_2800
 	mov eax, 0x1
 	mov edx, [scrVmGlob+0x14]
 	test edx, edx
 	movzx edx, byte [scrVmPub+0x16]
 	cmovz eax, edx
 	mov [scrVmPub+0x16], al
-VM_Execute_2800:
+VM_ExecuteInternal_2800:
 	mov edi, [scrVmPub+0x8]
 	test edi, edi
-	jnz VM_Execute_350
+	jnz VM_ExecuteInternal_350
 	cmp byte [scrVmPub+0x14], 0x0
-	jnz VM_Execute_350
-VM_Execute_2790:
+	jnz VM_ExecuteInternal_350
+VM_ExecuteInternal_2790:
 	mov eax, scrVarPub
 	mov eax, [eax+0xc]
 	mov [esp+0x4], eax
 	mov dword [esp], _cstring_s
 	call Sys_Error
-	jmp VM_Execute_1330
-VM_Execute_1310:
+	jmp VM_ExecuteInternal_1330
+VM_ExecuteInternal_1310:
 	add eax, 0x8
-	mov [fs+0xc], eax
+	mov [gFs+0xc], eax
 	mov ebx, scrVarPub
 	mov dword [ebx+0x10], 0x1
 	mov edi, [ebx+0xc]
 	test edi, edi
-	jnz VM_Execute_2810
+	jnz VM_ExecuteInternal_2810
 	mov dword [esp+0x8], 0x400
 	mov dword [esp+0x4], _cstring_first_parameter_1
 	mov dword [esp], error_message
 	call Q_strncpyz
 	mov dword [ebx+0xc], error_message
-VM_Execute_2810:
+VM_ExecuteInternal_2810:
 	cmp byte [ebx+0x8], 0x0
-	jz VM_Execute_2820
-VM_Execute_2840:
+	jz VM_ExecuteInternal_2820
+VM_ExecuteInternal_2840:
 	cmp byte [scrVmPub+0x16], 0x0
-	jz VM_Execute_1290
-VM_Execute_2860:
+	jz VM_ExecuteInternal_1290
+VM_ExecuteInternal_2860:
 	mov eax, scrVarPub
 	mov eax, [eax+0xc]
 	mov [esp+0x4], eax
 	mov dword [esp], _cstring_s
 	call Sys_Error
-VM_Execute_1290:
-	mov eax, [fs+0xc]
+VM_ExecuteInternal_1290:
+	mov eax, [gFs+0xc]
 	mov eax, [eax]
 	mov [esp], eax
 	call GetObjectType
 	mov edx, eax
-	jmp VM_Execute_2830
-VM_Execute_2820:
+	jmp VM_ExecuteInternal_2830
+VM_ExecuteInternal_2820:
 	mov eax, scrCompilePub
 	cmp byte [eax+0x20020], 0x0
-	jnz VM_Execute_2840
+	jnz VM_ExecuteInternal_2840
 	cmp byte [ebx+0x6], 0x0
-	jz VM_Execute_2850
+	jz VM_ExecuteInternal_2850
 	mov eax, 0x1
 	mov esi, [scrVmGlob+0x14]
 	test esi, esi
 	movzx edx, byte [scrVmPub+0x16]
 	cmovz eax, edx
 	mov [scrVmPub+0x16], al
-VM_Execute_2850:
+VM_ExecuteInternal_2850:
 	mov ebx, [scrVmPub+0x8]
 	test ebx, ebx
-	jnz VM_Execute_350
+	jnz VM_ExecuteInternal_350
 	cmp byte [scrVmPub+0x14], 0x0
-	jz VM_Execute_2860
-VM_Execute_350:
+	jz VM_ExecuteInternal_2860
+VM_ExecuteInternal_350:
 	mov dword [esp+0x4], 0xffffffff
 	mov eax, [g_script_error_level]
 	lea eax, [eax+eax*8]
 	lea eax, [eax*8+g_script_error]
 	mov [esp], eax
 	call longjmp
-VM_Execute_4280:
+VM_ExecuteInternal_4280:
 	mov ebx, [scrVmPub+0x1c]
 	test ebx, ebx
-	jnz VM_Execute_2870
-VM_Execute_2880:
+	jnz VM_ExecuteInternal_2870
+VM_ExecuteInternal_2880:
 	mov eax, [scrVmPub+0x10]
 	add eax, 0x8
-	mov [fs+0xc], eax
-	jmp VM_Execute_2730
-VM_Execute_2870:
+	mov [gFs+0xc], eax
+	jmp VM_ExecuteInternal_2730
+VM_ExecuteInternal_2870:
 	mov edx, [scrVmPub+0x10]
 	mov eax, [edx]
 	mov [esp+0x4], eax
@@ -4763,71 +4759,71 @@ VM_Execute_2870:
 	sub eax, 0x1
 	mov [scrVmPub+0x1c], eax
 	test eax, eax
-	jnz VM_Execute_2870
-	jmp VM_Execute_2880
-VM_Execute_210:
+	jnz VM_ExecuteInternal_2870
+	jmp VM_ExecuteInternal_2880
+VM_ExecuteInternal_210:
 	mov ebx, scrVarPub
 	mov ecx, [ebx+0xc]
 	test ecx, ecx
-	jnz VM_Execute_2890
+	jnz VM_ExecuteInternal_2890
 	mov dword [esp+0x8], 0x400
 	mov dword [esp+0x4], _cstring_script_stack_ove
 	mov dword [esp], error_message
 	call Q_strncpyz
 	mov dword [ebx+0xc], error_message
-VM_Execute_2890:
+VM_ExecuteInternal_2890:
 	cmp byte [ebx+0x8], 0x0
-	jnz VM_Execute_2900
+	jnz VM_ExecuteInternal_2900
 	mov eax, scrCompilePub
 	cmp byte [eax+0x20020], 0x0
-	jz VM_Execute_2910
-VM_Execute_2900:
+	jz VM_ExecuteInternal_2910
+VM_ExecuteInternal_2900:
 	cmp byte [scrVmPub+0x16], 0x0
-	jnz VM_Execute_2920
-VM_Execute_200:
-	mov eax, [fs+0xc]
+	jnz VM_ExecuteInternal_2920
+VM_ExecuteInternal_200:
+	mov eax, [gFs+0xc]
 	mov edx, [eax+0x4]
-	jmp VM_Execute_2930
-VM_Execute_2910:
+	jmp VM_ExecuteInternal_2930
+VM_ExecuteInternal_2910:
 	cmp byte [ebx+0x6], 0x0
-	jz VM_Execute_2940
+	jz VM_ExecuteInternal_2940
 	mov eax, 0x1
 	mov edx, [scrVmGlob+0x14]
 	test edx, edx
 	movzx edx, byte [scrVmPub+0x16]
 	cmovz eax, edx
 	mov [scrVmPub+0x16], al
-VM_Execute_2940:
+VM_ExecuteInternal_2940:
 	mov eax, [scrVmPub+0x8]
 	test eax, eax
-	jnz VM_Execute_350
+	jnz VM_ExecuteInternal_350
 	cmp byte [scrVmPub+0x14], 0x0
-	jnz VM_Execute_350
-VM_Execute_2920:
+	jnz VM_ExecuteInternal_350
+VM_ExecuteInternal_2920:
 	mov eax, scrVarPub
 	mov eax, [eax+0xc]
 	mov [esp+0x4], eax
 	mov dword [esp], _cstring_s
 	call Sys_Error
-	jmp VM_Execute_200
-VM_Execute_1300:
-	mov [fs+0xc], edx
+	jmp VM_ExecuteInternal_200
+VM_ExecuteInternal_1300:
+	mov [gFs+0xc], edx
 	mov ebx, scrVarPub
 	mov dword [ebx+0x10], 0x3
 	mov eax, [ebx+0xc]
 	test eax, eax
-	jnz VM_Execute_2810
+	jnz VM_ExecuteInternal_2810
 	mov dword [esp+0x8], 0x400
 	mov dword [esp+0x4], _cstring_first_parameter_2
 	mov dword [esp], error_message
 	call Q_strncpyz
 	mov dword [ebx+0xc], error_message
-	jmp VM_Execute_2810
-VM_Execute_790:
-	add dword [fs+0xc], 0x8
-	add dword [fs], 0x2
-	jmp VM_Execute_2950
-VM_Execute_4330:
+	jmp VM_ExecuteInternal_2810
+VM_ExecuteInternal_790:
+	add dword [gFs+0xc], 0x8
+	add dword [gFs], 0x2
+	jmp VM_ExecuteInternal_2950
+VM_ExecuteInternal_4330:
 	mov ebx, scrVarPub
 	mov eax, [ebx+0x30]
 	mov [esp], eax
@@ -4836,469 +4832,469 @@ VM_Execute_4330:
 	mov [esp], eax
 	call GetObjectA
 	mov [ebp-0x34], eax
-	jmp VM_Execute_2430
-VM_Execute_4350:
-	add dword [fs], 0x2
-	jmp VM_Execute_2430
-VM_Execute_4390:
-	mov eax, [fs+0xc]
+	jmp VM_ExecuteInternal_2430
+VM_ExecuteInternal_4350:
+	add dword [gFs], 0x2
+	jmp VM_ExecuteInternal_2430
+VM_ExecuteInternal_4390:
+	mov eax, [gFs+0xc]
 	mov edx, [eax+0x4]
 	cmp edx, 0x8
-	jz VM_Execute_2580
-VM_Execute_2960:
+	jz VM_ExecuteInternal_2580
+VM_ExecuteInternal_2960:
 	mov eax, [eax]
 	mov [esp+0x4], eax
 	mov [esp], edx
 	call RemoveRefToValue
-	mov eax, [fs+0xc]
+	mov eax, [gFs+0xc]
 	sub eax, 0x8
-	mov [fs+0xc], eax
+	mov [gFs+0xc], eax
 	mov edx, [eax+0x4]
 	cmp edx, 0x8
-	jnz VM_Execute_2960
-	jmp VM_Execute_2580
-VM_Execute_1700:
+	jnz VM_ExecuteInternal_2960
+	jmp VM_ExecuteInternal_2580
+VM_ExecuteInternal_1700:
 	mov eax, scrCompilePub
 	cmp byte [eax+0x20020], 0x0
-	jnz VM_Execute_2970
+	jnz VM_ExecuteInternal_2970
 	cmp byte [ebx+0x6], 0x0
-	jz VM_Execute_2980
+	jz VM_ExecuteInternal_2980
 	mov eax, 0x1
 	mov esi, [scrVmGlob+0x14]
 	test esi, esi
 	movzx edx, byte [scrVmPub+0x16]
 	cmovz eax, edx
 	mov [scrVmPub+0x16], al
-VM_Execute_2980:
+VM_ExecuteInternal_2980:
 	mov ebx, [scrVmPub+0x8]
 	test ebx, ebx
-	jnz VM_Execute_350
+	jnz VM_ExecuteInternal_350
 	cmp byte [scrVmPub+0x14], 0x0
-	jz VM_Execute_2990
-	jmp VM_Execute_350
-VM_Execute_4360:
-	mov eax, [fs]
+	jz VM_ExecuteInternal_2990
+	jmp VM_ExecuteInternal_350
+VM_ExecuteInternal_4360:
+	mov eax, [gFs]
 	lea edx, [eax+0x2]
 	movzx eax, word [eax]
 	sub edx, eax
-	mov [fs], edx
-	jmp VM_Execute_1760
-VM_Execute_4240:
+	mov [gFs], edx
+	jmp VM_ExecuteInternal_1760
+VM_ExecuteInternal_4240:
 	mov edi, [scrVmPub+0x1c]
 	test edi, edi
-	jz VM_Execute_1760
+	jz VM_ExecuteInternal_1760
 	mov dword [scrVmPub+0x1c], 0x0
-	jmp VM_Execute_1760
-VM_Execute_1730:
+	jmp VM_ExecuteInternal_1760
+VM_ExecuteInternal_1730:
 	cmp byte [edx+0x6], 0x0
-	jz VM_Execute_3000
+	jz VM_ExecuteInternal_3000
 	mov eax, 0x1
 	mov ebx, [scrVmGlob+0x14]
 	test ebx, ebx
 	movzx edx, byte [scrVmPub+0x16]
 	cmovz eax, edx
 	mov [scrVmPub+0x16], al
-VM_Execute_3000:
+VM_ExecuteInternal_3000:
 	mov ecx, [scrVmPub+0x8]
 	test ecx, ecx
-	jnz VM_Execute_350
+	jnz VM_ExecuteInternal_350
 	cmp byte [scrVmPub+0x14], 0x0
-	jz VM_Execute_3010
-	jmp VM_Execute_350
-VM_Execute_1980:
+	jz VM_ExecuteInternal_3010
+	jmp VM_ExecuteInternal_350
+VM_ExecuteInternal_1980:
 	mov dword [esp+0x8], 0x400
 	mov [esp+0x4], eax
 	mov dword [esp], error_message
 	call Q_strncpyz
 	mov dword [ebx+0xc], error_message
-	jmp VM_Execute_3020
-VM_Execute_4250:
-	mov eax, [fs+0xc]
+	jmp VM_ExecuteInternal_3020
+VM_ExecuteInternal_4250:
+	mov eax, [gFs+0xc]
 	mov edx, [eax+0x4]
 	cmp edx, 0x8
-	jz VM_Execute_3030
-VM_Execute_3040:
+	jz VM_ExecuteInternal_3030
+VM_ExecuteInternal_3040:
 	mov eax, [eax]
 	mov [esp+0x4], eax
 	mov [esp], edx
 	call RemoveRefToValue
-	mov eax, [fs+0xc]
+	mov eax, [gFs+0xc]
 	sub eax, 0x8
-	mov [fs+0xc], eax
+	mov [gFs+0xc], eax
 	mov edx, [eax+0x4]
 	cmp edx, 0x8
-	jnz VM_Execute_3040
-VM_Execute_3030:
+	jnz VM_ExecuteInternal_3040
+VM_ExecuteInternal_3030:
 	mov dword [eax+0x4], 0x7
-	jmp VM_Execute_1760
-VM_Execute_2720:
+	jmp VM_ExecuteInternal_1760
+VM_ExecuteInternal_2720:
 	xor ebx, ebx
-VM_Execute_3050:
-	mov eax, [fs+0xc]
+VM_ExecuteInternal_3050:
+	mov eax, [gFs+0xc]
 	mov edx, [eax]
 	mov [esp+0x4], edx
 	mov eax, [eax+0x4]
 	mov [esp], eax
 	call RemoveRefToValue
-	sub dword [fs+0xc], 0x8
+	sub dword [gFs+0xc], 0x8
 	add ebx, 0x1
 	cmp esi, ebx
-	jnz VM_Execute_3050
-	jmp VM_Execute_3060
-VM_Execute_1710:
+	jnz VM_ExecuteInternal_3050
+	jmp VM_ExecuteInternal_3060
+VM_ExecuteInternal_1710:
 	mov dword [esp+0x8], 0x400
 	mov [esp+0x4], edx
 	mov dword [esp], error_message
 	call Q_strncpyz
 	mov eax, scrVarPub
 	mov dword [eax+0xc], error_message
-	jmp VM_Execute_3070
-VM_Execute_1750:
+	jmp VM_ExecuteInternal_3070
+VM_ExecuteInternal_1750:
 	mov dword [ecx+0x10], 0x1
 	mov ebx, scrVarPub
-	jmp VM_Execute_2550
+	jmp VM_ExecuteInternal_2550
 	
 	
-VM_Execute_jumptab_0:
-	dd VM_Execute_3080
-	dd VM_Execute_3090
-	dd VM_Execute_1010
-	dd VM_Execute_3100
-	dd VM_Execute_3110
-	dd VM_Execute_3120
-	dd VM_Execute_3130
-	dd VM_Execute_3140
-	dd VM_Execute_3150
-	dd VM_Execute_3160
-	dd VM_Execute_3170
-	dd VM_Execute_3180
-	dd VM_Execute_3190
-	dd VM_Execute_3200
-	dd VM_Execute_3210
-	dd VM_Execute_3220
-	dd VM_Execute_3230
-	dd VM_Execute_3240
-	dd VM_Execute_3250
-	dd VM_Execute_3260
-	dd VM_Execute_3270
-	dd VM_Execute_3280
-	dd VM_Execute_3290
-	dd VM_Execute_3300
-	dd VM_Execute_3310
-	dd VM_Execute_3320
-	dd VM_Execute_3330
-	dd VM_Execute_3340
-	dd VM_Execute_3350
-	dd VM_Execute_3360
-	dd VM_Execute_3370
-	dd VM_Execute_3380
-	dd VM_Execute_3390
-	dd VM_Execute_3400
-	dd VM_Execute_3410
-	dd VM_Execute_3420
-	dd VM_Execute_3430
-	dd VM_Execute_3440
-	dd VM_Execute_3450
-	dd VM_Execute_3460
-	dd VM_Execute_3470
-	dd VM_Execute_3480
-	dd VM_Execute_3490
-	dd VM_Execute_3500
-	dd VM_Execute_3510
-	dd VM_Execute_3520
-	dd VM_Execute_1150
-	dd VM_Execute_3530
-	dd VM_Execute_3540
-	dd VM_Execute_3550
-	dd VM_Execute_3560
-	dd VM_Execute_3570
-	dd VM_Execute_3580
-	dd VM_Execute_3590
-	dd VM_Execute_880
-	dd VM_Execute_3600
-	dd VM_Execute_3610
-	dd VM_Execute_3620
-	dd VM_Execute_3630
-	dd VM_Execute_3640
-	dd VM_Execute_3650
-	dd VM_Execute_3660
-	dd VM_Execute_3670
-	dd VM_Execute_3670
-	dd VM_Execute_3670
-	dd VM_Execute_3670
-	dd VM_Execute_3670
-	dd VM_Execute_3670
-	dd VM_Execute_3680
-	dd VM_Execute_3690
-	dd VM_Execute_3690
-	dd VM_Execute_3690
-	dd VM_Execute_3690
-	dd VM_Execute_3690
-	dd VM_Execute_3690
-	dd VM_Execute_3700
-	dd VM_Execute_260
-	dd VM_Execute_620
-	dd VM_Execute_3710
-	dd VM_Execute_3720
-	dd VM_Execute_3730
-	dd VM_Execute_90
-	dd VM_Execute_190
-	dd VM_Execute_3740
-	dd VM_Execute_1840
-	dd VM_Execute_400
-	dd VM_Execute_500
-	dd VM_Execute_3750
-	dd VM_Execute_1870
-	dd VM_Execute_3760
-	dd VM_Execute_3770
-	dd VM_Execute_3780
-	dd VM_Execute_3790
-	dd VM_Execute_3800
-	dd VM_Execute_3810
-	dd VM_Execute_3820
-	dd VM_Execute_3830
-	dd VM_Execute_3840
-	dd VM_Execute_3850
-	dd VM_Execute_3860
-	dd VM_Execute_2340
-	dd VM_Execute_730
-	dd VM_Execute_780
-	dd VM_Execute_3870
-	dd VM_Execute_3880
-	dd VM_Execute_3890
-	dd VM_Execute_3900
-	dd VM_Execute_3910
-	dd VM_Execute_3920
-	dd VM_Execute_3930
-	dd VM_Execute_3940
-	dd VM_Execute_3950
-	dd VM_Execute_3960
-	dd VM_Execute_3970
-	dd VM_Execute_3980
-	dd VM_Execute_3990
-	dd VM_Execute_4000
-	dd VM_Execute_4010
-	dd VM_Execute_4020
-	dd VM_Execute_4030
-	dd VM_Execute_4030
-	dd VM_Execute_4040
-	dd VM_Execute_4050
-	dd VM_Execute_3710
-	dd VM_Execute_4060
-	dd VM_Execute_4070
-	dd VM_Execute_4080
-	dd VM_Execute_810
-	dd VM_Execute_4090
-	dd VM_Execute_4100
-	dd VM_Execute_4110
-	dd VM_Execute_4120
-	dd VM_Execute_4130
-	dd VM_Execute_4140
-	dd VM_Execute_1510
-VM_Execute_jumptab_1:
-	dd VM_Execute_4150
-	dd VM_Execute_4150
-	dd VM_Execute_4150
-	dd VM_Execute_4150
-	dd VM_Execute_1740
-	dd VM_Execute_1740
-	dd VM_Execute_1740
-	dd VM_Execute_1740
-	dd VM_Execute_4160
-	dd VM_Execute_4160
-	dd VM_Execute_1740
-	dd VM_Execute_1740
-	dd VM_Execute_1740
-	dd VM_Execute_1740
-	dd VM_Execute_4160
-	dd VM_Execute_1740
-	dd VM_Execute_1740
-	dd VM_Execute_1740
-	dd VM_Execute_1740
-	dd VM_Execute_1740
-	dd VM_Execute_1740
-	dd VM_Execute_1740
-	dd VM_Execute_1740
-	dd VM_Execute_1740
-	dd VM_Execute_4160
-	dd VM_Execute_1740
-	dd VM_Execute_4160
-	dd VM_Execute_1740
-	dd VM_Execute_1740
-	dd VM_Execute_4170
-	dd VM_Execute_4170
-	dd VM_Execute_4170
-	dd VM_Execute_4170
-	dd VM_Execute_4170
-	dd VM_Execute_4170
-	dd VM_Execute_4170
-	dd VM_Execute_4180
-	dd VM_Execute_4180
-	dd VM_Execute_4180
-	dd VM_Execute_4180
-	dd VM_Execute_4180
-	dd VM_Execute_4180
-	dd VM_Execute_4180
-	dd VM_Execute_1740
-	dd VM_Execute_1740
-	dd VM_Execute_1740
-	dd VM_Execute_1740
-	dd VM_Execute_1740
-	dd VM_Execute_1740
-	dd VM_Execute_1740
-	dd VM_Execute_1740
-	dd VM_Execute_1740
-	dd VM_Execute_1740
-	dd VM_Execute_1740
-	dd VM_Execute_1740
-	dd VM_Execute_1740
-	dd VM_Execute_1740
-	dd VM_Execute_1740
-	dd VM_Execute_1740
-	dd VM_Execute_1740
-	dd VM_Execute_1740
-	dd VM_Execute_1740
-	dd VM_Execute_1740
-	dd VM_Execute_1740
-	dd VM_Execute_1740
-	dd VM_Execute_1740
-	dd VM_Execute_1740
-	dd VM_Execute_4160
-	dd VM_Execute_4160
-	dd VM_Execute_1740
-	dd VM_Execute_1740
-	dd VM_Execute_1740
-	dd VM_Execute_1740
-	dd VM_Execute_1740
-	dd VM_Execute_1740
-	dd VM_Execute_1740
-	dd VM_Execute_1740
-	dd VM_Execute_1740
-	dd VM_Execute_1740
-	dd VM_Execute_1740
-	dd VM_Execute_1740
-	dd VM_Execute_1740
-	dd VM_Execute_1740
-	dd VM_Execute_1740
-	dd VM_Execute_1740
-	dd VM_Execute_1740
-	dd VM_Execute_1740
-	dd VM_Execute_1740
-	dd VM_Execute_1740
-	dd VM_Execute_1740
-	dd VM_Execute_1740
-	dd VM_Execute_1740
-	dd VM_Execute_1740
-	dd VM_Execute_1740
-	dd VM_Execute_1740
-	dd VM_Execute_1740
-	dd VM_Execute_1740
-	dd VM_Execute_1740
-	dd VM_Execute_1740
-	dd VM_Execute_4150
-VM_Execute_jumptab_2:
-	dd VM_Execute_4190
-	dd VM_Execute_4190
-	dd VM_Execute_4200
-	dd VM_Execute_4200
-	dd VM_Execute_4200
-	dd VM_Execute_2580
-	dd VM_Execute_1760
-	dd VM_Execute_4210
-	dd VM_Execute_1760
-	dd VM_Execute_1760
-	dd VM_Execute_4220
-	dd VM_Execute_4220
-	dd VM_Execute_1760
-	dd VM_Execute_1760
-	dd VM_Execute_4230
-	dd VM_Execute_4230
-	dd VM_Execute_4240
-	dd VM_Execute_1760
-	dd VM_Execute_1760
-	dd VM_Execute_1760
-	dd VM_Execute_1760
-	dd VM_Execute_1760
-	dd VM_Execute_4250
-	dd VM_Execute_1760
-	dd VM_Execute_1760
-	dd VM_Execute_1760
-	dd VM_Execute_4260
-	dd VM_Execute_1760
-	dd VM_Execute_4270
-	dd VM_Execute_1760
-	dd VM_Execute_1760
-	dd VM_Execute_4280
-	dd VM_Execute_4280
-	dd VM_Execute_4280
-	dd VM_Execute_4280
-	dd VM_Execute_4280
-	dd VM_Execute_4280
-	dd VM_Execute_4280
-	dd VM_Execute_4280
-	dd VM_Execute_4280
-	dd VM_Execute_4280
-	dd VM_Execute_4280
-	dd VM_Execute_4280
-	dd VM_Execute_4280
-	dd VM_Execute_4280
-	dd VM_Execute_2580
-	dd VM_Execute_1760
-	dd VM_Execute_1760
-	dd VM_Execute_4290
-	dd VM_Execute_4290
-	dd VM_Execute_4300
-	dd VM_Execute_4290
-	dd VM_Execute_4300
-	dd VM_Execute_4310
-	dd VM_Execute_4320
-	dd VM_Execute_4310
-	dd VM_Execute_4320
-	dd VM_Execute_1760
-	dd VM_Execute_4330
-	dd VM_Execute_4340
-	dd VM_Execute_1760
-	dd VM_Execute_1760
-	dd VM_Execute_1760
-	dd VM_Execute_4350
-	dd VM_Execute_4350
-	dd VM_Execute_4350
-	dd VM_Execute_4350
-	dd VM_Execute_1760
-	dd VM_Execute_4360
-	dd VM_Execute_1760
-	dd VM_Execute_1760
-	dd VM_Execute_2430
-	dd VM_Execute_2430
-	dd VM_Execute_2430
-	dd VM_Execute_2430
-	dd VM_Execute_2430
-	dd VM_Execute_2430
-	dd VM_Execute_2430
-	dd VM_Execute_2430
-	dd VM_Execute_2430
-	dd VM_Execute_2430
-	dd VM_Execute_2430
-	dd VM_Execute_2430
-	dd VM_Execute_2430
-	dd VM_Execute_2430
-	dd VM_Execute_2430
-	dd VM_Execute_2430
-	dd VM_Execute_1760
-	dd VM_Execute_4370
-	dd VM_Execute_4380
-	dd VM_Execute_4390
-	dd VM_Execute_4380
-	dd VM_Execute_1760
-	dd VM_Execute_4400
-	dd VM_Execute_1760
-	dd VM_Execute_1760
-	dd VM_Execute_1760
-	dd VM_Execute_1760
-	dd VM_Execute_1760
-	dd VM_Execute_1760
-	dd VM_Execute_1760
-	dd VM_Execute_4200
+VM_ExecuteInternal_jumptab_0:
+	dd VM_ExecuteInternal_3080
+	dd VM_ExecuteInternal_3090
+	dd VM_ExecuteInternal_1010
+	dd VM_ExecuteInternal_3100
+	dd VM_ExecuteInternal_3110
+	dd VM_ExecuteInternal_3120
+	dd VM_ExecuteInternal_3130
+	dd VM_ExecuteInternal_3140
+	dd VM_ExecuteInternal_3150
+	dd VM_ExecuteInternal_3160
+	dd VM_ExecuteInternal_3170
+	dd VM_ExecuteInternal_3180
+	dd VM_ExecuteInternal_3190
+	dd VM_ExecuteInternal_3200
+	dd VM_ExecuteInternal_3210
+	dd VM_ExecuteInternal_3220
+	dd VM_ExecuteInternal_3230
+	dd VM_ExecuteInternal_3240
+	dd VM_ExecuteInternal_3250
+	dd VM_ExecuteInternal_3260
+	dd VM_ExecuteInternal_3270
+	dd VM_ExecuteInternal_3280
+	dd VM_ExecuteInternal_3290
+	dd VM_ExecuteInternal_3300
+	dd VM_ExecuteInternal_3310
+	dd VM_ExecuteInternal_3320
+	dd VM_ExecuteInternal_3330
+	dd VM_ExecuteInternal_3340
+	dd VM_ExecuteInternal_3350
+	dd VM_ExecuteInternal_3360
+	dd VM_ExecuteInternal_3370
+	dd VM_ExecuteInternal_3380
+	dd VM_ExecuteInternal_3390
+	dd VM_ExecuteInternal_3400
+	dd VM_ExecuteInternal_3410
+	dd VM_ExecuteInternal_3420
+	dd VM_ExecuteInternal_3430
+	dd VM_ExecuteInternal_3440
+	dd VM_ExecuteInternal_3450
+	dd VM_ExecuteInternal_3460
+	dd VM_ExecuteInternal_3470
+	dd VM_ExecuteInternal_3480
+	dd VM_ExecuteInternal_3490
+	dd VM_ExecuteInternal_3500
+	dd VM_ExecuteInternal_3510
+	dd VM_ExecuteInternal_3520
+	dd VM_ExecuteInternal_1150
+	dd VM_ExecuteInternal_3530
+	dd VM_ExecuteInternal_3540
+	dd VM_ExecuteInternal_3550
+	dd VM_ExecuteInternal_3560
+	dd VM_ExecuteInternal_3570
+	dd VM_ExecuteInternal_3580
+	dd VM_ExecuteInternal_3590
+	dd VM_ExecuteInternal_880
+	dd VM_ExecuteInternal_3600
+	dd VM_ExecuteInternal_3610
+	dd VM_ExecuteInternal_3620
+	dd VM_ExecuteInternal_3630
+	dd VM_ExecuteInternal_3640
+	dd VM_ExecuteInternal_3650
+	dd VM_ExecuteInternal_3660
+	dd VM_ExecuteInternal_3670
+	dd VM_ExecuteInternal_3670
+	dd VM_ExecuteInternal_3670
+	dd VM_ExecuteInternal_3670
+	dd VM_ExecuteInternal_3670
+	dd VM_ExecuteInternal_3670
+	dd VM_ExecuteInternal_3680
+	dd VM_ExecuteInternal_3690
+	dd VM_ExecuteInternal_3690
+	dd VM_ExecuteInternal_3690
+	dd VM_ExecuteInternal_3690
+	dd VM_ExecuteInternal_3690
+	dd VM_ExecuteInternal_3690
+	dd VM_ExecuteInternal_3700
+	dd VM_ExecuteInternal_260
+	dd VM_ExecuteInternal_620
+	dd VM_ExecuteInternal_3710
+	dd VM_ExecuteInternal_3720
+	dd VM_ExecuteInternal_3730
+	dd VM_ExecuteInternal_90
+	dd VM_ExecuteInternal_190
+	dd VM_ExecuteInternal_3740
+	dd VM_ExecuteInternal_1840
+	dd VM_ExecuteInternal_400
+	dd VM_ExecuteInternal_500
+	dd VM_ExecuteInternal_3750
+	dd VM_ExecuteInternal_1870
+	dd VM_ExecuteInternal_3760
+	dd VM_ExecuteInternal_3770
+	dd VM_ExecuteInternal_3780
+	dd VM_ExecuteInternal_3790
+	dd VM_ExecuteInternal_3800
+	dd VM_ExecuteInternal_3810
+	dd VM_ExecuteInternal_3820
+	dd VM_ExecuteInternal_3830
+	dd VM_ExecuteInternal_3840
+	dd VM_ExecuteInternal_3850
+	dd VM_ExecuteInternal_3860
+	dd VM_ExecuteInternal_2340
+	dd VM_ExecuteInternal_730
+	dd VM_ExecuteInternal_780
+	dd VM_ExecuteInternal_3870
+	dd VM_ExecuteInternal_3880
+	dd VM_ExecuteInternal_3890
+	dd VM_ExecuteInternal_3900
+	dd VM_ExecuteInternal_3910
+	dd VM_ExecuteInternal_3920
+	dd VM_ExecuteInternal_3930
+	dd VM_ExecuteInternal_3940
+	dd VM_ExecuteInternal_3950
+	dd VM_ExecuteInternal_3960
+	dd VM_ExecuteInternal_3970
+	dd VM_ExecuteInternal_3980
+	dd VM_ExecuteInternal_3990
+	dd VM_ExecuteInternal_4000
+	dd VM_ExecuteInternal_4010
+	dd VM_ExecuteInternal_4020
+	dd VM_ExecuteInternal_4030
+	dd VM_ExecuteInternal_4030
+	dd VM_ExecuteInternal_4040
+	dd VM_ExecuteInternal_4050
+	dd VM_ExecuteInternal_3710
+	dd VM_ExecuteInternal_4060
+	dd VM_ExecuteInternal_4070
+	dd VM_ExecuteInternal_4080
+	dd VM_ExecuteInternal_810
+	dd VM_ExecuteInternal_4090
+	dd VM_ExecuteInternal_4100
+	dd VM_ExecuteInternal_4110
+	dd VM_ExecuteInternal_4120
+	dd VM_ExecuteInternal_4130
+	dd VM_ExecuteInternal_4140
+	dd VM_ExecuteInternal_1510
+VM_ExecuteInternal_jumptab_1:
+	dd VM_ExecuteInternal_4150
+	dd VM_ExecuteInternal_4150
+	dd VM_ExecuteInternal_4150
+	dd VM_ExecuteInternal_4150
+	dd VM_ExecuteInternal_1740
+	dd VM_ExecuteInternal_1740
+	dd VM_ExecuteInternal_1740
+	dd VM_ExecuteInternal_1740
+	dd VM_ExecuteInternal_4160
+	dd VM_ExecuteInternal_4160
+	dd VM_ExecuteInternal_1740
+	dd VM_ExecuteInternal_1740
+	dd VM_ExecuteInternal_1740
+	dd VM_ExecuteInternal_1740
+	dd VM_ExecuteInternal_4160
+	dd VM_ExecuteInternal_1740
+	dd VM_ExecuteInternal_1740
+	dd VM_ExecuteInternal_1740
+	dd VM_ExecuteInternal_1740
+	dd VM_ExecuteInternal_1740
+	dd VM_ExecuteInternal_1740
+	dd VM_ExecuteInternal_1740
+	dd VM_ExecuteInternal_1740
+	dd VM_ExecuteInternal_1740
+	dd VM_ExecuteInternal_4160
+	dd VM_ExecuteInternal_1740
+	dd VM_ExecuteInternal_4160
+	dd VM_ExecuteInternal_1740
+	dd VM_ExecuteInternal_1740
+	dd VM_ExecuteInternal_4170
+	dd VM_ExecuteInternal_4170
+	dd VM_ExecuteInternal_4170
+	dd VM_ExecuteInternal_4170
+	dd VM_ExecuteInternal_4170
+	dd VM_ExecuteInternal_4170
+	dd VM_ExecuteInternal_4170
+	dd VM_ExecuteInternal_4180
+	dd VM_ExecuteInternal_4180
+	dd VM_ExecuteInternal_4180
+	dd VM_ExecuteInternal_4180
+	dd VM_ExecuteInternal_4180
+	dd VM_ExecuteInternal_4180
+	dd VM_ExecuteInternal_4180
+	dd VM_ExecuteInternal_1740
+	dd VM_ExecuteInternal_1740
+	dd VM_ExecuteInternal_1740
+	dd VM_ExecuteInternal_1740
+	dd VM_ExecuteInternal_1740
+	dd VM_ExecuteInternal_1740
+	dd VM_ExecuteInternal_1740
+	dd VM_ExecuteInternal_1740
+	dd VM_ExecuteInternal_1740
+	dd VM_ExecuteInternal_1740
+	dd VM_ExecuteInternal_1740
+	dd VM_ExecuteInternal_1740
+	dd VM_ExecuteInternal_1740
+	dd VM_ExecuteInternal_1740
+	dd VM_ExecuteInternal_1740
+	dd VM_ExecuteInternal_1740
+	dd VM_ExecuteInternal_1740
+	dd VM_ExecuteInternal_1740
+	dd VM_ExecuteInternal_1740
+	dd VM_ExecuteInternal_1740
+	dd VM_ExecuteInternal_1740
+	dd VM_ExecuteInternal_1740
+	dd VM_ExecuteInternal_1740
+	dd VM_ExecuteInternal_1740
+	dd VM_ExecuteInternal_4160
+	dd VM_ExecuteInternal_4160
+	dd VM_ExecuteInternal_1740
+	dd VM_ExecuteInternal_1740
+	dd VM_ExecuteInternal_1740
+	dd VM_ExecuteInternal_1740
+	dd VM_ExecuteInternal_1740
+	dd VM_ExecuteInternal_1740
+	dd VM_ExecuteInternal_1740
+	dd VM_ExecuteInternal_1740
+	dd VM_ExecuteInternal_1740
+	dd VM_ExecuteInternal_1740
+	dd VM_ExecuteInternal_1740
+	dd VM_ExecuteInternal_1740
+	dd VM_ExecuteInternal_1740
+	dd VM_ExecuteInternal_1740
+	dd VM_ExecuteInternal_1740
+	dd VM_ExecuteInternal_1740
+	dd VM_ExecuteInternal_1740
+	dd VM_ExecuteInternal_1740
+	dd VM_ExecuteInternal_1740
+	dd VM_ExecuteInternal_1740
+	dd VM_ExecuteInternal_1740
+	dd VM_ExecuteInternal_1740
+	dd VM_ExecuteInternal_1740
+	dd VM_ExecuteInternal_1740
+	dd VM_ExecuteInternal_1740
+	dd VM_ExecuteInternal_1740
+	dd VM_ExecuteInternal_1740
+	dd VM_ExecuteInternal_1740
+	dd VM_ExecuteInternal_1740
+	dd VM_ExecuteInternal_1740
+	dd VM_ExecuteInternal_4150
+VM_ExecuteInternal_jumptab_2:
+	dd VM_ExecuteInternal_4190
+	dd VM_ExecuteInternal_4190
+	dd VM_ExecuteInternal_4200
+	dd VM_ExecuteInternal_4200
+	dd VM_ExecuteInternal_4200
+	dd VM_ExecuteInternal_2580
+	dd VM_ExecuteInternal_1760
+	dd VM_ExecuteInternal_4210
+	dd VM_ExecuteInternal_1760
+	dd VM_ExecuteInternal_1760
+	dd VM_ExecuteInternal_4220
+	dd VM_ExecuteInternal_4220
+	dd VM_ExecuteInternal_1760
+	dd VM_ExecuteInternal_1760
+	dd VM_ExecuteInternal_4230
+	dd VM_ExecuteInternal_4230
+	dd VM_ExecuteInternal_4240
+	dd VM_ExecuteInternal_1760
+	dd VM_ExecuteInternal_1760
+	dd VM_ExecuteInternal_1760
+	dd VM_ExecuteInternal_1760
+	dd VM_ExecuteInternal_1760
+	dd VM_ExecuteInternal_4250
+	dd VM_ExecuteInternal_1760
+	dd VM_ExecuteInternal_1760
+	dd VM_ExecuteInternal_1760
+	dd VM_ExecuteInternal_4260
+	dd VM_ExecuteInternal_1760
+	dd VM_ExecuteInternal_4270
+	dd VM_ExecuteInternal_1760
+	dd VM_ExecuteInternal_1760
+	dd VM_ExecuteInternal_4280
+	dd VM_ExecuteInternal_4280
+	dd VM_ExecuteInternal_4280
+	dd VM_ExecuteInternal_4280
+	dd VM_ExecuteInternal_4280
+	dd VM_ExecuteInternal_4280
+	dd VM_ExecuteInternal_4280
+	dd VM_ExecuteInternal_4280
+	dd VM_ExecuteInternal_4280
+	dd VM_ExecuteInternal_4280
+	dd VM_ExecuteInternal_4280
+	dd VM_ExecuteInternal_4280
+	dd VM_ExecuteInternal_4280
+	dd VM_ExecuteInternal_4280
+	dd VM_ExecuteInternal_2580
+	dd VM_ExecuteInternal_1760
+	dd VM_ExecuteInternal_1760
+	dd VM_ExecuteInternal_4290
+	dd VM_ExecuteInternal_4290
+	dd VM_ExecuteInternal_4300
+	dd VM_ExecuteInternal_4290
+	dd VM_ExecuteInternal_4300
+	dd VM_ExecuteInternal_4310
+	dd VM_ExecuteInternal_4320
+	dd VM_ExecuteInternal_4310
+	dd VM_ExecuteInternal_4320
+	dd VM_ExecuteInternal_1760
+	dd VM_ExecuteInternal_4330
+	dd VM_ExecuteInternal_4340
+	dd VM_ExecuteInternal_1760
+	dd VM_ExecuteInternal_1760
+	dd VM_ExecuteInternal_1760
+	dd VM_ExecuteInternal_4350
+	dd VM_ExecuteInternal_4350
+	dd VM_ExecuteInternal_4350
+	dd VM_ExecuteInternal_4350
+	dd VM_ExecuteInternal_1760
+	dd VM_ExecuteInternal_4360
+	dd VM_ExecuteInternal_1760
+	dd VM_ExecuteInternal_1760
+	dd VM_ExecuteInternal_2430
+	dd VM_ExecuteInternal_2430
+	dd VM_ExecuteInternal_2430
+	dd VM_ExecuteInternal_2430
+	dd VM_ExecuteInternal_2430
+	dd VM_ExecuteInternal_2430
+	dd VM_ExecuteInternal_2430
+	dd VM_ExecuteInternal_2430
+	dd VM_ExecuteInternal_2430
+	dd VM_ExecuteInternal_2430
+	dd VM_ExecuteInternal_2430
+	dd VM_ExecuteInternal_2430
+	dd VM_ExecuteInternal_2430
+	dd VM_ExecuteInternal_2430
+	dd VM_ExecuteInternal_2430
+	dd VM_ExecuteInternal_2430
+	dd VM_ExecuteInternal_1760
+	dd VM_ExecuteInternal_4370
+	dd VM_ExecuteInternal_4380
+	dd VM_ExecuteInternal_4390
+	dd VM_ExecuteInternal_4380
+	dd VM_ExecuteInternal_1760
+	dd VM_ExecuteInternal_4400
+	dd VM_ExecuteInternal_1760
+	dd VM_ExecuteInternal_1760
+	dd VM_ExecuteInternal_1760
+	dd VM_ExecuteInternal_1760
+	dd VM_ExecuteInternal_1760
+	dd VM_ExecuteInternal_1760
+	dd VM_ExecuteInternal_1760
+	dd VM_ExecuteInternal_4200
 
 
 ;VM_Resume(unsigned int)
@@ -5315,7 +5311,7 @@ VM_Resume:
 	mov eax, [ebp-0x34]
 	mov [esp], eax
 	call AddRefToObject
-	mov dword [fs+0x10], scrVmPub+0x320
+	mov dword [gFs+0x10], scrVmPub+0x320
 	mov dword [thread_count], 0x0
 	mov edx, [ebp-0x34]
 	mov [esp], edx
@@ -5353,10 +5349,10 @@ VM_Resume_100:
 VM_Resume_140:
 	mov ecx, [ebp-0x2c]
 	mov eax, [ecx]
-	mov [fs], eax
-	mov [fs+0xc], edx
+	mov [gFs], eax
+	mov [gFs+0xc], edx
 	movzx esi, word [ecx+0x8]
-	mov [fs+0x4], esi
+	mov [gFs+0x4], esi
 	mov eax, [ebp-0x30]
 	mov [esp], eax
 	call Scr_ClearWaitTime
@@ -5418,7 +5414,7 @@ VM_Resume_70:
 	cmp eax, [scrVmPub+0x8]
 	jnz VM_Resume_50
 VM_Resume_40:
-	mov eax, [fs+0x4]
+	mov eax, [gFs+0x4]
 	mov [esp], eax
 	call FindLastSibling
 	mov esi, eax
@@ -5426,7 +5422,7 @@ VM_Resume_40:
 	jnz VM_Resume_80
 	xor eax, eax
 VM_Resume_170:
-	mov [fs+0x8], eax
+	mov [gFs+0x8], eax
 	mov eax, scrVarPub
 	movzx eax, byte [eax+0x14]
 	mov edx, [ebp-0x2c]
@@ -5440,7 +5436,7 @@ VM_Resume_150:
 	mov [esp+0x4], eax
 	mov [esp], ecx
 	call MT_Free
-	call VM_Execute
+	call VM_ExecuteInternal
 	mov [esp], eax
 	call RemoveRefToObject
 	mov eax, [scrVmPub+0x328]
@@ -5567,21 +5563,21 @@ VM_Execute_80:
 	mov eax, [scrVmPub+0x8]
 	cmp eax, 0x1d
 	jg VM_Execute_20
-	mov edx, [fs+0x10]
+	mov edx, [gFs+0x10]
 	mov [ebp-0x1c], edx
-	mov edx, [fs+0xc]
+	mov edx, [gFs+0xc]
 	mov [ebp-0x20], edx
-	mov edx, [fs+0x8]
+	mov edx, [gFs+0x8]
 	mov [ebp-0x24], edx
-	mov edx, [fs+0x4]
+	mov edx, [gFs+0x4]
 	mov [ebp-0x28], edx
-	mov edx, [fs]
+	mov edx, [gFs]
 	mov [ebp-0x2c], edx
 	mov edx, [thread_count]
 	mov [ebp-0x30], edx
 	mov edx, [ebp-0x34]
-	mov [fs+0x4], edx
-	mov [fs+0x10], esi
+	mov [gFs+0x4], edx
+	mov [gFs+0x10], esi
 	test eax, eax
 	jnz VM_Execute_30
 VM_Execute_50:
@@ -5598,23 +5594,23 @@ VM_Execute_50:
 	mov dword [esi+0x4], 0x8
 	mov dword [scrVmPub+0x18], 0x0
 	mov eax, [scrVmPub+0x10]
-	mov [fs+0xc], eax
+	mov [gFs+0xc], eax
 	mov eax, [ebp-0x38]
-	mov [fs], eax
-	mov dword [fs+0x8], 0x0
+	mov [gFs], eax
+	mov dword [gFs+0x8], 0x0
 	mov dword [thread_count], 0x0
-	call VM_Execute
+	call VM_ExecuteInternal
 	mov [ebp-0x34], eax
 	mov edx, [ebp-0x1c]
-	mov [fs+0x10], edx
+	mov [gFs+0x10], edx
 	mov eax, [ebp-0x20]
-	mov [fs+0xc], eax
+	mov [gFs+0xc], eax
 	mov edx, [ebp-0x24]
-	mov [fs+0x8], edx
+	mov [gFs+0x8], edx
 	mov eax, [ebp-0x28]
-	mov [fs+0x4], eax
+	mov [gFs+0x4], eax
 	mov edx, [ebp-0x2c]
-	mov [fs], edx
+	mov [gFs], edx
 	mov eax, [ebp-0x30]
 	mov [thread_count], eax
 	mov [esi+0x4], ebx
@@ -9405,25 +9401,6 @@ Scr_TraverseScript_jumptab_0:
 	dd Scr_TraverseScript_40
 
 
-;GetEntityFieldValue(unsigned int, int, int)
-GetEntityFieldValue:
-	push ebp
-	mov ebp, esp
-	sub esp, 0x18
-	mov dword [scrVmPub+0x10], g_user+0x78
-	mov dword [scrVmGlob+0x4], 0x0
-	mov eax, [ebp+0x10]
-	mov [esp+0x8], eax
-	mov eax, [ebp+0xc]
-	mov [esp+0x4], eax
-	mov eax, [ebp+0x8]
-	mov [esp], eax
-	call Scr_GetObjectField
-	mov dword [scrVmPub+0x18], 0x0
-	mov eax, [scrVmGlob]
-	mov edx, [scrVmGlob+0x4]
-	leave
-	ret
 
 
 ;SetEntityFieldValue(unsigned int, int, int, VariableValue*)
@@ -10020,7 +9997,7 @@ SECTION .rdata
 SECTION .bss
 scrVmGlob: resb 0x201c
 thread_count: resb 0x4
-fs: resb 0x14
+gFs: resb 0x14
 caseCount: resb 0x4
 opcode: resb 0x8
 error_message: resb 0x440
