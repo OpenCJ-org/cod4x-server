@@ -5,7 +5,7 @@
 	extern strncmp
 	extern Info_Validate
 	extern Com_Error
-	extern FS_FOpenFileByMode
+	extern FS_FOpenFileRead
 	extern FS_Read
 	extern FS_FCloseFile
 	extern FS_FreeFile
@@ -121,12 +121,11 @@ Com_LoadInfoString_40:
 	pop ebp
 	ret
 Com_LoadInfoString_10:
-	mov dword [esp+0x8], 0x0
 	lea eax, [ebp-0x1c]
 	mov [esp+0x4], eax
 	mov eax, [ebp+0x8]
 	mov [esp], eax
-	call FS_FOpenFileByMode
+	call FS_FOpenFileRead
 	mov [ebp-0x2c], eax
 	test eax, eax
 	js Com_LoadInfoString_50
@@ -273,12 +272,12 @@ SECTION .bss
 
 ;All cstrings:
 SECTION .rdata
-_cstring_file_s_is_not_a_:		db 15h,"File [%s] is not a valid %s",0ah,0
-_cstring_file_s_is_too_lo:		db 15h,"File [%s] is too long of a %s to parse",0ah,0
-_cstring_file_s_is_not_a_1:		db 15h,"File [%s] is not a %s file",0ah,0
-_cstring_file_s_is_not_a_2:		db 15h,"File [%s] is not a %s",0ah,0
-_cstring_could_not_load_s:		db 15h,"Could not load %s [%s]",0ah,0
-_cstring_could_not_load_s1:		db 15h,"Could not load %s file [%s]",0ah,0
+_cstring_file_s_is_not_a_:		db 015h,"File [%s] is not a valid %s",0ah,0
+_cstring_file_s_is_too_lo:		db 015h,"File [%s] is too long of a %s to parse",0ah,0
+_cstring_file_s_is_not_a_1:		db 015h,"File [%s] is not a %s file",0ah,0
+_cstring_file_s_is_not_a_2:		db 015h,"File [%s] is not a %s",0ah,0
+_cstring_could_not_load_s:		db 015h,"Could not load %s [%s]",0ah,0
+_cstring_could_not_load_s1:		db 015h,"Could not load %s file [%s]",0ah,0
 
 
 
