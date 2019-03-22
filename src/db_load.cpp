@@ -194,7 +194,6 @@ void *DB_XAssetPool[ASSET_TYPE_COUNT];
 extern "C"{
   void DB_SaveSounds();
   void DB_SaveDObjs();
-  void DB_SyncExternalAssets();
   //void __regparm2 DB_UnloadXZone(unsigned int zoneIndex, bool createDefault);
   void DB_LoadSounds();
   void __cdecl Load_SndAliasCustom(snd_alias_list_t **var);
@@ -1892,7 +1891,6 @@ void __cdecl DB_LoadXAssets(XZoneInfo *zoneInfo, unsigned int zoneCount, int syn
         if ( !unloadedZone )
         {
             unloadedZone = 1;
-            DB_SyncExternalAssets();
             DB_ArchiveAssets( );
             Sys_EnterCriticalSection(CRITSECT_DBHASH);
         }
@@ -1903,7 +1901,6 @@ void __cdecl DB_LoadXAssets(XZoneInfo *zoneInfo, unsigned int zoneCount, int syn
 
   if ( unloadedZone )
   {
-    DB_FreeUnusedResources();
     for ( j = 0; j < zoneCount; ++j )
     {
       DB_UnloadXAssetsMemoryForZone(zoneInfo[j].freeFlags, 64);
@@ -1986,7 +1983,6 @@ void __cdecl DB_ShutdownXAssets()
   int i, zh;
 
   DB_SyncXAssets();
-  DB_SyncExternalAssets();
   Sys_EnterCriticalSection(CRITSECT_DBHASH);
   for ( i = g_zoneCount - 1; i >= 0; --i )
   {
@@ -3416,7 +3412,6 @@ XAssetHeader __cdecl DB_FindXAssetHeader(XAssetType type, const char *name, bool
   XAssetEntry *newEntry;
   const char *bspext;
   XAssetEntryPoolEntry *newEntryPoolEntry;
-  unsigned int db_loadtime;
 
   assert(IsFastFileLoad());
 
@@ -3447,7 +3442,7 @@ XAssetHeader __cdecl DB_FindXAssetHeader(XAssetType type, const char *name, bool
       use_so_name = 1;
     }
   }
-  db_loadtime = 0;
+
   do
   {
     while ( 1 )
@@ -3496,16 +3491,11 @@ XAssetHeader __cdecl DB_FindXAssetHeader(XAssetType type, const char *name, bool
     {
       break;
     }
-    db_loadtime = Sys_Milliseconds() - start;
-    if(db_loadtime > 60000)
-    {
-      Com_PrintError(CON_CHANNEL_DONT_FILTER, "Aborting to wait for database having zone loaded after %d msec\n", db_loadtime);
-      db_loadtime = 0;
-    }
     if ( DB_IsMinimumFastFileLoaded() && DB_GetInitializing() )
     {
       break;
     }
+
     if ( Sys_IsDatabaseReady() && (Sys_IsMainThread()
     /* || Sys_IsRenderThread() && R_IsInRemoteScreenUpdate() && Sys_QueryRGRegisteredEvent()*/))
     {
@@ -3538,7 +3528,7 @@ XAssetHeader __cdecl DB_FindXAssetHeader(XAssetType type, const char *name, bool
       }
     }
   }
-  while ( waitTime == -1 || Sys_Milliseconds() - start < (unsigned int)waitTime + db_loadtime);
+  while ( waitTime == -1 || Sys_Milliseconds() - start < (unsigned int)waitTime || !Sys_IsDatabaseReady2());
 //  ProfLoad_End();
 LABEL_62:
   if ( assetEntry )
