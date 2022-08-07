@@ -1,19 +1,18 @@
 #include "gsc_mysql.hpp"
+#include "gsc_utils.hpp"
 #include "include.hpp"
 
 /*
-	Had the problem, that a query failed but no mysql_errno() was set
-	Reason: mysql_query() didnt even got executed, because the str was undefined
-	So the function quittet with Plugin_Scr_AddInt(0)
-	Now its undefined, and i shall test it every time
+    Spike: Had the problem, that a query failed but no mysql_errno() was set
+    Reason: mysql_query() didnt even got executed, because the str was undefined
+    So the function quittet with Plugin_Scr_AddInt(0)
+    Now its undefined, and i shall test it every time
 */
 
 #include <mysql.h>
 #include <pthread.h>
 
-//#include <windows.h>
 #include <unistd.h>
-//#include <string>
 
 struct mysql_async_task
 {
@@ -42,17 +41,17 @@ pthread_mutex_t lock_async_mysql;
 
 void *mysql_async_execute_query(void *input_c) //cannot be called from gsc, is threaded.
 {
-	mysql_async_connection *c = (mysql_async_connection *) input_c;
-	int res = mysql_query(c->connection, c->task->query);
-	if(!res && c->task->save)
-		c->task->result = mysql_store_result(c->connection);
-	else if(res)
-	{
-		//mysql show error here?
-	}
-	c->task->done = true;
-	c->task = NULL;
-	return NULL;
+    mysql_async_connection *c = (mysql_async_connection *) input_c;
+    int res = mysql_query(c->connection, c->task->query);
+    if(!res && c->task->save)
+        c->task->result = mysql_store_result(c->connection);
+    else if(res)
+    {
+        //mysql show error here?
+    }
+    c->task->done = true;
+    c->task = NULL;
+    return NULL;
 }
 
 void *mysql_async_query_handler(void* input_nothing) //is threaded after initialize
@@ -74,7 +73,7 @@ void *mysql_async_query_handler(void* input_nothing) //is threaded after initial
     mysql_async_task *q;
     while(true)
     {
-				pthread_mutex_lock(&lock_async_mysql);
+        pthread_mutex_lock(&lock_async_mysql);
         q = first_async_task;
         c = first_async_connection;
         while(q != NULL)
@@ -94,8 +93,8 @@ void *mysql_async_query_handler(void* input_nothing) //is threaded after initial
                 int error = pthread_create(&query_doer, NULL, mysql_async_execute_query, c);
                 if(error)
                 {
-                    printf("error: %d\n", error);
-                    printf("Error detaching async handler thread\n");
+                    Plugin_Printf("error: %d\n", error);
+                    Plugin_Printf("Error detaching async handler thread\n");
                     return NULL;
                 }
                 pthread_detach(query_doer);
@@ -157,7 +156,7 @@ void gsc_mysql_async_create_query()
 
 void gsc_mysql_async_getdone_list()
 {
-	pthread_mutex_lock(&lock_async_mysql);
+    pthread_mutex_lock(&lock_async_mysql);
     mysql_async_task *current = first_async_task;
     stackPushArray();
     while(current != NULL)
@@ -175,7 +174,7 @@ void gsc_mysql_async_getdone_list()
 void gsc_mysql_async_getresult_and_free() //same as above, but takes the id of a function instead and returns 0 (not done), undefined (not found) or the mem address of result
 {
     int id = Plugin_Scr_GetInt(0);
-		pthread_mutex_lock(&lock_async_mysql);
+    pthread_mutex_lock(&lock_async_mysql);
     mysql_async_task *c = first_async_task;
     if(c != NULL)
     {
@@ -209,7 +208,7 @@ void gsc_mysql_async_getresult_and_free() //same as above, but takes the id of a
     }
     else
     {
-        printf("scriptengine> mysql async query id not found\n");
+        Plugin_Printf("scriptengine> mysql async query id not found\n");
         Plugin_Scr_AddUndefined();
         pthread_mutex_unlock(&lock_async_mysql);
         return;
@@ -257,17 +256,11 @@ void gsc_mysql_async_initializer()//returns array with mysql connection handlers
         mysql_async_connection *newconnection = new mysql_async_connection;
         newconnection->next = NULL;
         newconnection->connection = mysql_init(NULL);
-        my_bool reconnect = true;
+        newconnection->connection = mysql_real_connect((MYSQL*)newconnection->connection, host, user, pass, db, port, NULL, 0);
+        bool reconnect = true;
         mysql_options(newconnection->connection, MYSQL_OPT_RECONNECT, &reconnect);
         unsigned int rct = 5;
         mysql_options(newconnection->connection, MYSQL_OPT_CONNECT_TIMEOUT, &rct);
-        MYSQL* a = NULL;
-        while(a == NULL)
-        {
-					Plugin_Printf("trying to make a connection\n");
-					a = mysql_real_connect((MYSQL*)newconnection->connection, host, user, pass, db, port, NULL, 0);
-				}
-				newconnection->connection = a;
         newconnection->task = NULL;
         if(current == NULL)
         {
@@ -292,8 +285,6 @@ void gsc_mysql_async_initializer()//returns array with mysql connection handlers
         return;
     }
     pthread_detach(async_handler);
-//    std::thread async_query(mysql_async_query_handler);
-//    async_query.detach();
 }
 
 void gsc_mysql_init() {
@@ -320,25 +311,21 @@ void gsc_mysql_reuse_connection()
 
 void gsc_mysql_real_connect() {
     MYSQL *m = (MYSQL*)Plugin_Scr_GetInt(0);
-    char* hostname = Plugin_Scr_GetString(1);
-    char* username = Plugin_Scr_GetString(2);
-    char* password = Plugin_Scr_GetString(3);
-    char* database = Plugin_Scr_GetString(4);
+    char *host = Plugin_Scr_GetString(1);
+    char *user = Plugin_Scr_GetString(2);
+    char *pass = Plugin_Scr_GetString(3);
+    char *db = Plugin_Scr_GetString(4);
     int port = Plugin_Scr_GetInt(5);
     if(m != NULL)
     {
-        MYSQL *c = NULL;
-				unsigned int rct = 5;
-				mysql_options(m,  MYSQL_OPT_CONNECT_TIMEOUT, &rct);
-				my_bool reconnect = true;
-				mysql_options(m, MYSQL_OPT_RECONNECT, &reconnect);
-        while(c == NULL)
-        {
-					Plugin_Printf("reconnecting...\n");
-					c = mysql_real_connect(m, hostname, username, password, database, port, NULL, 0);
-				}
-        cod_mysql_connection = c;
-        Plugin_Scr_AddInt((int)c);
+        int mysql = (int) mysql_real_connect(m, host, user, pass, db, port, NULL, 0);
+
+        bool reconnect = true;
+        mysql_options((MYSQL*)mysql, MYSQL_OPT_RECONNECT, &reconnect);
+
+        if(cod_mysql_connection == NULL)
+            cod_mysql_connection = m;
+        Plugin_Scr_AddInt((int)mysql);
     } else {
         Plugin_Scr_AddUndefined();
     }
@@ -449,20 +436,4 @@ void gsc_mysql_real_escape_string() {
     mysql_real_escape_string(m, str, escape, strlen(escape));
     Plugin_Scr_AddString(str);
     free(str);
-}
-
-int stackPushArray() {
-	int (*signature)();
-
-	*((int *)(&signature)) = 0x0815ED8A;
-	
-	return signature();
-}
-
-int stackPushArrayLast() {
-	int (*signature)();
-	
-	*((int *)(&signature)) = 0x0815D5C0;
-
-	return signature();
 }

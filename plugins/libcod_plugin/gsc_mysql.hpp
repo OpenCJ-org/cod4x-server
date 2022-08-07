@@ -32,8 +32,5 @@ void gsc_mysql_async_initializer();
 void gsc_mysql_reuse_connection();
 int mysql_async_query_initializer(char* sql, bool save);
 
-int stackPushArray();
-int stackPushArrayLast();
-
 
 #endif

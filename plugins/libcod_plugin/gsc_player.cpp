@@ -469,7 +469,7 @@ void gsc_save_setorigin(int id)
 {
 	int snum = Plugin_Scr_GetInt(0);
 	vec3_t org;
-	Plugin_Scr_GetVector(1, org);
+	Plugin_Scr_GetVector(1, &org);
 	memcpy(jh_saves[id][snum].origin, org, sizeof(vec3_t));
 }
 
@@ -483,7 +483,7 @@ void gsc_save_setangles(int id)
 {
 	int snum = Plugin_Scr_GetInt(0);
 	vec3_t ang;
-	Plugin_Scr_GetVector(1, ang);
+	Plugin_Scr_GetVector(1, &ang);
 	memcpy(jh_saves[id][snum].angles, ang, sizeof(vec3_t));
 }
 
@@ -713,7 +713,7 @@ void Gsc_Player_Velocity_Set(int id) {
     vec3_t velocity;
     playerState_t* ps;
 
-    Plugin_Scr_GetVector(0, velocity);
+    Plugin_Scr_GetVector(0, &velocity);
 
     ps = Plugin_SV_GameClientNum(id);
 
@@ -728,7 +728,7 @@ void Gsc_Player_Velocity_Add(int id) {
     vec3_t velocity;
     playerState_t* ps;
 
-    Plugin_Scr_GetVector(0, velocity);
+    Plugin_Scr_GetVector(0, &velocity);
 
     ps = Plugin_SV_GameClientNum(id);
 
@@ -805,21 +805,21 @@ void Gsc_Player_ButtonJump(int id) {
 void Gsc_Player_SpectatorClientGet(int id) {
     gentity_t* gentity = Plugin_GetGentityForEntityNum(id);
 
-    if(gentity->client->sess.spectatorClient == -1)
+    if(gentity->client->spectatorClient == -1)
         Plugin_Scr_AddEntity(Plugin_GetGentityForEntityNum(id));
     else
-        Plugin_Scr_AddEntity(Plugin_GetGentityForEntityNum(gentity->client->sess.spectatorClient));
+        Plugin_Scr_AddEntity(Plugin_GetGentityForEntityNum(gentity->client->spectatorClient));
 }
 
 void Gsc_Player_GetIP(int id){
-    char* ip;
     client_t* cl;
+	char address[128] = {0};
 
     cl = Plugin_GetClientForClientNum(id);
 
-    ip = (char*)Plugin_NET_AdrToString( &cl->netchan.remoteAddress );
+    Plugin_NET_AdrToStringMT(&cl->netchan.remoteAddress, address, sizeof(address));
 
-    Plugin_Scr_AddString(ip);
+    Plugin_Scr_AddString((char *)address);
 }
 
 void gsc_player_issprinting(int id)
