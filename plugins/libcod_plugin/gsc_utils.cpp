@@ -80,7 +80,7 @@ void Gsc_Utils_sprintf() {
 					case 4:
 					{
 						vec3_t vec;
-						Plugin_Scr_GetVector(param, vec);
+						Plugin_Scr_GetVector(param, &vec);
 						num += sprintf(&(result[num]), "(%.2f, %.2f, %.2f", vec[0], vec[1], vec[2]);
 						break;
 					}
@@ -593,4 +593,20 @@ void Gsc_Utils_SendGameServerCommand() {
 	else
 		SV_GameSendServerCommand(clientNum, 0, message);
 	Plugin_Scr_AddInt(1);
+}
+
+int stackPushArray() {
+    int (*signature)();
+
+    *((int *)(&signature)) = 0x0815ED8A;
+    
+    return signature();
+}
+
+int stackPushArrayLast() {
+    int (*signature)();
+    
+    *((int *)(&signature)) = 0x0815D5C0;
+
+    return signature();
 }

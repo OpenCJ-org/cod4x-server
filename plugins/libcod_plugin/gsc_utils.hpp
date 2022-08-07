@@ -32,6 +32,10 @@ void gsc_utils_gethex();
 void gsc_utils_stringToFloat();
 void gsc_utils_renice();
 void gsc_misc_forcedlcvars();
+
+int stackPushArray();
+int stackPushArrayLast();
+
 #ifdef __cplusplus
 }
 #endif
