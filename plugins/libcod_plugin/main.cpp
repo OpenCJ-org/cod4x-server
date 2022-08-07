@@ -5,17 +5,7 @@
 
 PCL int OnInit()
 {
-    Plugin_ScrAddMethod("aimbuttonpressed"                      , Gsc_Player_ButtonAds);
-    Plugin_ScrAddMethod("leftbuttonpressed"                     , Gsc_Player_ButtonLeft);
-    Plugin_ScrAddMethod("rightbuttonpressed"                    , Gsc_Player_ButtonRight);
-    Plugin_ScrAddMethod("forwardbuttonpressed"                  , Gsc_Player_ButtonForward);
-    Plugin_ScrAddMethod("backbuttonpressed"                     , Gsc_Player_ButtonBack);
-    Plugin_ScrAddMethod("jumpbuttonpressed"                     , Gsc_Player_ButtonJump);
-    Plugin_ScrAddMethod("leanleftbuttonpressed"                 , Gsc_Player_ButtonLeanLeft);
-    Plugin_ScrAddMethod("leanrightbuttonpressed"                , Gsc_Player_ButtonLeanRight);
-    Plugin_ScrAddMethod("setVelocity"                           , Gsc_Player_Velocity_Set);
     Plugin_ScrAddMethod("addVelocity"                           , Gsc_Player_Velocity_Add);
-    Plugin_ScrAddMethod("getSpectatorClient"                    , Gsc_Player_SpectatorClientGet);
     Plugin_ScrAddMethod("getip"                                 , Gsc_Player_GetIP);
     Plugin_ScrAddMethod("getQueuedReliableMessages"             , gsc_getQueuedReliableMessages);
     Plugin_ScrAddMethod("issprinting", gsc_player_issprinting);
