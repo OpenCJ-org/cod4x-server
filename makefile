@@ -59,10 +59,12 @@ LINUX_LFLAGS=-m32 -g -static-libgcc -rdynamic -Wl,-rpath=./ -fcommon
 LINUX_LLIBS=tomcrypt mbedtls mbedcrypto mbedx509 dl pthread m stdc++
 BSD_LLIBS=tomcrypt mbedtls mbedcrypto mbedx509 pthread m execinfo stdc++
 COD4X_DEFINES=COD4X18UPDATE BUILD_NUMBER=$(BUILD_NUMBER) BUILD_BRANCH=$(BUILD_BRANCH) BUILD_REVISION=$(BUILD_REVISION)
+OPENCJ_DEFINES=COD4
 
 ########################
 # Setup directory names.
 SRC_DIR=src
+OPENCJ_EXT_DIR=../server-ext
 PLUGIN_DIR=plugins
 BIN_DIR=bin
 LIB_DIR=lib
@@ -87,7 +89,7 @@ BIN_EXT=.exe
 NASMFLAGS=-f win -dWin32 --prefix _
 OS_SOURCES=$(wildcard $(WIN_DIR)/*.c)
 OS_OBJ=$(patsubst $(WIN_DIR)/%.c,$(OBJ_DIR)/%.o,$(OS_SOURCES))
-C_DEFINES=$(addprefix -D,$(COD4X_DEFINES) $(WIN_DEFINES))
+C_DEFINES=$(addprefix -D,$(COD4X_DEFINES) $(OPENCJ_DEFINES) $(WIN_DEFINES))
 LFLAGS=$(WIN_LFLAGS)
 LLIBS=-L$(LIB_DIR)/ $(addprefix -l,$(WIN_LLIBS))
 RESOURCE_FILE=src/win32/win_cod4.res
@@ -102,7 +104,7 @@ BIN_EXT=
 NASMFLAGS=-f elf
 OS_SOURCES=$(wildcard $(LINUX_DIR)/*.c)
 OS_OBJ=$(patsubst $(LINUX_DIR)/%.c,$(OBJ_DIR)/%.o,$(OS_SOURCES))
-C_DEFINES=$(addprefix -D,$(COD4X_DEFINES) $(LINUX_DEFINES))
+C_DEFINES=$(addprefix -D,$(COD4X_DEFINES) $(OPENCJ_DEFINES) $(LINUX_DEFINES))
 LFLAGS=$(LINUX_LFLAGS)
 
 UNAME := $(shell uname)
@@ -124,6 +126,7 @@ TARGET=$(addprefix $(BIN_DIR)/,$(TARGETNAME)$(BIN_EXT))
 ASM_SOURCES=$(wildcard $(SRC_DIR)/asmsource/*.asm)
 C_SOURCES=$(wildcard $(SRC_DIR)/*.c)
 CPP_SOURCES=$(wildcard $(SRC_DIR)/*.cpp)
+OPENCJ_SOURCES=$(wildcard $(OPENCJ_EXT_DIR)/*.cpp)
 ZLIB_SOURCES=$(wildcard $(ZLIB_DIR)/*.c)
 ASSETS_SOURCES=$(wildcard $(ASSETS_DIR)/*.c)
 
@@ -132,6 +135,7 @@ ASSETS_SOURCES=$(wildcard $(ASSETS_DIR)/*.c)
 ASM_OBJ=$(patsubst $(SRC_DIR)/asmsource/%.asm,$(OBJ_DIR)/%.o,$(ASM_SOURCES))
 C_OBJ=$(patsubst $(SRC_DIR)/%.c,$(OBJ_DIR)/%.o,$(C_SOURCES))
 CPP_OBJ=$(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(CPP_SOURCES))
+OPENCJ_OBJ=$(patsubst $(OPENCJ_EXT_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(OPENCJ_SOURCES))
 ZLIB_OBJ=$(patsubst $(ZLIB_DIR)/%.c,$(OBJ_DIR)/%.o,$(ZLIB_SOURCES))
 ASSETS_OBJ=$(patsubst $(ASSETS_DIR)/%.c,$(OBJ_DIR)/%.o,$(ASSETS_SOURCES))
 
@@ -194,7 +198,7 @@ endif
 
 ###############################
 # A rule to link server binary.
-$(TARGET): $(OS_OBJ) $(C_OBJ) $(CPP_OBJ) $(ZLIB_OBJ) $(ASSETS_OBJ) $(ASM_OBJ) obj/version.o
+$(TARGET): $(OS_OBJ) $(C_OBJ) $(CPP_OBJ) $(ZLIB_OBJ) $(ASSETS_OBJ) $(ASM_OBJ) $(OPENCJ_OBJ) obj/version.o
 	@echo   $(CC) $(TARGET)
 # CFLAGS for compiler, LFLAGS for linker.
 	@$(CC) $(LFLAGS) -o $@ $^ $(RESOURCE_FILE) $(LLIBS)
@@ -220,6 +224,13 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 # A rule to build common c++ server code.
 # -march=nocona
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
+	@echo   $(CPP)  $@
+	@$(CPP) -c $(CFLAGS) $(DCFLAGS) $(C_DEFINES) -o $@ $<
+
+#####################################
+# A rule to build OpenCJ code
+#
+$(OBJ_DIR)/%.o: $(OPENCJ_EXT_DIR)/%.cpp
 	@echo   $(CPP)  $@
 	@$(CPP) -c $(CFLAGS) $(DCFLAGS) $(C_DEFINES) -o $@ $<
 
