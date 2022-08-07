@@ -11,3 +11,8 @@ libmbedx509.a
 libtomcrypt_mach.a   
 libtommath_linux.a   
 libtommath_win32.a
+
+OpenCJ additions:
+libmysqlclient.a
+libssl.a (required by mysql)
+libcrypto.a (required by ssl)

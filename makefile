@@ -57,6 +57,7 @@ WIN_LFLAGS=-m32 -g -Wl,--nxcompat,--stack,0x800000 -mwindows -static-libgcc -sta
 WIN_LLIBS=tomcrypt mbedtls mbedcrypto mbedx509 ws2_32 wsock32 iphlpapi gdi32 winmm crypt32 stdc++
 LINUX_LFLAGS=-m32 -g -static-libgcc -rdynamic -Wl,-rpath=./ -fcommon
 LINUX_LLIBS=tomcrypt mbedtls mbedcrypto mbedx509 dl pthread m stdc++
+OPENCJ_LLIBS=mysqlclient ssl crypto
 BSD_LLIBS=tomcrypt mbedtls mbedcrypto mbedx509 pthread m execinfo stdc++
 COD4X_DEFINES=COD4X18UPDATE BUILD_NUMBER=$(BUILD_NUMBER) BUILD_BRANCH=$(BUILD_BRANCH) BUILD_REVISION=$(BUILD_REVISION)
 OPENCJ_DEFINES=COD4
@@ -91,7 +92,7 @@ OS_SOURCES=$(wildcard $(WIN_DIR)/*.c)
 OS_OBJ=$(patsubst $(WIN_DIR)/%.c,$(OBJ_DIR)/%.o,$(OS_SOURCES))
 C_DEFINES=$(addprefix -D,$(COD4X_DEFINES) $(OPENCJ_DEFINES) $(WIN_DEFINES))
 LFLAGS=$(WIN_LFLAGS)
-LLIBS=-L$(LIB_DIR)/ $(addprefix -l,$(WIN_LLIBS))
+LLIBS=-L$(LIB_DIR)/ $(addprefix -l,$(OPENCJ_LLIBS) $(WIN_LLIBS))
 RESOURCE_FILE=src/win32/win_cod4.res
 DEF_FILE=$(BIN_DIR)/$(TARGETNAME).def
 INTERFACE_LIB=$(PLUGINS_DIR)/libcom_plugin.a
@@ -111,7 +112,7 @@ UNAME := $(shell uname)
 ifeq ($(UNAME),FreeBSD)
 LLIBS=-L./$(LIB_DIR) $(addprefix -l,$(BSD_LLIBS))
 else
-LLIBS=-L./$(LIB_DIR) $(addprefix -l,$(LINUX_LLIBS))
+LLIBS=-L./$(LIB_DIR) $(addprefix -l,$(OPENCJ_LLIBS) $(LINUX_LLIBS))
 endif
 
 RESOURCE_FILE=
