@@ -301,16 +301,37 @@ void Scr_AddStockFunctions()
     Scr_AddFunction("usercall", Scr_Usercall, 0);
 }
 
-void Scr_AddStockMethods()
+void Scr_AddOpenCJFunctions()
 {
-    // Begin OpenCJ
+    #include "../../server-ext/shared.hpp"
+    #include "../../server-ext/gsc_custom_utils.hpp"
+    const struct 
+    {
+        const char      *name;
+        xfunction_t     call;
+        qboolean        developer;
+    } scriptFunctions[] = {
+        #include "../../server-ext/functions.hpp"
+    };
+
+    for(int i = 0; i < (sizeof(scriptFunctions) / sizeof(scriptFunctions[0])); i++)
+    {
+        Scr_AddFunction(scriptFunctions[i].name, scriptFunctions[i].call, scriptFunctions[i].developer);
+    }
+
+    // For GSC compatibility with CoD2
     Scr_AddFunction("getcvar", GScr_GetCvar, 0);
     Scr_AddFunction("getcvarint", GScr_GetCvarInt, 0);
     Scr_AddFunction("getcvarfloat", GScr_GetCvarFloat, 0);
     Scr_AddFunction("setcvar", GScr_SetCvar, 0);
     Scr_AddMethod("setclientcvar", PlayerCmd_SetClientDvar, 0 );
     Scr_AddMethod("setclientcvars", PlayerCmd_SetClientDvars, 0 );
-	// End OpenCJ
+    Scr_AddMethod("setclientcvar", PlayerCmd_SetClientDvar, 0);
+    Scr_AddMethod("setclientcvars", PlayerCmd_SetClientDvars, 0);
+}
+
+void Scr_AddStockMethods()
+{
 
     //PlayerCmd
 
@@ -635,6 +656,7 @@ void Scr_InitFunctions()
     {
         Scr_AddStockFunctions();
         Scr_AddStockMethods();
+        Scr_AddOpenCJFunctions(); // OpenCJ
         initialized = qtrue;
     }
 }
