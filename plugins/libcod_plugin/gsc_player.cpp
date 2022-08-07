@@ -69,21 +69,6 @@ void gsc_printcommandtime(int id)
 	}
 }
 
-void Gsc_Player_Velocity_Set(int id) {
-    vec3_t velocity;
-    playerState_t* ps;
-
-    Plugin_Scr_GetVector(0, &velocity);
-
-    ps = Plugin_SV_GameClientNum(id);
-
-    ps->velocity[0] = velocity[0];
-    ps->velocity[1] = velocity[1];
-    ps->velocity[2] = velocity[2];
-
-    Plugin_Scr_AddInt(1);
-}
-
 void Gsc_Player_Velocity_Add(int id) {
     vec3_t velocity;
     playerState_t* ps;
@@ -97,78 +82,6 @@ void Gsc_Player_Velocity_Add(int id) {
     ps->velocity[2] += velocity[2];
 
     Plugin_Scr_AddInt(1);
-}
-
-void Gsc_Player_ButtonAds(int id) {
-    int currentPlayer = playerStates + id * sizeOfPlayer;
-    unsigned char *aim_address = (unsigned char *)(currentPlayer + 0x26CD);
-    int aimButtonPressed = *aim_address & 0xF0; // just the first 4 bits tell the state
-    Plugin_Scr_AddInt(aimButtonPressed);
-}
-
-void Gsc_Player_ButtonLeft(int id) {
-
-    unsigned char *aim_address = (unsigned char *)(PLAYERSTATE(id) + 0x2FA7);
-
-    int leftButtonPressed = (*aim_address & 0x81)==0x81;
-    Plugin_Scr_AddInt(leftButtonPressed);
-}
-
-void Gsc_Player_ButtonRight(int id) {
-
-    unsigned char *aim_address = (unsigned char *)(PLAYERSTATE(id) + 0x2FA7);
-
-    int rightButtonPressed = (*aim_address & 0x7F)==0x7F;
-    Plugin_Scr_AddInt(rightButtonPressed);
-}
-
-void Gsc_Player_ButtonForward(int id) {
-
-    unsigned char *aim_address = (unsigned char *)(PLAYERSTATE(id) + 0x2FA6);
-
-    int forwardButtonPressed = (*aim_address & 0x7F)==0x7F;
-    Plugin_Scr_AddInt(forwardButtonPressed);
-}
-
-void Gsc_Player_ButtonBack(int id) {
-
-    unsigned char *aim_address = (unsigned char *)(PLAYERSTATE(id) + 0x2FA6);
-
-    int backButtonPressed = (*aim_address & 0x81)==0x81;
-    Plugin_Scr_AddInt(backButtonPressed);
-}
-
-void Gsc_Player_ButtonLeanLeft(int id) {
-
-    unsigned char *aim_address = (unsigned char *)(PLAYERSTATE(id) + 0x2FB4);
-
-    int leanleftButtonPressed = (*aim_address & 0x40)==0x40;
-    Plugin_Scr_AddInt(leanleftButtonPressed);
-}
-
-void Gsc_Player_ButtonLeanRight(int id) {
-
-    unsigned char *aim_address = (unsigned char *)(PLAYERSTATE(id) + 0x2FB4);
-    
-    int leanrightButtonPressed = (*aim_address & 0x80)==0x80;
-    Plugin_Scr_AddInt(leanrightButtonPressed);
-}
-
-void Gsc_Player_ButtonJump(int id) {
-
-    unsigned char *aim_address = (unsigned char *)(PLAYERSTATE(id) + 0x2FB5);
-    
-    int jumpButtonPressed = (*aim_address & 0x04)==0x04;
-    Plugin_Scr_AddInt(jumpButtonPressed);
-}
-
-void Gsc_Player_SpectatorClientGet(int id) {
-    gentity_t* gentity = Plugin_GetGentityForEntityNum(id);
-
-    if(gentity->client->spectatorClient == -1)
-        Plugin_Scr_AddEntity(Plugin_GetGentityForEntityNum(id));
-    else
-        Plugin_Scr_AddEntity(Plugin_GetGentityForEntityNum(gentity->client->spectatorClient));
 }
 
 void Gsc_Player_GetIP(int id){
