@@ -303,7 +303,14 @@ void Scr_AddStockFunctions()
 
 void Scr_AddStockMethods()
 {
-
+    // Begin OpenCJ
+    Scr_AddFunction("getcvar", GScr_GetCvar, 0);
+    Scr_AddFunction("getcvarint", GScr_GetCvarInt, 0);
+    Scr_AddFunction("getcvarfloat", GScr_GetCvarFloat, 0);
+    Scr_AddFunction("setcvar", GScr_SetCvar, 0);
+    Scr_AddMethod("setclientcvar", PlayerCmd_SetClientDvar, 0 );
+    Scr_AddMethod("setclientcvars", PlayerCmd_SetClientDvars, 0 );
+	// End OpenCJ
 
     //PlayerCmd
 

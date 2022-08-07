@@ -484,6 +484,82 @@ unsigned int Scr_GetObject(unsigned int paramnum)
     return 0;
 }
 
+// Begin OpenCJ
+// Ported & modified from libcod :: gsc.cpp :: stackGetParams
+// Error checking mostly removed because otherwise 0 value will give an error even if it's valid
+int Scr_GetMultipleValues(const char *params, ...)
+{
+    va_list args;
+    va_start(args, params);
+
+    int errors = 0;
+
+    for (size_t i = 0; i < strlen(params); i++)
+    {
+        switch (params[i])
+        {
+            case ' ': // ignore param
+                break;
+
+            case 'i':
+            {
+                int *tmp = va_arg(args, int *);
+                *tmp = Scr_GetInt(i);
+                break;
+            }
+
+            case 'v':
+            {
+                float *tmp = va_arg(args, float *);
+                Scr_GetVector(i, tmp);
+                break;
+            }
+
+            case 'f':
+            {
+                float *tmp = va_arg(args, float *);
+                *tmp = Scr_GetFloat(i);
+                break;
+            }
+
+            case 's':
+            {
+                char **tmp = va_arg(args, char **);
+                *tmp = Scr_GetString(i);
+                if (!*tmp)
+                {
+                    Com_DPrintf(CON_CHANNEL_ERROR, "\nstackGetParams() Param %i is not a string\n", i);
+                    errors++;
+                }
+                break;
+            }
+
+            case 'c':
+            {
+                unsigned int *tmp = va_arg(args, unsigned int *);
+                *tmp = Scr_GetConstString(i);
+                if (!*tmp)
+                {
+                    Com_DPrintf(CON_CHANNEL_ERROR, "\nstackGetParams() Param %i is not a const string\n", i);
+                    errors++;
+                }
+                break;
+            }
+
+            default:
+            {
+                errors++;
+                Com_DPrintf(CON_CHANNEL_ERROR, "\nUnknown identifier [%s] passed to stackGetParams()\n", params[i]);
+                break;
+            }
+        }
+    }
+
+    va_end(args);
+    return errors == 0; // success if no errors
+}
+// End OpenCJ
+
 bool Scr_ScriptRuntimecheckInfiniteLoop()
 {
     int now = Sys_Milliseconds();
