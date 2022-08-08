@@ -815,6 +815,21 @@ void GScr_LoadGameTypeScript(void)
 
     /**************** Additional *************************/
     script_CallBacks_new[SCR_CB_SCRIPTCOMMAND] = GScr_LoadScriptAndLabel("maps/mp/gametypes/_callbacksetup", "CodeCallback_ScriptCommand", 0);
+
+	// Begin OpenCJ
+	script_CallBacks_new[SCR_CB_OCJ_PLAYERCMD] = GScr_LoadScriptAndLabel("maps/mp/gametypes/_callbacksetup", "CodeCallback_PlayerCommand", 0);
+	script_CallBacks_new[SCR_CB_OCJ_PLAYERRPG] = GScr_LoadScriptAndLabel("maps/mp/gametypes/_callbacksetup", "CodeCallback_RPGFired", 0);
+	script_CallBacks_new[SCR_CB_OCJ_USERINFO] = GScr_LoadScriptAndLabel("maps/mp/gametypes/_callbacksetup", "CodeCallback_UserInfoChanged",0);
+	script_CallBacks_new[SCR_CB_OCJ_JUMPCMD] = GScr_LoadScriptAndLabel("maps/mp/gametypes/_callbacksetup", "CodeCallback_StartJump", 0);
+	script_CallBacks_new[SCR_CB_OCJ_MELEE] = GScr_LoadScriptAndLabel("maps/mp/gametypes/_callbacksetup", "CodeCallback_MeleeButton", 0);
+	script_CallBacks_new[SCR_CB_OCJ_USE] = GScr_LoadScriptAndLabel("maps/mp/gametypes/_callbacksetup", "CodeCallback_UseButton", 0);
+	script_CallBacks_new[SCR_CB_OCJ_ATTACK] = GScr_LoadScriptAndLabel("maps/mp/gametypes/_callbacksetup", "CodeCallback_AttackButton", 0);
+
+	script_CallBacks_new[SCR_CB_OCJ_MOVEFORWARD] = GScr_LoadScriptAndLabel("maps/mp/gametypes/_callbacksetup", "CodeCallback_MoveForward", 0);
+	script_CallBacks_new[SCR_CB_OCJ_MOVELEFT] = GScr_LoadScriptAndLabel("maps/mp/gametypes/_callbacksetup", "CodeCallback_MoveLeft", 0);
+	script_CallBacks_new[SCR_CB_OCJ_MOVEBACK] = GScr_LoadScriptAndLabel("maps/mp/gametypes/_callbacksetup", "CodeCallback_MoveBackward", 0);
+	script_CallBacks_new[SCR_CB_OCJ_MOVERIGHT] = GScr_LoadScriptAndLabel("maps/mp/gametypes/_callbacksetup", "CodeCallback_MoveRight", 0);
+	// End OpenCJ
 }
 
 
@@ -1237,3 +1252,15 @@ void Scr_YYACError(const char* fmt, ...)
     Com_Error(ERR_SCRIPT, "%s", com_errorMessage);
 }
 
+// Begin OpenCJ
+void doJumpCommandCallback(gentity_t *ent)
+{
+    int callback = script_CallBacks_new[SCR_CB_OCJ_JUMPCMD];
+    if (callback != 0)
+    {
+        int threadId;
+        threadId = Scr_ExecEntThread(ent, callback, 0);
+        Scr_FreeThread(threadId);
+	}
+}
+// End OpenCJ

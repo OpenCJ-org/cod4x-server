@@ -408,7 +408,20 @@ typedef unsigned int sval_u;
 
 typedef enum{
     SCR_CB_SAY,
-    SCR_CB_SCRIPTCOMMAND
+    SCR_CB_SCRIPTCOMMAND,
+    // Begin OpenCJ
+    SCR_CB_OCJ_PLAYERCMD,
+    SCR_CB_OCJ_PLAYERRPG,
+    SCR_CB_OCJ_USERINFO,
+    SCR_CB_OCJ_JUMPCMD,
+    SCR_CB_OCJ_MELEE,
+    SCR_CB_OCJ_USE,
+    SCR_CB_OCJ_ATTACK,
+    SCR_CB_OCJ_MOVEFORWARD,
+    SCR_CB_OCJ_MOVELEFT,
+    SCR_CB_OCJ_MOVEBACK,
+    SCR_CB_OCJ_MOVERIGHT,
+    // End OpenCJ
 }script_CallBacks_new_t;
 
 extern int script_CallBacks_new[8];

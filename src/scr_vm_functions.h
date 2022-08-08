@@ -34,6 +34,7 @@ typedef int scr_entref_t;
 void PlayerCmd_ClientCommand(scr_entref_t arg);
 void PlayerCmd_StartRecord(scr_entref_t arg);
 void PlayerCmd_StopRecord(scr_entref_t arg);
+void renameClient(gclient_t *, char *);
 void PlayerCmd_RenameClient(scr_entref_t arg);
 void PlayerCmd_StopFollowingMe(scr_entref_t arg);
 void PlayerCmd_FollowPlayer(scr_entref_t arg);

@@ -215,7 +215,7 @@ void PlayerCmd_FollowPlayer(scr_entref_t arg)
     }
 }
 
-static void internalRenameClient(gclient_t *client, char *s)
+void renameClient(gclient_t *client, char *s)
 {
     if (!client || !s || (s[0] == '\0')) return;
 
@@ -254,7 +254,7 @@ void PlayerCmd_RenameClient(scr_entref_t arg)
 			}
 
 			char *s = Scr_GetString(0);
-			internalRenameClient(client, s);
+			renameClient(client, s);
         }
     }
 }
