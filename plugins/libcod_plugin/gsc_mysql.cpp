@@ -158,13 +158,13 @@ void gsc_mysql_async_getdone_list()
 {
     pthread_mutex_lock(&lock_async_mysql);
     mysql_async_task *current = first_async_task;
-    stackPushArray();
+    Plugin_Scr_MakeArray();
     while(current != NULL)
     {
         if(current->done)
         {
             Plugin_Scr_AddInt((int)current->id);
-            stackPushArrayLast();
+            Plugin_Scr_AddArray();
         }
         current = current->next;
     }
@@ -249,7 +249,7 @@ void gsc_mysql_async_initializer()//returns array with mysql connection handlers
         return;
     }
     int i;
-    stackPushArray();
+    Plugin_Scr_MakeArray();
     mysql_async_connection *current = first_async_connection;
     for(i = 0; i < connection_count; i++)
     {
@@ -259,8 +259,6 @@ void gsc_mysql_async_initializer()//returns array with mysql connection handlers
         newconnection->connection = mysql_real_connect((MYSQL*)newconnection->connection, host, user, pass, db, port, NULL, 0);
         bool reconnect = true;
         mysql_options(newconnection->connection, MYSQL_OPT_RECONNECT, &reconnect);
-        unsigned int rct = 5;
-        mysql_options(newconnection->connection, MYSQL_OPT_CONNECT_TIMEOUT, &rct);
         newconnection->task = NULL;
         if(current == NULL)
         {
@@ -276,8 +274,9 @@ void gsc_mysql_async_initializer()//returns array with mysql connection handlers
         }
         current = newconnection;
         Plugin_Scr_AddInt((int)newconnection->connection);
-        stackPushArrayLast();
+        Plugin_Scr_AddArray();
     }
+
     pthread_t async_handler;
     if(pthread_create(&async_handler, NULL, mysql_async_query_handler, NULL))
     {
@@ -287,12 +286,17 @@ void gsc_mysql_async_initializer()//returns array with mysql connection handlers
     pthread_detach(async_handler);
 }
 
-void gsc_mysql_init() {
+void gsc_mysql_init()
+{
     MYSQL *connection = mysql_init(NULL);
     if(connection != NULL)
+    {
         Plugin_Scr_AddInt((int)connection);
+    }
     else
+    {
         Plugin_Scr_AddUndefined();
+    }
 }
 
 void gsc_mysql_reuse_connection()
@@ -309,7 +313,8 @@ void gsc_mysql_reuse_connection()
     }
 }
 
-void gsc_mysql_real_connect() {
+void gsc_mysql_real_connect()
+{
     MYSQL *m = (MYSQL*)Plugin_Scr_GetInt(0);
     char *host = Plugin_Scr_GetString(1);
     char *user = Plugin_Scr_GetString(2);
@@ -331,55 +336,65 @@ void gsc_mysql_real_connect() {
     }
 }
 
-void gsc_mysql_error() {
+void gsc_mysql_error()
+{
     MYSQL *m = (MYSQL*)Plugin_Scr_GetInt(0);
     Plugin_Scr_AddString((char*)mysql_error(m));
 }
 
-void gsc_mysql_errno() {
+void gsc_mysql_errno()
+{
     MYSQL *m = (MYSQL*)Plugin_Scr_GetInt(0);
     Plugin_Scr_AddInt(mysql_errno(m));
 }
 
-void gsc_mysql_close() {
+void gsc_mysql_close()
+{
     MYSQL *m = (MYSQL*)Plugin_Scr_GetInt(0);
     mysql_close(m);
     Plugin_Scr_AddUndefined();
 }
 
-void gsc_mysql_query() {
+void gsc_mysql_query()
+{
     MYSQL *m = (MYSQL*)Plugin_Scr_GetInt(0);
     char* query = Plugin_Scr_GetString(1);
     Plugin_Scr_AddInt((int)mysql_query(m, query));
 }
 
-void gsc_mysql_affected_rows() {
+void gsc_mysql_affected_rows()
+{
     MYSQL *m = (MYSQL*)Plugin_Scr_GetInt(0);
     Plugin_Scr_AddInt((int)mysql_affected_rows(m));
 }
 
-void gsc_mysql_store_result() {
+void gsc_mysql_store_result()
+{
     MYSQL *m = (MYSQL*)Plugin_Scr_GetInt(0);
     Plugin_Scr_AddInt((int)mysql_store_result(m));
 }
 
-void gsc_mysql_num_rows() {
+void gsc_mysql_num_rows()
+{
     MYSQL_RES *m = (MYSQL_RES*)Plugin_Scr_GetInt(0);
     Plugin_Scr_AddInt((int)mysql_num_rows(m));
 }
 
-void gsc_mysql_num_fields() {
+void gsc_mysql_num_fields()
+{
     MYSQL_RES *m = (MYSQL_RES*)Plugin_Scr_GetInt(0);
     Plugin_Scr_AddInt((int)mysql_num_fields(m));
 }
 
-void gsc_mysql_field_seek() {
+void gsc_mysql_field_seek()
+{
     MYSQL_RES *m = (MYSQL_RES*)Plugin_Scr_GetInt(0);
     int offset = Plugin_Scr_GetInt(1);
     Plugin_Scr_AddInt((int)mysql_field_seek(m, offset));
 }
 
-void gsc_mysql_fetch_field() {
+void gsc_mysql_fetch_field()
+{
     MYSQL_RES *res = (MYSQL_RES*)Plugin_Scr_GetInt(0);
     MYSQL_FIELD *f = mysql_fetch_field(res);
     if(!f)
@@ -388,7 +403,8 @@ void gsc_mysql_fetch_field() {
         Plugin_Scr_AddString(f->name);
 }
 
-void gsc_mysql_fetch_row() {
+void gsc_mysql_fetch_row()
+{
     int result = Plugin_Scr_GetInt(0);
 
     #if DEBUG_MYSQL
@@ -405,8 +421,7 @@ void gsc_mysql_fetch_row() {
         return;
     }
 
-    stackPushArray();
-
+    Plugin_Scr_MakeArray();
 
     int numfields = mysql_num_fields((MYSQL_RES *)result);
     for (int i=0; i<numfields; i++)
@@ -419,17 +434,19 @@ void gsc_mysql_fetch_row() {
         #if DEBUG_MYSQL
         Com_Printf("row == \"%s\"\n", row[i]);
         #endif
-        stackPushArrayLast();
+        Plugin_Scr_AddArray();
     }
 }
 
-void gsc_mysql_free_result() {
+void gsc_mysql_free_result()
+{
     MYSQL_RES *res = (MYSQL_RES*)Plugin_Scr_GetInt(0);
     mysql_free_result(res);
     Plugin_Scr_AddUndefined();
 }
 
-void gsc_mysql_real_escape_string() {
+void gsc_mysql_real_escape_string()
+{
     MYSQL *m = (MYSQL*)Plugin_Scr_GetInt(0);
     char* escape = Plugin_Scr_GetString(1);
     char* str = new char[strlen(escape) * 2 + 1];
