@@ -445,11 +445,6 @@ void opencj_addMethodsAndFunctions(void)
     Scr_AddMethod("followplayer",           PlayerCmd_FollowPlayer,             qfalse);
     Scr_AddMethod("getfps",                 PlayerCmd_GetFPS,                   qfalse);
     Scr_AddMethod("resetfps",               PlayerCmd_ResetFPS,                 qfalse);
-    Scr_AddMethod("allowelevate",           PlayerCmd_allowElevate,             qfalse);
-    Scr_AddMethod("setclientcvar",          PlayerCmd_SetClientDvar,            qfalse);
-    Scr_AddMethod("clientcommand",          PlayerCmd_ClientCommand,            qfalse);
-    Scr_AddMethod("allowelevate",           PlayerCmd_allowElevate,             qfalse);
-    Scr_AddMethod("setclientcvar",          PlayerCmd_SetClientDvar,            qfalse);
     Scr_AddMethod("enablewasdcallback",     PlayerCmd_EnableWASDCallback,       qfalse);
     Scr_AddMethod("disablewasdcallback",    PlayerCmd_DisableWASDCallback,      qfalse);
     Scr_AddMethod("player_ondisconnect",    opencj_onDisconnect,                qfalse);
