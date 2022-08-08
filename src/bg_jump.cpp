@@ -29,6 +29,15 @@ __cdecl __optimize3 float Jump_GetHeight( playerState_t *ps) {
 
 }
 
+// Begin OpenCJ: allow C callback from CPP
+#ifdef __cplusplus
+extern "C" {
+#endif
+  extern void doJumpCommandCallback(gentity_t *);
+#ifdef __cplusplus
+}
+#endif
+// End OpenCJ
 
 
 __cdecl __optimize3 float Jump_CalcHeight( playerState_t* ps ) {
@@ -36,6 +45,10 @@ __cdecl __optimize3 float Jump_CalcHeight( playerState_t* ps ) {
 	float val;
 	float newdiv;
 	float jumpHeight = Jump_GetHeight(ps);
+
+  // Begin OpenCJ: detect jumps
+	doJumpCommandCallback(&g_entities[ps->clientNum]);
+  // End OpenCJ
 
 	val = jumpHeight;
 	val = (val + val) * ps->gravity;
