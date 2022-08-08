@@ -53,6 +53,7 @@
 	extern G_FireRocket
 	extern G_AntiLagRewindClientPos
 	extern G_AntiLag_RestoreClientPos
+	extern Ext_RPGFiredCallback
 
 ;Exports of g_weapon:
 	global _ZZ11Melee_TraceP9gentity_sP11weaponParmsifffP7trace_tPfE12traceOffsets
@@ -646,6 +647,14 @@ FireWeapon_80:
 	mov [esp+0x4], eax
 	mov [esp], ebx
 	call Weapon_RocketLauncher_Fire
+; Ridgepig marker for convenient searches (callback for RPG fired)
+    mov edx, ebx              ; Move the gentity_s* (player) into edx (eax contains the newly created RPG)
+    push eax                    ; Pass gentity_s* (RPG) to our callback function (reverse order)
+    push edx                    ; Pass gentity_s* (player) to our callback function
+    call Ext_RPGFiredCallback   ; Call our callback function
+    pop edx                     ; Clean up stack
+    pop eax                     ; Clean up stack
+; End marker (callback for RPG fired)
 FireWeapon_20:
 	add esp, 0x9c
 	pop ebx

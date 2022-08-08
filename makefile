@@ -57,7 +57,7 @@ WIN_LFLAGS=-m32 -g -Wl,--nxcompat,--stack,0x800000 -mwindows -static-libgcc -sta
 WIN_LLIBS=tomcrypt mbedtls mbedcrypto mbedx509 ws2_32 wsock32 iphlpapi gdi32 winmm crypt32 stdc++
 LINUX_LFLAGS=-m32 -g -static-libgcc -rdynamic -Wl,-rpath=./ -fcommon
 LINUX_LLIBS=tomcrypt mbedtls mbedcrypto mbedx509 dl pthread m stdc++
-OPENCJ_LLIBS=mysqlclient ssl crypto
+OPENCJ_LLIBS=mysqlclient
 BSD_LLIBS=tomcrypt mbedtls mbedcrypto mbedx509 pthread m execinfo stdc++
 COD4X_DEFINES=COD4X18UPDATE BUILD_NUMBER=$(BUILD_NUMBER) BUILD_BRANCH=$(BUILD_BRANCH) BUILD_REVISION=$(BUILD_REVISION)
 OPENCJ_DEFINES=COD4
@@ -112,7 +112,7 @@ UNAME := $(shell uname)
 ifeq ($(UNAME),FreeBSD)
 LLIBS=-L./$(LIB_DIR) $(addprefix -l,$(BSD_LLIBS))
 else
-LLIBS=-L./$(LIB_DIR) $(addprefix -l,$(OPENCJ_LLIBS) $(LINUX_LLIBS))
+LLIBS=-L./$(LIB_DIR) -L"/usr/lib/i386-linux-gnu/" $(addprefix -l,$(OPENCJ_LLIBS) $(LINUX_LLIBS))
 endif
 
 RESOURCE_FILE=
@@ -226,7 +226,7 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 # -march=nocona
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 	@echo   $(CPP)  $@
-	@$(CPP) -c $(CFLAGS) $(DCFLAGS) $(C_DEFINES) -o $@ $<
+	@$(CPP) -c $(CFLAGS) $(DCFLAGS) $(C_DEFINES) -I$(OPENCJ_EXT_DIR) -o $@ $<
 
 #####################################
 # A rule to build OpenCJ code

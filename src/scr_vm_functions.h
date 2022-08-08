@@ -30,19 +30,6 @@
 typedef int scr_entref_t;
 #endif
 
-// Begin OpenCJ
-void PlayerCmd_ClientCommand(scr_entref_t arg);
-void PlayerCmd_StartRecord(scr_entref_t arg);
-void PlayerCmd_StopRecord(scr_entref_t arg);
-void renameClient(gclient_t *, char *);
-void PlayerCmd_RenameClient(scr_entref_t arg);
-void PlayerCmd_StopFollowingMe(scr_entref_t arg);
-void PlayerCmd_FollowPlayer(scr_entref_t arg);
-void PlayerCmd_ResetFPS(scr_entref_t arg);
-void PlayerCmd_GetFPS(scr_entref_t arg);
-void PlayerCmd_FPSNextFrame();
-// End OpenCJ
-
 void PlayerCmd_GetUid(scr_entref_t arg);
 void PlayerCmd_SetUid(scr_entref_t arg);
 void PlayerCmd_GetGuid(scr_entref_t arg);

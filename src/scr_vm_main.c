@@ -38,6 +38,8 @@
 #include <stdarg.h>
 #include <ctype.h>
 
+#include "opencj_main.hpp" // OpenCJ
+
 typedef struct
 {
     char *name;
@@ -299,68 +301,6 @@ void Scr_AddStockFunctions()
 	Scr_AddFunction("toupper", GScr_ToUpper, 0 );
 	Scr_AddFunction("strreplace", GScr_StrReplace, 0 );
     Scr_AddFunction("usercall", Scr_Usercall, 0);
-}
-
-void Scr_AddOpenCJFunctions()
-{
-    #include "../../server-ext/shared.hpp"
-    #include "../../server-ext/gsc_custom_utils.hpp"
-    #include "../../server-ext/gsc_custom_player.hpp"
-    #include "../../server-ext/gsc_saveposition.hpp"
-
-    // Add functions
-    const struct 
-    {
-        const char      *name;
-        xfunction_t     call;
-        qboolean        developer;
-    } scriptFunctions[] = {
-        #include "../../server-ext/functions.hpp"
-    };
-
-    for(int i = 0; i < (sizeof(scriptFunctions) / sizeof(scriptFunctions[0])); i++)
-    {
-        Scr_AddFunction(scriptFunctions[i].name, scriptFunctions[i].call, scriptFunctions[i].developer);
-    }
-
-    // Add methods
-    const struct 
-    {
-        const char      *name;
-        xmethod_t       call;
-        qboolean        developer;
-    } scriptMethods[] = {
-        #include "../../server-ext/methods.hpp"
-    };
-
-    for(int i = 0; i < (sizeof(scriptMethods) / sizeof(scriptMethods[0])); i++)
-    {
-        Scr_AddMethod(scriptMethods[i].name, scriptMethods[i].call, scriptMethods[i].developer);
-    }
-
-    // Extra functions/methods
-    Scr_AddFunction("vectorscale", Gsc_Utils_VectorScale, 0);
-    Scr_AddMethod("clientcommand", PlayerCmd_ClientCommand, 0); 
-    Scr_AddMethod("stoprecord", PlayerCmd_StopRecord, 0);
-    Scr_AddMethod("startrecord", PlayerCmd_StartRecord, 0);
-    Scr_AddMethod("renameclient", PlayerCmd_RenameClient, 0);
-    //Scr_AddMethod("stopFollowingMe", PlayerCmd_StopFollowingMe, 0);
-    Scr_AddMethod("followplayer", PlayerCmd_FollowPlayer, 0);
-    Scr_AddMethod("getfps", PlayerCmd_GetFPS, 0);
-    Scr_AddMethod("resetfps", PlayerCmd_ResetFPS, 0);
-
-	// CoD2 functions that are named differently
-    Scr_AddMethod("setg_speed", PlayerCmd_SetMoveSpeed, 0);
-
-    // For GSC compatibility with CoD2
-    Scr_AddFunction("getcvar", GScr_GetCvar, 0);
-    Scr_AddFunction("getcvarint", GScr_GetCvarInt, 0);
-    Scr_AddFunction("getcvarfloat", GScr_GetCvarFloat, 0);
-    Scr_AddFunction("setcvar", GScr_SetCvar, 0);
-    Scr_AddMethod("setclientcvar", PlayerCmd_SetClientDvar, 0);
-    Scr_AddMethod("setclientcvars", PlayerCmd_SetClientDvars, 0);
-    Scr_AddMethod("leftbuttonpressed", PlayerCmd_MoveLeftButtonPressed, 0);
-    Scr_AddMethod("rightbuttonpressed", PlayerCmd_MoveRightButtonPressed, 0);
 }
 
 void Scr_AddStockMethods()
@@ -689,7 +629,7 @@ void Scr_InitFunctions()
     {
         Scr_AddStockFunctions();
         Scr_AddStockMethods();
-        Scr_AddOpenCJFunctions(); // OpenCJ
+        opencj_addMethodsAndFunctions(); // OpenCJ
         initialized = qtrue;
     }
 }
@@ -816,20 +756,7 @@ void GScr_LoadGameTypeScript(void)
     /**************** Additional *************************/
     script_CallBacks_new[SCR_CB_SCRIPTCOMMAND] = GScr_LoadScriptAndLabel("maps/mp/gametypes/_callbacksetup", "CodeCallback_ScriptCommand", 0);
 
-	// Begin OpenCJ
-	script_CallBacks_new[SCR_CB_OCJ_PLAYERCMD] = GScr_LoadScriptAndLabel("maps/mp/gametypes/_callbacksetup", "CodeCallback_PlayerCommand", 0);
-	script_CallBacks_new[SCR_CB_OCJ_PLAYERRPG] = GScr_LoadScriptAndLabel("maps/mp/gametypes/_callbacksetup", "CodeCallback_RPGFired", 0);
-	script_CallBacks_new[SCR_CB_OCJ_USERINFO] = GScr_LoadScriptAndLabel("maps/mp/gametypes/_callbacksetup", "CodeCallback_UserInfoChanged",0);
-	script_CallBacks_new[SCR_CB_OCJ_JUMPCMD] = GScr_LoadScriptAndLabel("maps/mp/gametypes/_callbacksetup", "CodeCallback_StartJump", 0);
-	script_CallBacks_new[SCR_CB_OCJ_MELEE] = GScr_LoadScriptAndLabel("maps/mp/gametypes/_callbacksetup", "CodeCallback_MeleeButton", 0);
-	script_CallBacks_new[SCR_CB_OCJ_USE] = GScr_LoadScriptAndLabel("maps/mp/gametypes/_callbacksetup", "CodeCallback_UseButton", 0);
-	script_CallBacks_new[SCR_CB_OCJ_ATTACK] = GScr_LoadScriptAndLabel("maps/mp/gametypes/_callbacksetup", "CodeCallback_AttackButton", 0);
-
-	script_CallBacks_new[SCR_CB_OCJ_MOVEFORWARD] = GScr_LoadScriptAndLabel("maps/mp/gametypes/_callbacksetup", "CodeCallback_MoveForward", 0);
-	script_CallBacks_new[SCR_CB_OCJ_MOVELEFT] = GScr_LoadScriptAndLabel("maps/mp/gametypes/_callbacksetup", "CodeCallback_MoveLeft", 0);
-	script_CallBacks_new[SCR_CB_OCJ_MOVEBACK] = GScr_LoadScriptAndLabel("maps/mp/gametypes/_callbacksetup", "CodeCallback_MoveBackward", 0);
-	script_CallBacks_new[SCR_CB_OCJ_MOVERIGHT] = GScr_LoadScriptAndLabel("maps/mp/gametypes/_callbacksetup", "CodeCallback_MoveRight", 0);
-	// End OpenCJ
+    opencj_init(); // OpenCJ
 }
 
 
@@ -1251,16 +1178,3 @@ void Scr_YYACError(const char* fmt, ...)
 
     Com_Error(ERR_SCRIPT, "%s", com_errorMessage);
 }
-
-// Begin OpenCJ
-void doJumpCommandCallback(gentity_t *ent)
-{
-    int callback = script_CallBacks_new[SCR_CB_OCJ_JUMPCMD];
-    if (callback != 0)
-    {
-        int threadId;
-        threadId = Scr_ExecEntThread(ent, callback, 0);
-        Scr_FreeThread(threadId);
-	}
-}
-// End OpenCJ

@@ -34,6 +34,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 
+#include "opencj_main.hpp" // OpenCJ
 
 extern "C"
 {
@@ -85,19 +86,7 @@ __cdecl void ClientUserinfoChanged( int clientNum ) {
 		client->sess.predictItemPickup = qtrue;
 	}
 
-    // Begin OpenCJ: User Info Changed callback
-	int callback = script_CallBacks_new[SCR_CB_OCJ_USERINFO];
-	if (callback == 0)
-	{
-		s = Info_ValueForKey(userinfo, "name");
-		extern void renameClient(gclient_t *, char *);
-		renameClient(client, s);
-		return;
-	}
-
-	int threadId = Scr_ExecEntThread(&g_entities[clientNum], callback, 0);
-	Scr_FreeThread(threadId);
-	// End OpenCJ
+	opencj_onUserInfoChanged(&g_entities[clientNum]); // OpenCJ
 }
 /* T-Max: I think this can be used to remove color codes from
  * players in game, but keep colors for spectators somehow.
