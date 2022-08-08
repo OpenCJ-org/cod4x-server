@@ -20,7 +20,7 @@
 ===========================================================================
 */
 
-
+#include "opencj_main.hpp" // OpenCJ
 
 #include "q_shared.h"
 #include "qcommon_io.h"
@@ -718,7 +718,8 @@ void Com_Init(char* commandLine){
 
 	Com_DownloadAndExecGlobalConfig();
 
-    Sec_Update( qfalse );
+    // Ridgepig: disable updates for now, so that we have time to apply our code into it
+    //Sec_Update( qfalse );
 
     FS_InitFilesystem();
 
@@ -1055,6 +1056,8 @@ __optimize3 void Com_Frame( void ) {
 		return;
 
 	PHandler_Event(PLUGINS_ONFRAME);
+
+	opencj_onFrame(); // OpenCJ
 
 	Com_TimedEventLoop();
 	Cbuf_Execute ( );

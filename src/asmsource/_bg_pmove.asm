@@ -86,6 +86,7 @@
 	extern CG_TraceCapsule
 	extern G_TraceCapsule
 	extern G_PlayerEvent
+	extern Ext_IsPlayerAllowedToEle
 
 ;Exports of bg_pmove:
 	global viewLerp_CrouchStand
@@ -486,6 +487,13 @@ PM_GroundTrace_110:
 	mov [esi+0x60], eax
 	cmp byte [ebp-0x40], 0x0
 	jz PM_GroundTrace_20
+; Ridgepig marker for convenient searches (player-specific elevators)
+	mov eax, [ebp-0xa8]           ; move pmove_t* into eax
+	mov [esp], eax                ; add pmove_t* as argument for Ext_IsPlayerAllowedToEle
+	call Ext_IsPlayerAllowedToEle ; return value stored in eax
+	cmp dword eax, 0x1            ; if Ext_IsPlayerAllowedToEle says no, then don't go to PM_GroundTrace_20
+	jl PM_GroundTrace_20          ; skip PM_GroundTrace_30 with the CorrectSolidDeltas
+; End marker (player-specific elevators)
 	mov eax, [ebp-0xa8]
 	mov ebx, [eax]
 	xor esi, esi

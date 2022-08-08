@@ -4,6 +4,8 @@
 #include "bg_local.h"
 #include "q_shared.h"
 
+#include "opencj_main.hpp" // OpenCJ
+
 #define PMF_JUMPING 0x4000
 #define PMF_LADDER 0x8
 #define JUMP_LAND_SLOWDOWN_TIME 1800
@@ -29,26 +31,12 @@ __cdecl __optimize3 float Jump_GetHeight( playerState_t *ps) {
 
 }
 
-// Begin OpenCJ: allow C callback from CPP
-#ifdef __cplusplus
-extern "C" {
-#endif
-  extern void doJumpCommandCallback(gentity_t *);
-#ifdef __cplusplus
-}
-#endif
-// End OpenCJ
-
 
 __cdecl __optimize3 float Jump_CalcHeight( playerState_t* ps ) {
 	
 	float val;
 	float newdiv;
 	float jumpHeight = Jump_GetHeight(ps);
-
-  // Begin OpenCJ: detect jumps
-	doJumpCommandCallback(&g_entities[ps->clientNum]);
-  // End OpenCJ
 
 	val = jumpHeight;
 	val = (val + val) * ps->gravity;
@@ -176,6 +164,8 @@ void __cdecl Jump_Start(pmove_t *pm, pml_t *pml, float height)
   {
     ps->aimSpreadScale = 255.0;
   }
+
+  opencj_onStartJump(pm); // OpenCJ
 }
 
 

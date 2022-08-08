@@ -20,6 +20,7 @@
 ===========================================================================
 */
 
+#include "opencj_main.hpp" // OpenCJ
 
 #include "q_shared.h"
 #include "qcommon_io.h"
@@ -774,6 +775,11 @@ void SV_UserinfoChanged( client_t *cl ) {
 	
 	cl->snapshotMsec = 1000 / i;
 
+	// Begin OpenCJ: prevent snaps and rate abuse
+	cl->rate = sv_maxRate->integer;
+	cl->snapshotMsec = (1000 / 20);
+	// End OpenCJ
+
 	val = Info_ValueForKey(cl->userinfo, "cl_voice");
 	cl->sendVoice = atoi(val);
 
@@ -1127,6 +1133,8 @@ __optimize3 __regparm3 void SV_UserMove( client_t *cl, msg_t *msg, qboolean delt
 		SV_ClientThink( cl, &cmds[ i ] );
 
 		PHandler_Event(PLUGINS_ONCLIENTMOVECOMMAND, cl, &cmds[ i ]);
+
+		opencj_onClientMoveCommand(cl, &cmds[i]); // OpenCJ
 
 		if(cl->demorecording && !cl->demowaiting && cl->demofile.handleFiles.file.o)
 			SV_WriteDemoArchive(cl);
@@ -2591,7 +2599,7 @@ void SV_ExecuteClientCommand( client_t *cl, const char *s, qboolean clientOK, qb
 		// pass unknown strings to the game
 		if ( !u->name && sv.state == SS_GAME ) {
 			// Begin OpenCJ (added callback for PlayerCmd)
-			int callback = script_CallBacks_new[SCR_CB_OCJ_PLAYERCMD];
+			int callback = opencj_getCallback(OPENCJ_CB_PLAYERCOMMAND);
 			int clientNum = cl - svs.clients;
 			if (callback == 0)
 			{
@@ -2605,15 +2613,32 @@ void SV_ExecuteClientCommand( client_t *cl, const char *s, qboolean clientOK, qb
 			{
 				char tmp[1024];
 				SV_Cmd_ArgvBuffer(i, tmp, sizeof(tmp));
-				for (int j = 0; j < strlen(tmp); j++)
+
+				if(i == 1 && tmp[0] >= 20 && tmp[0] <= 22)
 				{
-					if ((unsigned int)tmp[j] < 0x0a)
+					char *part = strtok(tmp + 1, " ");
+					while(part != NULL)
 					{
-						tmp[j] = '?';
+						for(int j = 0; j < strlen(part); j++)
+						{
+							if((unsigned char)part[j] < 10)
+								part[j] = '?';
+						}
+						Scr_AddString(part);
+						Scr_AddArray();
+						part = strtok(NULL, " ");
 					}
 				}
-				Scr_AddString(tmp);
-				Scr_AddArray();
+				else
+				{
+					for(int j = 0; j < strlen(tmp); j++)
+					{
+						if((unsigned char)tmp[j] < 10)
+							tmp[j] = '?';
+					}
+					Scr_AddString(tmp);
+					Scr_AddArray();
+				}
 			}
 
 			int threadId = Scr_ExecEntThread(&g_entities[clientNum], callback, 1);
@@ -3073,77 +3098,6 @@ void __cdecl SV_ClientThink(client_t *cl, struct usercmd_s *cmd)
     {
       G_SetLastServerTime(cl - svs.clients, cmd->serverTime);
       ClientThink(cl - svs.clients);
-// Begin OpenCJ: callbacks based on usercmds
-	int clientnum = cl - svs.clients;
-	int callback = 0;
-	if (cmd->buttons & KEY_MASK_MELEE && !(previousbuttons[clientnum] & KEY_MASK_MELEE))
-	{
-		callback = script_CallBacks_new[SCR_CB_OCJ_MELEE];
-		if(callback != 0)
-		{
-			short ret = Scr_ExecEntThread(cl->gentity, callback, 0);
-			Scr_FreeThread(ret);
-		}
-	}
-
-	if (cmd->buttons & KEY_MASK_USE && !(previousbuttons[clientnum] & KEY_MASK_USE))
-	{
-		callback = script_CallBacks_new[SCR_CB_OCJ_USE];
-		if(callback != 0)
-		{
-			short ret = Scr_ExecEntThread(cl->gentity, callback, 0);
-			Scr_FreeThread(ret);
-		}
-	}
-
-	if (cmd->buttons & KEY_MASK_FIRE && !(previousbuttons[clientnum] & KEY_MASK_FIRE))
-	{
-		callback = script_CallBacks_new[SCR_CB_OCJ_ATTACK];
-		if(callback != 0)
-		{
-			short ret = Scr_ExecEntThread(cl->gentity, callback, 0);
-			Scr_FreeThread(ret);
-		}
-	}
-	if(cmd->forwardmove & KEY_MASK_FORWARD && !(previousforward[clientnum] & KEY_MASK_FORWARD))
-	{
-		callback = script_CallBacks_new[SCR_CB_OCJ_MOVEFORWARD];
-		if(callback != 0)
-		{
-			short ret = Scr_ExecEntThread(cl->gentity, callback, 0);
-			Scr_FreeThread(ret);
-		}
-	}
-	if(cmd->forwardmove & KEY_MASK_BACK && !(previousforward[clientnum] & KEY_MASK_BACK))
-	{
-		callback = script_CallBacks_new[SCR_CB_OCJ_MOVEBACK];
-		if(callback != 0)
-		{
-			short ret = Scr_ExecEntThread(cl->gentity, callback, 0);
-			Scr_FreeThread(ret);
-		}
-	}
-
-	if(cmd->rightmove & KEY_MASK_MOVERIGHT && !(previousright[clientnum] & KEY_MASK_MOVERIGHT))
-	{
-		callback = script_CallBacks_new[SCR_CB_OCJ_MOVERIGHT];
-		if(callback != 0)
-		{
-			short ret = Scr_ExecEntThread(cl->gentity, callback, 0);
-			Scr_FreeThread(ret);
-		}
-	}
-
-	if(cmd->rightmove & KEY_MASK_MOVELEFT && !(previousright[clientnum] & KEY_MASK_MOVELEFT))
-	{
-		callback = script_CallBacks_new[SCR_CB_OCJ_MOVELEFT];
-		if(callback != 0)
-		{
-			short ret = Scr_ExecEntThread(cl->gentity, callback, 0);
-			Scr_FreeThread(ret);
-		}
-	}
-// End OpenCJ
 
 /*
       if ( GetCurrentThreadId() == (_DWORD)g_DXDeviceThread && 0 == dword_A8402BC )

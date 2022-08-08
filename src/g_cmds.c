@@ -34,6 +34,8 @@ If you have questions concerning this license or the applicable additional terms
 #include "scr_vm.h"
 #include "sv_snapshot.h"
 
+#include "opencj_main.hpp" // OpenCJ
+
 /*
 ==================
 CheatsOk
@@ -757,6 +759,12 @@ int __cdecl Cmd_FollowCycle_f(gentity_t *ent, int dir)
 
           if ( G_ClientCanSpectateTeamOrLocalPlayer(ent->client, &archcs) )
           {
+            // Begin OpenCJ: spectatorClient changed
+            if (i != clientNum)
+            {
+              Ext_SpectatorClientChanged(ent, clientNum);
+            }
+            // End OpenCJ
             ent->client->spectatorClient = clientNum;
             ent->client->sess.sessionState = SESS_STATE_SPECTATOR;
 /*          Scr_AddEntity(&g_entities[clientNum], 0);
@@ -798,6 +806,13 @@ void __cdecl StopFollowing(gentity_t *ent)
   client = ent->client;
 
   assert(client != NULL);
+
+  // Begin OpenCJ: went free spec
+  if (client->spectatorClient != -1)
+  {
+    Ext_WentFreeSpec(ent);
+  }
+  // End OpenCJ
 
   client->sess.forceSpectatorClient = -1;
   client->sess.killCamEntity = -1;
