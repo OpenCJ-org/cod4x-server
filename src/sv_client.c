@@ -3080,12 +3080,6 @@ void __cdecl SV_FreeClients()
   }
 }
 
-// Begin OpenCJ: for callbacks based on usercmds
-int previousbuttons[MAX_CLIENTS] = {0};
-char previousforward[MAX_CLIENTS] = {0};
-char previousright[MAX_CLIENTS] = {0};
-// End OpenCJ
-
 void __cdecl SV_ClientThink(client_t *cl, struct usercmd_s *cmd)
 {
 
