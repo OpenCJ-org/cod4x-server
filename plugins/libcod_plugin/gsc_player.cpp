@@ -98,6 +98,15 @@ void Gsc_Player_GetIP(int id)
         Plugin_NET_AdrToStringMT(&cl->netchan.remoteAddress, address, sizeof(address));
     }
 
+    // Address contains port too, so remove that part. Use strrchr (last index of) so that it will probably work with ipv6 too
+    const char *szPortIdx = strrchr(address, ':');
+    if (szPortIdx)
+    {
+        int ipLen = szPortIdx - (char *)address;
+        int junkLen = sizeof(address) - ipLen;
+        memset(address + ipLen, '\0', junkLen);
+    }
+
     Plugin_Scr_AddString((char *)address);
 }
 
