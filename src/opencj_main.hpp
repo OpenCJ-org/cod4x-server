@@ -25,6 +25,7 @@ typedef enum
     OPENCJ_CB_MOVELEFT,
     OPENCJ_CB_MOVEBACKWARD,
     OPENCJ_CB_MOVERIGHT,
+    OPENCJ_CB_FPSCHANGE,
 
     OPENCJ_CB_COUNT, // Always keep this as last entry
 } opencj_callback_t;
