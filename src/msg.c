@@ -2896,6 +2896,24 @@ VectorCopy(predictedOrigin, to->origin);
 	
 	numObjective = sizeof( from->objective ) / sizeof( from->objective[0] );
 	
+	// OpenCJ begin
+	for(i = 0;  i < numObjective; i++)
+	{
+		extern objective_t opencj_playerObjectives[MAX_CLIENTS][16];
+		objective_t *obj = &opencj_playerObjectives[snapInfo->clnum][i];
+		if (obj->state != OBJST_EMPTY)
+		{
+			to->objective[i].state = obj->state;
+			to->objective[i].origin[0] = obj->origin[0];
+			to->objective[i].origin[1] = obj->origin[1];
+			to->objective[i].origin[2] = obj->origin[2];
+			to->objective[i].entNum = obj->entNum;
+			to->objective[i].teamNum = obj->teamNum;
+			to->objective[i].icon = obj->icon;
+		}
+	}
+	// OpenCJ end
+
 	if ( !memcmp(from->objective, to->objective, sizeof( from->objective )) )
 	{
 		MSG_WriteBit0(msg); // no change
