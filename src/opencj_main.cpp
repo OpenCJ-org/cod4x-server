@@ -22,6 +22,7 @@ extern "C" {
 #include "scr_vm_functions.h"
 #include "xassets/weapondef.h"
 #include "bg_public.h"
+#include "cscr_stringlist.h"
 
 /**************************************************************************
  * Extern functions without available prototype                           *
@@ -74,6 +75,9 @@ bool opencj_clientOnGround[MAX_CLIENTS];
 // Bounce monitoring
 bool opencj_clientCanBounce[MAX_CLIENTS];
 float opencj_clientBouncePrevVelocity[MAX_CLIENTS];
+
+// Player objectives
+objective_t opencj_playerObjectives[MAX_CLIENTS][16];
 
 /**************************************************************************
  * Forward declarations for static functions                              *
@@ -273,6 +277,116 @@ static void PlayerCmd_DisableWASDCallback(scr_entref_t arg)
     }
 }
 
+extern void SetObjectiveIcon(objective_t *, unsigned int);
+void PlayerCmd_Objective_Add(scr_entref_t id)
+{
+	if (id.classnum)
+	{
+		Scr_Error(va("gsc_player_objective_player_add() entity %i is not a player", id.entnum));
+		Scr_AddUndefined();
+		return;
+	}
+
+	int args = Scr_GetNumParam();
+	if (args < 2)
+	{
+		Scr_Error("objective_add needs at least the first two parameters out of its parameter list of: index state [string] [position]\n");
+	}
+
+	int objective_number = Scr_GetInt(0);
+	if ((objective_number < 0) || (objective_number >= (int)sizeof(opencj_playerObjectives[0])))
+	{
+		Scr_ParamError(0, va("index %i is an illegal objective index. Valid indexes are 0 to %i\n", objective_number, sizeof(opencj_playerObjectives[0]) - 1));
+	}
+    Com_Printf(CON_CHANNEL_SERVER, "Got objective num %d", objective_number);
+	objective_t *obj = &opencj_playerObjectives[id.entnum][objective_number];
+	if (obj->entNum != 1023)
+	{
+		if (g_entities[obj->entNum].r.inuse != 0)
+		{
+			g_entities[obj->entNum].r.svFlags = g_entities[obj->entNum].r.svFlags & 0xef;
+		}
+		obj->entNum = 1023;
+	}
+
+	ushort index = Scr_GetConstString(1);
+    objectiveState_t state;
+	if (index == scr_const.empty)
+	{
+		state = OBJST_EMPTY;
+	}
+	else if (index == scr_const.invisible)
+	{
+		state = OBJST_INVISIBLE;
+	}
+    else if (index == scr_const.active)
+    {
+        state = OBJST_ACTIVE;
+    }
+	else 
+	{
+		if (index != scr_const.current)
+		{
+			state = OBJST_EMPTY;
+			Scr_ParamError(1, va("Illegal objective state \"%s\". Valid states are \"empty\", \"invisible\", \"current\"\n", SL_ConvertToString((unsigned int)index)));
+		}
+		state = OBJST_CURRENT;
+	}
+	obj->state = state;
+
+	if (args > 2)
+	{
+		Scr_GetVector(2, obj->origin);
+		obj->origin[0] = (float)(int)obj->origin[0];
+		obj->origin[1] = (float)(int)obj->origin[1];
+		obj->origin[2] = (float)(int)obj->origin[2];
+		obj->entNum = 0x3ff;
+		if (args > 3)
+		{
+			//SetObjectiveIcon(obj, 3);
+            const char *str = Scr_GetString(3);
+            extern int G_MaterialIndex(const char *);
+            int idx = G_MaterialIndex(str);
+            obj->icon = idx;
+		}
+	}
+	obj->teamNum = 0;
+}
+
+void PlayerCmd_Objective_Delete(scr_entref_t id)
+{
+	if (id.classnum)
+	{
+		Scr_Error(va("gsc_player_objective_player_delete() entity %i is not a player", id));
+		Scr_AddUndefined();
+		return;
+	}
+
+	int objective_number = Scr_GetInt(0);
+	if ((objective_number < 0) || (objective_number >= (int)sizeof(opencj_playerObjectives[0])))
+	{
+		Scr_ParamError(0, va("index %i is an illegal objective index. Valid indexes are 0 to %i\n", objective_number, 15));
+	}
+	objective_t *obj = &opencj_playerObjectives[id.entnum][objective_number];
+
+	if (obj->entNum != 0x3ff)
+	{
+		if (g_entities[obj->entNum].r.inuse != 0)
+		{
+			g_entities[obj->entNum].r.svFlags = g_entities[obj->entNum].r.svFlags & 0xef;
+		}
+		obj->entNum = 0x3ff;
+	}
+
+	obj->state = OBJST_EMPTY;
+	obj->origin[0] = 0.0;
+	obj->origin[1] = 0.0;
+	obj->origin[2] = 0.0;
+	obj->entNum = 0x3ff;
+	obj->teamNum = 0;
+	obj->icon = 0;
+}
+
 /**************************************************************************
  * Global unctions                                                        *
  **************************************************************************/
@@ -383,6 +497,8 @@ void opencj_addMethodsAndFunctions(void)
     Scr_AddMethod("enablewasdcallback",     PlayerCmd_EnableWASDCallback,       qfalse);
     Scr_AddMethod("disablewasdcallback",    PlayerCmd_DisableWASDCallback,      qfalse);
     Scr_AddMethod("player_ondisconnect",    opencj_onDisconnect,                qfalse);
+    Scr_AddMethod("objective_player_add",   PlayerCmd_Objective_Add,            qfalse);
+	Scr_AddMethod("objective_player_delete",PlayerCmd_Objective_Delete,         qfalse);
     // CoD2 methods that are named differently
     Scr_AddMethod("setg_speed",             PlayerCmd_SetMoveSpeed,             qfalse);
     // For GSC compatibility with CoD2
