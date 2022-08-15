@@ -267,6 +267,8 @@ qboolean __cdecl Jump_Check(pmove_t *pm, pml_t *pml)
   ps = pm->ps;
   assert(ps);
 
+  opencj_onJumpCheck(pm); // OpenCJ
+
   if ( ps->pm_flags & 0x80000 )
   {
     return qfalse;

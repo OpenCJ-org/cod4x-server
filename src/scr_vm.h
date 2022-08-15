@@ -713,6 +713,7 @@ unsigned int __cdecl Scr_GetType( unsigned int );
 unsigned int __cdecl Scr_GetPointerType( unsigned int );
 void __cdecl Scr_GetVector( unsigned int, float* );
 unsigned int __cdecl Scr_GetObject( unsigned int );
+int Scr_GetMultipleValues(const char *params, ...);
 void __cdecl Scr_GetObjectField(unsigned int classnum, int entnum, int offset);
 const char *__cdecl Scr_GetIString(unsigned int index);
 void VM_Resume(unsigned int id);

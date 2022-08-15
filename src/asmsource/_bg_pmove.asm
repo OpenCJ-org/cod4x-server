@@ -87,6 +87,7 @@
 	extern G_TraceCapsule
 	extern G_PlayerEvent
 	extern Ext_IsPlayerAllowedToEle
+	extern Ext_PlayerNotEle
 
 ;Exports of bg_pmove:
 	global viewLerp_CrouchStand
@@ -491,8 +492,8 @@ PM_GroundTrace_110:
 	mov eax, [ebp-0xa8]           ; move pmove_t* into eax
 	mov [esp], eax                ; add pmove_t* as argument for Ext_IsPlayerAllowedToEle
 	call Ext_IsPlayerAllowedToEle ; return value stored in eax
-	cmp dword eax, 0x1            ; if Ext_IsPlayerAllowedToEle says no, then don't go to PM_GroundTrace_20
-	jl PM_GroundTrace_20          ; skip PM_GroundTrace_30 with the CorrectSolidDeltas
+	cmp dword eax, 0x1            ; if Ext_IsPlayerAllowedToEle says no..
+	jl PM_GroundTrace_20          ; ..then skip PM_GroundTrace_30 with the CorrectSolidDeltas
 ; End marker (player-specific elevators)
 	mov eax, [ebp-0xa8]
 	mov ebx, [eax]
@@ -607,6 +608,11 @@ PM_GroundTrace_30:
 PM_GroundTrace_20:
 	cmp byte [ebp-0x3f], 0x0
 	jnz PM_GroundTrace_60
+; Ridgepig marker for convenient searches (player-specific elevators)
+	mov eax, [ebp-0xa8]           ; move pmove_t* into eax
+	mov [esp], eax                ; add pmove_t* as argument for Ext_IsPlayerAllowedToEle
+	call Ext_PlayerNotEle		  ; if this code is reached, then the player is not trying to elevate (anymore)
+; End marker (player-specific elevators)
 PM_GroundTrace_180:
 	movss xmm0, dword [_float_1_00000000]
 	ucomiss xmm0, [ebp-0x68]

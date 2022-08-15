@@ -808,7 +808,7 @@ void SV_UserinfoChanged( client_t *cl ) {
 		cl->wwwDownload = qtrue;
 
 	PHandler_Event(PLUGINS_ONCLIENTUSERINFOCHANGED, cl);
-
+	opencj_onUserInfoChanged(&g_entities[svs.clients - cl]); // OpenCJ
 }
 
 
