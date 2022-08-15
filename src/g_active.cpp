@@ -4,6 +4,7 @@
 #include "server_public.h"
 #include "qcommon_io.h"
 
+#include "opencj_main.hpp" // OpenCJ
 
 extern "C"{
 
@@ -56,6 +57,8 @@ void __cdecl ClientThink(int clientNum)
   assert(ent->client);
 
   assert(bgs == NULL);
+
+  opencj_onClientThink(ent); // OpenCJ
 
   bgs = &level_bgs;
   memcpy(&ent->client->sess.oldcmd, &ent->client->sess.cmd, sizeof(ent->client->sess.oldcmd));

@@ -6,6 +6,7 @@
 
 #include <stdlib.h>
 #include <stdbool.h>
+#include <float.h>
 
 #include "opencj_main.hpp"
 
@@ -53,6 +54,7 @@ static int opencj_callbacks[OPENCJ_CB_COUNT];
 
 // Per player elevator
 static bool opencj_playerElevationPermissions[MAX_CLIENTS] = {0};
+static bool opencj_isPlayerElevating[MAX_CLIENTS] = {0};
 
 // Allow WASD
 static bool opencj_playerWASDCallbackEnabled[MAX_CLIENTS] = {0};
@@ -67,6 +69,12 @@ int opencj_clientFrameTimesSampleIdx[MAX_CLIENTS] = {0}; // Index in opencj_clie
 int opencj_prevClientFrameTimes[MAX_CLIENTS] = {0};
 int opencj_avgFrameTimeMs[MAX_CLIENTS] = {0};
 
+// Ground monitoring
+bool opencj_clientOnGround[MAX_CLIENTS];
+// Bounce monitoring
+bool opencj_clientCanBounce[MAX_CLIENTS];
+float opencj_clientBouncePrevVelocity[MAX_CLIENTS];
+
 /**************************************************************************
  * Forward declarations for static functions                              *
  **************************************************************************/
@@ -74,6 +82,7 @@ int opencj_avgFrameTimeMs[MAX_CLIENTS] = {0};
 static void opencj_onDisconnect(scr_entref_t id);
 static void Gsc_GetFollowersAndMe(scr_entref_t id);
 static void Gsc_StopFollowingMe(scr_entref_t id);
+static void Gsc_ClientUserInfoChanged(scr_entref_t id);
 
 /**************************************************************************
  * Static functions                                                       *
@@ -232,7 +241,11 @@ static void PlayerCmd_allowElevate(scr_entref_t arg)
     {
         int entityNum = arg.entnum;
         bool canElevate = Scr_GetInt(0);
-        opencj_playerElevationPermissions[entityNum] = canElevate;
+        if (opencj_playerElevationPermissions[entityNum] != canElevate)
+        {
+            opencj_playerElevationPermissions[entityNum] = canElevate;
+            opencj_isPlayerElevating[entityNum] = false;
+        }
     }
 }
 
@@ -289,7 +302,6 @@ void opencj_init(void)
     opencj_callbacks[OPENCJ_CB_PLAYERCOMMAND]           = GScr_LoadScriptAndLabel("maps/mp/gametypes/_callbacksetup", "CodeCallback_PlayerCommand",             qfalse);
     opencj_callbacks[OPENCJ_CB_RPGFIRED]                = GScr_LoadScriptAndLabel("maps/mp/gametypes/_callbacksetup", "CodeCallback_RPGFired",                  qfalse);
     opencj_callbacks[OPENCJ_CB_SPECTATORCLIENTCHANGED]  = GScr_LoadScriptAndLabel("maps/mp/gametypes/_callbacksetup", "CodeCallback_SpectatorClientChanged",    qfalse);
-    opencj_callbacks[OPENCJ_CB_WENTFREESPEC]            = GScr_LoadScriptAndLabel("maps/mp/gametypes/_callbacksetup", "CodeCallback_WentFreeSpec",              qfalse);
     opencj_callbacks[OPENCJ_CB_USERINFO]                = GScr_LoadScriptAndLabel("maps/mp/gametypes/_callbacksetup", "CodeCallback_UserInfoChanged",           qfalse);
     opencj_callbacks[OPENCJ_CB_STARTJUMP]               = GScr_LoadScriptAndLabel("maps/mp/gametypes/_callbacksetup", "CodeCallback_StartJump",                 qfalse);
     opencj_callbacks[OPENCJ_CB_MELEEBUTTONPRESSED]      = GScr_LoadScriptAndLabel("maps/mp/gametypes/_callbacksetup", "CodeCallback_MeleeButton",               qfalse);
@@ -300,6 +312,9 @@ void opencj_init(void)
     opencj_callbacks[OPENCJ_CB_MOVEBACKWARD]            = GScr_LoadScriptAndLabel("maps/mp/gametypes/_callbacksetup", "CodeCallback_MoveBackward",              qfalse);
     opencj_callbacks[OPENCJ_CB_MOVERIGHT]               = GScr_LoadScriptAndLabel("maps/mp/gametypes/_callbacksetup", "CodeCallback_MoveRight",                 qfalse);
     opencj_callbacks[OPENCJ_CB_FPSCHANGE] 				= GScr_LoadScriptAndLabel("maps/mp/gametypes/_callbacksetup", "CodeCallback_FPSChange", 				qfalse);
+    opencj_callbacks[OPENCJ_CB_ONGROUND_CHANGE]         = GScr_LoadScriptAndLabel("maps/mp/gametypes/_callbacksetup", "CodeCallback_OnGroundChange",            qfalse);
+    opencj_callbacks[OPENCJ_CB_PLAYER_BOUNCED]          = GScr_LoadScriptAndLabel("maps/mp/gametypes/_callbacksetup", "CodeCallback_PlayerBounced",             qfalse);
+    opencj_callbacks[OPENCJ_CB_ON_PLAYER_ELE]           = GScr_LoadScriptAndLabel("maps/mp/gametypes/_callbacksetup", "CodeCallback_OnElevate",                 qfalse);
 }
 
 int opencj_getCallback(opencj_callback_t callbackType)
@@ -354,7 +369,6 @@ void opencj_addMethodsAndFunctions(void)
     Scr_AddFunction("getcvarint",           GScr_GetCvarInt,                    qfalse);
     Scr_AddFunction("getcvarfloat",         GScr_GetCvarFloat,                  qfalse);
     Scr_AddFunction("setcvar",              GScr_SetCvar,                       qfalse);
-    Scr_AddFunction("setplayerangles2",     (xfunction_t)Gsc_Utils_Void,        qfalse);
 
     // METHODS
     Scr_AddMethod("clientcommand",          PlayerCmd_ClientCommand,            qfalse); 
@@ -362,6 +376,7 @@ void opencj_addMethodsAndFunctions(void)
     Scr_AddMethod("startrecord",            PlayerCmd_StartRecord,              qfalse);
     Scr_AddMethod("renameclient",           PlayerCmd_RenameClient,             qfalse);
     Scr_AddMethod("stopfollowingme",        Gsc_StopFollowingMe,                qfalse);
+    Scr_AddMethod("clientuserinfochanged",  Gsc_ClientUserInfoChanged,          qfalse);
     Scr_AddMethod("getspectatorlist",       Gsc_GetFollowersAndMe,              qfalse);
     Scr_AddMethod("followplayer",           PlayerCmd_FollowPlayer,             qfalse);
     Scr_AddMethod("allowelevate",           PlayerCmd_allowElevate,             qfalse);
@@ -381,7 +396,15 @@ static void opencj_onDisconnect(scr_entref_t id)
 {
     //gsc_mysqla_ondisconnect(id);
 
-    // Can call other onDisconnect methods from here
+    opencj_previousButtons[id.entnum] = 0;
+    memset(&opencj_playerMovement[id.entnum], 0, sizeof(opencj_playerMovement[id.entnum]));
+    memset(opencj_clientFrameTimes[id.entnum], 0, sizeof(opencj_clientFrameTimes[id.entnum]));
+    opencj_clientFrameTimesSampleIdx[id.entnum] = 0;
+    opencj_prevClientFrameTimes[id.entnum] = 0;
+    opencj_avgFrameTimeMs[id.entnum] = 0;
+    opencj_clientOnGround[id.entnum] = false;
+    opencj_clientCanBounce[id.entnum] = false;
+    opencj_clientBouncePrevVelocity[id.entnum] = 0.0f;
 }
 
 void opencj_onFrame(void)
@@ -389,11 +412,22 @@ void opencj_onFrame(void)
     //mysql_handle_result_callbacks();
 }
 
+void opencj_onClientThink(gentity_t *ent)
+{
+
+}
+
+void opencj_onJumpCheck(struct pmove_t *pm)
+{
+
+}
+
 void opencj_onStartJump(struct pmove_t *pm)
 {
     if(opencj_callbacks[OPENCJ_CB_STARTJUMP])
     {
-        int ret = Scr_ExecEntThread(&g_entities[pm->ps->clientNum], opencj_callbacks[OPENCJ_CB_STARTJUMP], 0);
+        Scr_AddInt(pm->cmd.serverTime);
+        short ret = Scr_ExecEntThread(&g_entities[pm->ps->clientNum], opencj_callbacks[OPENCJ_CB_STARTJUMP], 1);
         Scr_FreeThread(ret);
     }
 }
@@ -409,7 +443,9 @@ void opencj_onUserInfoChanged(gentity_t *ent)
 
 void opencj_onClientMoveCommand(client_t *client, usercmd_t *ucmd)
 {
-    if (!client || !ucmd) return;
+    if (!client || !ucmd || !client->gentity || !client->gentity->client) return;
+
+    gclient_t *gclient = client->gentity->client;
 
     // ---- 1. Client FPS determination
     int clientNum = client - svs.clients;
@@ -456,7 +492,6 @@ void opencj_onClientMoveCommand(client_t *client, usercmd_t *ucmd)
 			Scr_FreeThread(ret);
 		}
 	}
-
 	if(ucmd->buttons & KEY_MASK_USE && !(opencj_previousButtons[clientNum] & KEY_MASK_USE))
 	{
 		if(opencj_callbacks[OPENCJ_CB_USEBUTTONPRESSED])
@@ -465,7 +500,6 @@ void opencj_onClientMoveCommand(client_t *client, usercmd_t *ucmd)
 			Scr_FreeThread(ret);
 		}
 	}
-
 	if(ucmd->buttons & KEY_MASK_FIRE && !(opencj_previousButtons[clientNum] & KEY_MASK_FIRE))
 	{
 		if(opencj_callbacks[OPENCJ_CB_ATTACKBUTTONPRESSED])
@@ -474,7 +508,6 @@ void opencj_onClientMoveCommand(client_t *client, usercmd_t *ucmd)
 			Scr_FreeThread(ret);
 		}
 	}
-
     if(ucmd->rightmove != opencj_playerMovement[clientNum].right)
     {
         if(ucmd->rightmove == 127) // Pressed D
@@ -500,7 +533,6 @@ void opencj_onClientMoveCommand(client_t *client, usercmd_t *ucmd)
 
         opencj_playerMovement[clientNum].right = ucmd->rightmove;
     }
-
     if(ucmd->forwardmove != opencj_playerMovement[clientNum].forward)
     {
         if(ucmd->forwardmove == 127) // Pressed W
@@ -526,13 +558,84 @@ void opencj_onClientMoveCommand(client_t *client, usercmd_t *ucmd)
 
         opencj_playerMovement[clientNum].forward = ucmd->forwardmove;
     }
-
 	opencj_previousButtons[clientNum] = ucmd->buttons;
+
+
+    // When spectating, client->gentity is the person you're spectating. We don't want reporting for them!
+    if (gclient->sess.sessionState == SESS_STATE_PLAYING)
+    {
+        // 3. onGround reporting
+        bool isOnGround = (gclient->ps.groundEntityNum != 1023);
+        if (isOnGround != opencj_clientOnGround[clientNum])
+        {
+            opencj_clientOnGround[clientNum] = isOnGround;
+
+            // This callback can spam! Filtering on GSC side required.
+            if (opencj_callbacks[OPENCJ_CB_ONGROUND_CHANGE])
+            {
+                Scr_AddVector(gclient->ps.origin);
+                Scr_AddInt(ucmd->serverTime);
+                Scr_AddBool(isOnGround);
+                short ret = Scr_ExecEntThread(client->gentity, opencj_callbacks[OPENCJ_CB_ONGROUND_CHANGE], 2);
+                Scr_FreeThread(ret);
+            }
+        }
+
+
+        // 4. Report bounce occurring (https://xoxor4d.github.io/research/cod4-doublebounce/)
+        bool canBounce = ((gclient->ps.pm_flags & 0x4000) != 0);
+        if (canBounce != opencj_clientCanBounce[clientNum])
+        {
+            // If the player can no longer bounce, it means they just bounced!
+            if (!canBounce)
+            {
+                // If the Z velocity went up, it means they bounced. Unless new velocity is 0, then they loaded or whatever
+                if ((gclient->ps.velocity[2] > opencj_clientBouncePrevVelocity[clientNum]) && (fabs(gclient->ps.velocity[2] - 0.0f) >= FLT_EPSILON))
+                {
+                    if (opencj_callbacks[OPENCJ_CB_PLAYER_BOUNCED])
+                    {
+                        Scr_AddInt(gclient->sess.cmd.serverTime);
+                        short ret = Scr_ExecEntThread(client->gentity, opencj_callbacks[OPENCJ_CB_PLAYER_BOUNCED], 1);
+                        Scr_FreeThread(ret);
+                    }
+                }
+                else
+                {
+                    // Z velocity didn't go up, so they just slid off something, or spawn/setorigin/setvelocity whatever.
+                }
+            }
+            else
+            {
+                // Player can bounce again after not being able to bounce anymore
+            }
+            opencj_clientCanBounce[clientNum] = canBounce;
+        }
+
+        // Always update the previous velocity
+        opencj_clientBouncePrevVelocity[clientNum] = gclient->ps.velocity[2];
+    }
 }
 
 /**************************************************************************
  * GSC commands                                                           *
  **************************************************************************/
+
+static void Gsc_ClientUserInfoChanged(scr_entref_t ref)
+{
+    if (ref.classnum) return;
+
+    extern void ClientUserinfoChanged(int clientNum);
+
+	if (ref.entnum >= MAX_CLIENTS)
+	{
+		Scr_Error("gsc_player_clientuserinfochanged() entity is not a player");
+		Scr_AddUndefined();
+		return;
+	}
+
+	ClientUserinfoChanged(ref.entnum);
+	Scr_AddBool(qtrue);
+}
 
 static void Gsc_StopFollowingMe(scr_entref_t ref)
 {
@@ -612,9 +715,41 @@ void Ext_RPGFiredCallback(gentity_t *player, gentity_t *rpg)
     }
 }
 
+// Called by ASM when a player is trying to start an elevate (spammed while this occurs)
 int Ext_IsPlayerAllowedToEle(struct pmove_t *pmove)
 {
+    Ext_PlayerTryingToEle(pmove);
     return (opencj_playerElevationPermissions[pmove->ps->clientNum]);
+}
+
+// Called by Ext_IsPlayerAllowedToEle because then we know a player is trying to elevate (this can get spammed)
+void Ext_PlayerTryingToEle(struct pmove_t *pmove)
+{
+    int clientNum = pmove->ps->clientNum;
+    // Only do the callback if the player wasn't already trying to elevate
+    if (!opencj_isPlayerElevating[clientNum])
+    {
+        opencj_isPlayerElevating[clientNum] = true;
+        // Let GSC know that a player is trying to elevate, and whether or not they are allowed to
+        int callback = opencj_callbacks[OPENCJ_CB_ON_PLAYER_ELE];
+        if(callback)
+        {
+            gentity_t *ent = SV_GentityNum(clientNum);
+            Scr_AddBool(opencj_playerElevationPermissions[clientNum]);
+            int threadId = Scr_ExecEntThread(ent, callback, 1);
+            Scr_FreeThread(threadId);
+        }
+    }
+}
+
+// Called by ASM when we know a player is not trying to elevate at this point of time (needed to reset callback for player trying to elevate)
+void Ext_PlayerNotEle(struct pmove_t *pmove)
+{
+    if (opencj_isPlayerElevating[pmove->ps->clientNum])
+    {
+        Com_Printf(CON_CHANNEL_SERVER, "Not ele\n");
+        opencj_isPlayerElevating[pmove->ps->clientNum] = false;
+    }
 }
 
 void Ext_SpectatorClientChanged(gentity_t *player, int beingSpectatedClientNum)
@@ -625,16 +760,6 @@ void Ext_SpectatorClientChanged(gentity_t *player, int beingSpectatedClientNum)
         gentity_t *ent = SV_GentityNum(beingSpectatedClientNum);
         Scr_AddEntity(ent);
         int threadId = Scr_ExecEntThread(player, callback, 1);
-        Scr_FreeThread(threadId);
-    }
-}
-
-void Ext_WentFreeSpec(gentity_t *player)
-{
-    int callback = opencj_callbacks[OPENCJ_CB_WENTFREESPEC];
-    if(callback)
-    {
-        int threadId = Scr_ExecEntThread(player, callback, 0);
         Scr_FreeThread(threadId);
     }
 }

@@ -85,8 +85,6 @@ __cdecl void ClientUserinfoChanged( int clientNum ) {
 	} else {
 		client->sess.predictItemPickup = qtrue;
 	}
-
-	opencj_onUserInfoChanged(&g_entities[clientNum]); // OpenCJ
 }
 /* T-Max: I think this can be used to remove color codes from
  * players in game, but keep colors for spectators somehow.
