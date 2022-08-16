@@ -87,6 +87,7 @@ static void opencj_onDisconnect(scr_entref_t id);
 static void Gsc_GetFollowersAndMe(scr_entref_t id);
 static void Gsc_StopFollowingMe(scr_entref_t id);
 static void Gsc_ClientUserInfoChanged(scr_entref_t id);
+static void Gsc_ScaleOverTime(scr_entref_t hudelem);
 
 /**************************************************************************
  * Static functions                                                       *
@@ -499,6 +500,7 @@ void opencj_addMethodsAndFunctions(void)
     Scr_AddMethod("player_ondisconnect",    opencj_onDisconnect,                qfalse);
     Scr_AddMethod("objective_player_add",   PlayerCmd_Objective_Add,            qfalse);
 	Scr_AddMethod("objective_player_delete",PlayerCmd_Objective_Delete,         qfalse);
+    Scr_AddMethod("scaleovertime",          Gsc_ScaleOverTime,                  qfalse);
     // CoD2 methods that are named differently
     Scr_AddMethod("setg_speed",             PlayerCmd_SetMoveSpeed,             qfalse);
     // For GSC compatibility with CoD2
@@ -813,6 +815,52 @@ static void Gsc_GetFollowersAndMe(scr_entref_t ref)
         Scr_AddEntity(me);
         Scr_AddArray();
     }
+}
+
+static void Gsc_ScaleOverTime(scr_entref_t hudelem)
+{
+    game_hudelem_s *hudelem_t = NULL;
+    if (hudelem.classnum == 1)
+    {
+        hudelem_t = &g_hudelems[hudelem.entnum];
+    }
+    else
+    {
+        Scr_ObjectError("not a hud element");
+        hudelem_t = 0;
+    }
+
+    if (Scr_GetNumParam() != 3)
+    {
+        Scr_Error("hudelem scaleOverTime(time_in_seconds, new_width, new_height)");
+    }
+
+    float time = Scr_GetFloat(0);
+    if (time <= 0.0)
+    {
+        Scr_ParamError(0, va("scale time %g <= 0", time));
+    }
+    else if (time > 60.0)
+    {
+        Scr_ParamError(0, va("scale time %g > 60", time));
+    }
+
+    int newWidth = Scr_GetInt(1u);
+    int newHeight = Scr_GetInt(2u);
+
+    extern level_locals_t level;
+    hudelem_t->elem.scaleStartTime = level.time;
+    int roundedTimeMs = floorf((float)(time * 1000.0) + 0.5);
+    hudelem_t->elem.scaleTime = roundedTimeMs;
+    hudelem_t->elem.fromWidth = hudelem_t->elem.width;
+    hudelem_t->elem.fromHeight = hudelem_t->elem.height;
+    hudelem_t->elem.width = newWidth;
+    hudelem_t->elem.height = newHeight;
+
+    // Bug fix: it doesn't contain the correct value of the hudelem so needs to be overwritten
+    // otherwise.. you get a 'jumpy' scaleovertime
+    hudelem_t->elem.fromAlignOrg = hudelem_t->elem.alignOrg;
+    hudelem_t->elem.fromAlignScreen = hudelem_t->elem.alignScreen;
 }
 
 /**************************************************************************
