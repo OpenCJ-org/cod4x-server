@@ -2900,7 +2900,7 @@ VectorCopy(predictedOrigin, to->origin);
 	for(i = 0;  i < numObjective; i++)
 	{
 		extern objective_t opencj_playerObjectives[MAX_CLIENTS][16];
-		objective_t *obj = &opencj_playerObjectives[snapInfo->clnum][i];
+		objective_t *obj = &opencj_playerObjectives[to->clientNum][i];
 		if (obj->state != OBJST_EMPTY)
 		{
 			to->objective[i].state = obj->state;
