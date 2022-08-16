@@ -420,7 +420,7 @@ void Scr_AddStockMethods()
 	Scr_AddMethod("setvalue", HECmd_SetValue, 0 );
 	Scr_AddMethod("setwaypoint", HECmd_SetWaypoint, 0 );
 	Scr_AddMethod("fadeovertime", HECmd_FadeOverTime, 0 );
-	Scr_AddMethod("scaleovertime", HECmd_ScaleOverTime, 0 );
+	//Scr_AddMethod("scaleovertime", HECmd_ScaleOverTime, 0 ); //OpenCJ: fullscreen align bug fix -> custom function (moveovertime doesn't need this)
 	Scr_AddMethod("moveovertime", HECmd_MoveOverTime, 0 );
 	Scr_AddMethod("reset", HECmd_Reset, 0 );
 //	Scr_AddMethod("destroy", HECmd_Destroy, 0 );
