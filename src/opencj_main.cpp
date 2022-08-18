@@ -299,7 +299,7 @@ void PlayerCmd_Objective_Add(scr_entref_t id)
 	{
 		Scr_ParamError(0, va("index %i is an illegal objective index. Valid indexes are 0 to %i\n", objective_number, sizeof(opencj_playerObjectives[0]) - 1));
 	}
-    Com_Printf(CON_CHANNEL_SERVER, "Got objective num %d", objective_number);
+
 	objective_t *obj = &opencj_playerObjectives[id.entnum][objective_number];
 	if (obj->entNum != 1023)
 	{
@@ -386,6 +386,39 @@ void PlayerCmd_Objective_Delete(scr_entref_t id)
 	obj->entNum = 0x3ff;
 	obj->teamNum = 0;
 	obj->icon = 0;
+}
+
+void PlayerCmd_SetMoveSpeed_Wrap(scr_entref_t id)
+{
+    if (id.classnum)
+    {
+        Scr_ObjectError("Not an entity");
+        return;
+    }
+
+    if (Scr_GetNumParam() != 1)
+    {
+        Scr_Error("Usage: self setmovespeed( <integer> )\n");
+        return;
+    }
+
+    int entityNum = id.entnum;
+    gentity_t *gentity = &g_entities[entityNum];
+    if (!gentity->client)
+    {
+        Scr_ObjectError(va("Entity: %i is not a player", entityNum));
+        return;
+    }
+
+    int speed = Scr_GetInt(0);
+
+    if ((speed <= 0) || (speed > 1000))
+    {
+        Scr_Error("setmovespeed range is between 0 and 1000\n");
+        return;
+    }
+
+    gentity->client->sess.moveSpeedScaleMultiplier = (float)speed / g_speed->integer;
 }
 
 /**************************************************************************
@@ -502,7 +535,7 @@ void opencj_addMethodsAndFunctions(void)
 	Scr_AddMethod("objective_player_delete",PlayerCmd_Objective_Delete,         qfalse);
     Scr_AddMethod("scaleovertime",          Gsc_ScaleOverTime,                  qfalse);
     // CoD2 methods that are named differently
-    Scr_AddMethod("setg_speed",             PlayerCmd_SetMoveSpeed,             qfalse);
+    Scr_AddMethod("setg_speed",             PlayerCmd_SetMoveSpeed_Wrap,        qfalse);
     // For GSC compatibility with CoD2
     Scr_AddMethod("setclientcvar",          PlayerCmd_SetClientDvar,            qfalse);
     Scr_AddMethod("setclientcvars",         PlayerCmd_SetClientDvars,           qfalse);
