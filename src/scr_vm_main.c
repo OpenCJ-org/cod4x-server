@@ -521,7 +521,7 @@ void Scr_AddStockMethods()
     Scr_AddMethod("setjumpheight", PlayerCmd_SetJumpHeight, 0);
     Scr_AddMethod("setgravity", PlayerCmd_SetGravity, 0);
     Scr_AddMethod("setgroundreferenceent", PlayerCmd_SetGroundReferenceEnt, 0);
-    Scr_AddMethod("setmovespeed", PlayerCmd_SetMoveSpeed, 0);
+    //Scr_AddMethod("setmovespeed", PlayerCmd_SetMoveSpeed, 0); // OpenCJ: bypass deprecated function and fix it
 
 
     Scr_AddMethod("getstat", PlayerCmd_GetStat, 0);
