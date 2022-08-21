@@ -719,26 +719,22 @@ void SV_UserinfoChanged( client_t *cl ) {
 	int	i;
 	int	len;
 
-/*
-	if(cl->state == CS_CONNECTED)
+	if(cl->state == CS_CONNECTED) // OpenCJ: clean names
 	{
+		if (strcmp(cl->name, cl->userinfo) != 0)
+		{
+			Q_strncpyz(cl->name, Info_ValueForKey (cl->userinfo, "name"), sizeof(cl->name));
+			if (!Q_isprintstring(cl->name) || strstr(cl->name, "&&") || strstr(cl->name, "///") || (strlen(cl->name) <= 3)) // OpenCJ: don't allow small names
+			{
+				Com_sprintf(cl->name, 16, "CID_%i", cl - svs.clients);
+				Info_SetValueForKey(cl->userinfo, "name", cl->name);
+			}
 
-		// name for C code
-		Q_strncpyz( cl->name, Info_ValueForKey (cl->userinfo, "name"), sizeof(cl->name) );
-		if(!Q_isprintstring(cl->name) || strstr(cl->name,"&&") || strstr(cl->name,"///")){
-			Com_sprintf(cl->name, 16, "CID_%i", cl - svs.clients);
-			cl->usernamechanged = UN_NEEDUID;
-			Info_SetValueForKey( cl->userinfo, "name", cl->name);
-		}else{
-			cl->usernamechanged = UN_VERIFYNAME;
+			gclient_t *gclient = (&g_entities[cl - svs.clients])->client;
+			Q_strncpyz(gclient->sess.newnetname, cl->name, sizeof(gclient->sess.newnetname));
 		}
-		Q_strncpyz(cl->shortname, cl->name, sizeof(cl->shortname));
-
-	}else{
-*/
-/*
 	}
-*/
+
 	// rate command
 	// if the client is on the same subnet as the server and we aren't running an
 	// internet public server, assume they don't need a rate choke
@@ -808,7 +804,7 @@ void SV_UserinfoChanged( client_t *cl ) {
 		cl->wwwDownload = qtrue;
 
 	PHandler_Event(PLUGINS_ONCLIENTUSERINFOCHANGED, cl);
-	opencj_onUserInfoChanged(&g_entities[svs.clients - cl]); // OpenCJ
+	opencj_onUserInfoChanged(&g_entities[cl - svs.clients]); // OpenCJ
 }
 
 

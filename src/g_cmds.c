@@ -804,10 +804,18 @@ void __cdecl StopFollowing(gentity_t *ent)
 
   assert(client != NULL);
 
+  // Begin OpenCJ
+  if (client->spectatorClient != -1)
+  {
+    Ext_SpectatorClientChanged(ent, -1);
+  }
+  // End OpenCJ
+
   client->sess.forceSpectatorClient = -1;
   client->sess.killCamEntity = -1;
 //  client->sess.killCamTargetEntity = ent->s.number;
   client->spectatorClient = -1;
+
   if ( client->ps.otherFlags & 2 )
   {
 /*
