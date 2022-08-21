@@ -10,10 +10,7 @@
 
 #include "opencj_main.hpp"
 
-#include "gsc_custom_player.hpp"
-#include "gsc_custom_utils.hpp"
-#include "gsc_saveposition.hpp"
-#include "gsc_custom_mysql.hpp"
+#include "../server-ext/includes.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -35,7 +32,7 @@ extern int GScr_LoadScriptAndLabel(const char *scriptName, const char *labelName
  * Defines                                                                *
  **************************************************************************/
 
-#define NR_SAMPLES_FPS_AVERAGING 20
+
 
 /**************************************************************************
  * Types                                                                  *
@@ -65,12 +62,6 @@ static bool opencj_playerWASDCallbackEnabled[MAX_CLIENTS] = {0};
 static int opencj_previousButtons[MAX_CLIENTS] = {0};
 static playermovement_t opencj_playerMovement[MAX_CLIENTS] = {{0}};
 
-// For client FPS calculation
-int opencj_clientFrameTimes[MAX_CLIENTS][NR_SAMPLES_FPS_AVERAGING] = {{0}}; // Client frame times storage, per client, with x samples
-int opencj_clientFrameTimesSampleIdx[MAX_CLIENTS] = {0}; // Index in opencj_clientFrameTimes, per client
-int opencj_prevClientFrameTimes[MAX_CLIENTS] = {0};
-int opencj_avgFrameTimeMs[MAX_CLIENTS] = {0};
-
 // Ground monitoring
 bool opencj_clientOnGround[MAX_CLIENTS];
 // Bounce monitoring
@@ -84,7 +75,7 @@ objective_t opencj_playerObjectives[MAX_CLIENTS][16];
  * Forward declarations for static functions                              *
  **************************************************************************/
 
-static void opencj_onDisconnect(scr_entref_t id);
+static void opencj_onConnect(scr_entref_t id);
 static void Gsc_GetFollowersAndMe(scr_entref_t id);
 static void Gsc_StopFollowingMe(scr_entref_t id);
 static void Gsc_ClientUserInfoChanged(scr_entref_t id);
@@ -531,7 +522,7 @@ void opencj_addMethodsAndFunctions(void)
     Scr_AddMethod("allowelevate",           PlayerCmd_allowElevate,             qfalse);
     Scr_AddMethod("enablewasdcallback",     PlayerCmd_EnableWASDCallback,       qfalse);
     Scr_AddMethod("disablewasdcallback",    PlayerCmd_DisableWASDCallback,      qfalse);
-    Scr_AddMethod("player_ondisconnect",    opencj_onDisconnect,                qfalse);
+    Scr_AddMethod("player_onconnect",       opencj_onConnect,                   qfalse);
     Scr_AddMethod("objective_player_add",   PlayerCmd_Objective_Add,            qfalse);
 	Scr_AddMethod("objective_player_delete",PlayerCmd_Objective_Delete,         qfalse);
     Scr_AddMethod("scaleovertime",          Gsc_ScaleOverTime,                  qfalse);
@@ -544,16 +535,26 @@ void opencj_addMethodsAndFunctions(void)
     Scr_AddMethod("rightbuttonpressed",     PlayerCmd_MoveRightButtonPressed,   qfalse);
 }
 
-static void opencj_onDisconnect(scr_entref_t id)
+static void opencj_onConnect(scr_entref_t id)
 {
-    //gsc_mysqla_ondisconnect(id);
+    if (id.classnum != 0)
+    {
+        // Not an entity
+        return;
+    }
+
+    gentity_t *gent = &g_entities[id.entnum];
+    if (!gent || !gent->client)
+    {
+        // Not a player
+        return;
+    }
+
+    int clientNum = gent->client->ps.clientNum;
+    opencj_clearPlayerFPS(clientNum);
 
     opencj_previousButtons[id.entnum] = 0;
     memset(&opencj_playerMovement[id.entnum], 0, sizeof(opencj_playerMovement[id.entnum]));
-    memset(opencj_clientFrameTimes[id.entnum], 0, sizeof(opencj_clientFrameTimes[id.entnum]));
-    opencj_clientFrameTimesSampleIdx[id.entnum] = 0;
-    opencj_prevClientFrameTimes[id.entnum] = 0;
-    opencj_avgFrameTimeMs[id.entnum] = 0;
     opencj_clientOnGround[id.entnum] = false;
     opencj_clientCanBounce[id.entnum] = false;
     opencj_clientBouncePrevVelocity[id.entnum] = 0.0f;
@@ -602,30 +603,10 @@ void opencj_onClientMoveCommand(client_t *client, usercmd_t *ucmd)
     // ---- 1. Client FPS determination
     int clientNum = client - svs.clients;
 	int time = ucmd->serverTime;
-
-    // Delta between current serverTime and previous user command serverTime is the frame time of the client
-	opencj_clientFrameTimes[clientNum][opencj_clientFrameTimesSampleIdx[clientNum]] = time - opencj_prevClientFrameTimes[clientNum];
-	opencj_prevClientFrameTimes[clientNum] = time;
-	
-    // There are x sample slots, if all are used we restart at begin
-	if (++opencj_clientFrameTimesSampleIdx[clientNum] >= NR_SAMPLES_FPS_AVERAGING)
+    int avgFrameTime = 0;
+    if (opencj_updatePlayerFPS(clientNum, time, &avgFrameTime))
     {
-		opencj_clientFrameTimesSampleIdx[clientNum] = 0;
-    }
-
-    // Sum frame times so we can use it to calculate the average
-	float sumFrameTime = 0;
-	for (int i = 0; i < NR_SAMPLES_FPS_AVERAGING; i++)
-	{
-        sumFrameTime += (float)opencj_clientFrameTimes[clientNum][i];
-    }
-
-    // Check if client frame time is different from what we previously reported
-	int avgFrameTime = (int)round(sumFrameTime / NR_SAMPLES_FPS_AVERAGING);
-	if (opencj_avgFrameTimeMs[clientNum] != avgFrameTime)
-	{
         // Client FPS changed, report this to GSC via callback
-		opencj_avgFrameTimeMs[clientNum] = avgFrameTime;
 		if (opencj_callbacks[OPENCJ_CB_FPSCHANGE])
 		{
 			Scr_AddInt(avgFrameTime);
@@ -633,7 +614,6 @@ void opencj_onClientMoveCommand(client_t *client, usercmd_t *ucmd)
 			Scr_FreeThread(ret);
 		}
 	}
-
 
     // 2. Buttons pressed reporting
 	if(ucmd->buttons & KEY_MASK_MELEE && !(opencj_previousButtons[clientNum] & KEY_MASK_MELEE))
@@ -954,8 +934,15 @@ void Ext_SpectatorClientChanged(gentity_t *player, int beingSpectatedClientNum)
     int callback = opencj_callbacks[OPENCJ_CB_SPECTATORCLIENTCHANGED];
     if(callback)
     {
-        gentity_t *ent = SV_GentityNum(beingSpectatedClientNum);
-        Scr_AddEntity(ent);
+        if (beingSpectatedClientNum != -1)
+        {
+            gentity_t *ent = SV_GentityNum(beingSpectatedClientNum);
+            Scr_AddEntity(ent);
+        }
+        else
+        {
+            Scr_AddUndefined();
+        }
         int threadId = Scr_ExecEntThread(player, callback, 1);
         Scr_FreeThread(threadId);
     }
