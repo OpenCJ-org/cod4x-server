@@ -1,5 +1,5 @@
 #include "gsc_player.hpp"
-#include "include.hpp"
+#include "shared_defs.h"
 
 void gsc_client_download(int id)
 {
