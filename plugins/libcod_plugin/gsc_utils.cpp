@@ -1,6 +1,6 @@
 
 #include "gsc_utils.hpp"
-#include "include.hpp"
+#include "shared_defs.h"
 #include <dirent.h> // dir stuff
 #include <assert.h>
 #include <stdlib.h>

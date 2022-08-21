@@ -13,6 +13,7 @@
 #include "gsc_custom_player.hpp"
 #include "gsc_custom_utils.hpp"
 #include "gsc_saveposition.hpp"
+#include "gsc_custom_mysql.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -944,7 +945,6 @@ void Ext_PlayerNotEle(struct pmove_t *pmove)
 {
     if (opencj_isPlayerElevating[pmove->ps->clientNum])
     {
-        Com_Printf(CON_CHANNEL_SERVER, "Not ele\n");
         opencj_isPlayerElevating[pmove->ps->clientNum] = false;
     }
 }

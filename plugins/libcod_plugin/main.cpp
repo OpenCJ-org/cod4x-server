@@ -1,5 +1,4 @@
-#include "include.hpp"
-#include "gsc_mysql.hpp"
+#include "shared_defs.h"
 #include "gsc_player.hpp"
 #include "gsc_utils.hpp"
 
@@ -26,27 +25,6 @@ PCL int OnInit()
     Plugin_ScrAddFunction("fclose"                              , Gsc_Utils_Fclose);
     Plugin_ScrAddFunction("G_FindConfigstringIndex"             , Gsc_G_FindConfigstringIndex);
     Plugin_ScrAddFunction("sendGameServerCommand"               , Gsc_Utils_SendGameServerCommand);
-    Plugin_ScrAddFunction("mysql_init"                          , gsc_mysql_init);
-    Plugin_ScrAddFunction("mysql_real_connect"                  , gsc_mysql_real_connect);
-    Plugin_ScrAddFunction("mysql_close"                         , gsc_mysql_close);
-    Plugin_ScrAddFunction("mysql_query"                         , gsc_mysql_query);
-    Plugin_ScrAddFunction("mysql_errno"                         , gsc_mysql_errno);
-    Plugin_ScrAddFunction("mysql_error"                         , gsc_mysql_error);
-    Plugin_ScrAddFunction("mysql_affected_rows"                 , gsc_mysql_affected_rows);
-    Plugin_ScrAddFunction("mysql_store_result"                  , gsc_mysql_store_result);
-    Plugin_ScrAddFunction("mysql_num_rows"                      , gsc_mysql_num_rows);
-    Plugin_ScrAddFunction("mysql_num_fields"                    , gsc_mysql_num_fields);
-    Plugin_ScrAddFunction("mysql_field_seek"                    , gsc_mysql_field_seek);
-    Plugin_ScrAddFunction("mysql_fetch_field"                   , gsc_mysql_fetch_field);
-    Plugin_ScrAddFunction("mysql_fetch_row"                     , gsc_mysql_fetch_row);
-    Plugin_ScrAddFunction("mysql_free_result"                   , gsc_mysql_free_result);
-    Plugin_ScrAddFunction("mysql_real_escape_string"            , gsc_mysql_real_escape_string);
-    Plugin_ScrAddFunction("mysql_async_create_query"            , gsc_mysql_async_create_query);
-    Plugin_ScrAddFunction("mysql_async_create_query_nosave"     , gsc_mysql_async_create_query_nosave);
-    Plugin_ScrAddFunction("mysql_async_initializer"             , gsc_mysql_async_initializer);
-    Plugin_ScrAddFunction("mysql_async_getdone_list"            , gsc_mysql_async_getdone_list);
-    Plugin_ScrAddFunction("mysql_async_getresult_and_free"      , gsc_mysql_async_getresult_and_free);
-    Plugin_ScrAddFunction("mysql_reuse_connection"              , gsc_mysql_reuse_connection);
     Plugin_ScrAddFunction("gethex"                              , gsc_utils_gethex);
     Plugin_ScrAddFunction("stringtofloat"                       , gsc_utils_stringToFloat);
     Plugin_ScrAddFunction("renice"                              , gsc_utils_renice);
