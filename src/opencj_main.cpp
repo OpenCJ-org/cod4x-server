@@ -511,7 +511,7 @@ void opencj_addMethodsAndFunctions(void)
     // FUNCTIONS
     // Extra
     Scr_AddFunction("printf",                   Gsc_Utils_Printf,                   qfalse);
-	Scr_AddFunction("vectorscale",              Gsc_Utils_VectorScale,              qfalse);
+    Scr_AddFunction("vectorscale",              Gsc_Utils_VectorScale,              qfalse);
     Scr_AddFunction("GetConfigStringByIndex",   Gsc_GetConfigStringByIndex,         qfalse);
     // For GSC compatibility with CoD2
     Scr_AddFunction("getcvar",                  GScr_GetCvar,                       qfalse);
@@ -718,7 +718,7 @@ void opencj_onClientMoveCommand(client_t *client, usercmd_t *ucmd)
                 Scr_AddVector(gclient->ps.origin);
                 Scr_AddInt(ucmd->serverTime);
                 Scr_AddBool(isOnGround);
-                short ret = Scr_ExecEntThread(client->gentity, opencj_callbacks[OPENCJ_CB_ONGROUND_CHANGE], 2);
+                short ret = Scr_ExecEntThread(client->gentity, opencj_callbacks[OPENCJ_CB_ONGROUND_CHANGE], 3);
                 Scr_FreeThread(ret);
             }
         }
