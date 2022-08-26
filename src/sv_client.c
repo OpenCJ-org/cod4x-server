@@ -735,45 +735,9 @@ void SV_UserinfoChanged( client_t *cl ) {
 		}
 	}
 
-	// rate command
-	// if the client is on the same subnet as the server and we aren't running an
-	// internet public server, assume they don't need a rate choke
-	if ( Sys_IsLANAddress( &cl->netchan.remoteAddress )) {
-		cl->rate = 1048576;	// lans should not rate limit
-	} else {
-		val = Info_ValueForKey (cl->userinfo, "rate");
-		if (strlen(val)) {
-			i = atoi(val);
-			cl->rate = i;
-			if (cl->rate < 2500) {
-				cl->rate = 2500;
-			} else if (cl->rate >= 25000) {
-				cl->rate = sv_maxRate->integer;
-			}
-		} else {
-			cl->rate = 5000;
-		}
-	}
-	// snaps command
-	val = Info_ValueForKey (cl->userinfo, "snaps");
-
-	i = sv_fps->integer;
-
-	if(strlen(val))
-	{
-		i = atoi(val);
-
-		if(i < 10)
-			i = 10;
-		else if(i > sv_fps->integer)
-			i = sv_fps->integer;
-	}
-	
-	cl->snapshotMsec = 1000 / i;
-
 	// Begin OpenCJ: prevent snaps and rate abuse
 	cl->rate = sv_maxRate->integer;
-	cl->snapshotMsec = (1000 / 20);
+	cl->snapshotMsec = 50; // sv_fps 20
 	// End OpenCJ
 
 	val = Info_ValueForKey(cl->userinfo, "cl_voice");
@@ -1013,6 +977,11 @@ __optimize3 __regparm3 void SV_UserMove( client_t *cl, msg_t *msg, qboolean delt
 	usercmd_t   *cmd, *oldcmd;
 	playerState_t *ps;
 //	extclient_t *extcl;
+
+	// Begin OpenCJ: no monkey business
+	cl->rate = sv_maxRate->integer;
+	cl->snapshotMsec = 50; // sv_fps 20
+	// End OpenCJ
 
 	if ( delta ) {
 		cl->deltaMessage = cl->messageAcknowledge;
