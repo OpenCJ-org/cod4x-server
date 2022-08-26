@@ -11,6 +11,7 @@ extern "C" {
 // Enums
 typedef enum
 {
+    OPENCJ_CB_UNKNOWN = 0, // Always 0, so handlers can see if no handler was found
     OPENCJ_CB_PLAYERCOMMAND,
     OPENCJ_CB_RPGFIRED,
     OPENCJ_CB_SPECTATORCLIENTCHANGED,

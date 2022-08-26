@@ -21,6 +21,7 @@ extern "C" {
 #include "xassets/weapondef.h"
 #include "bg_public.h"
 #include "cscr_stringlist.h"
+#include "server_public.h"
 
 /**************************************************************************
  * Extern functions without available prototype                           *
@@ -80,6 +81,8 @@ static void Gsc_GetFollowersAndMe(scr_entref_t id);
 static void Gsc_StopFollowingMe(scr_entref_t id);
 static void Gsc_ClientUserInfoChanged(scr_entref_t id);
 static void Gsc_ScaleOverTime(scr_entref_t hudelem);
+static void Gsc_GetConfigStringByIndex();
+static void Gsc_CustomSpawn(scr_entref_t ref);
 
 /**************************************************************************
  * Static functions                                                       *
@@ -459,6 +462,11 @@ void opencj_init(void)
 
 int opencj_getCallback(opencj_callback_t callbackType)
 {
+    if ((callbackType <= OPENCJ_CB_UNKNOWN) || (callbackType >= OPENCJ_CB_COUNT))
+    {
+        return 0;
+    }
+
     return opencj_callbacks[callbackType];
 }
 
@@ -502,13 +510,14 @@ void opencj_addMethodsAndFunctions(void)
 
     // FUNCTIONS
     // Extra
-    Scr_AddFunction("printf",               Gsc_Utils_Printf,                   qfalse);
-	Scr_AddFunction("vectorscale",          Gsc_Utils_VectorScale,              qfalse);
+    Scr_AddFunction("printf",                   Gsc_Utils_Printf,                   qfalse);
+	Scr_AddFunction("vectorscale",              Gsc_Utils_VectorScale,              qfalse);
+    Scr_AddFunction("GetConfigStringByIndex",   Gsc_GetConfigStringByIndex,         qfalse);
     // For GSC compatibility with CoD2
-    Scr_AddFunction("getcvar",              GScr_GetCvar,                       qfalse);
-    Scr_AddFunction("getcvarint",           GScr_GetCvarInt,                    qfalse);
-    Scr_AddFunction("getcvarfloat",         GScr_GetCvarFloat,                  qfalse);
-    Scr_AddFunction("setcvar",              GScr_SetCvar,                       qfalse);
+    Scr_AddFunction("getcvar",                  GScr_GetCvar,                       qfalse);
+    Scr_AddFunction("getcvarint",               GScr_GetCvarInt,                    qfalse);
+    Scr_AddFunction("getcvarfloat",             GScr_GetCvarFloat,                  qfalse);
+    Scr_AddFunction("setcvar",                  GScr_SetCvar,                       qfalse);
 
     // METHODS
     Scr_AddMethod("clientcommand",          PlayerCmd_ClientCommand,            qfalse); 
@@ -526,6 +535,7 @@ void opencj_addMethodsAndFunctions(void)
     Scr_AddMethod("objective_player_add",   PlayerCmd_Objective_Add,            qfalse);
 	Scr_AddMethod("objective_player_delete",PlayerCmd_Objective_Delete,         qfalse);
     Scr_AddMethod("scaleovertime",          Gsc_ScaleOverTime,                  qfalse);
+    Scr_AddMethod("customspawn",            Gsc_CustomSpawn,                    qfalse);
     // CoD2 methods that are named differently
     Scr_AddMethod("setg_speed",             PlayerCmd_SetMoveSpeed_Wrap,        qfalse);
     // For GSC compatibility with CoD2
@@ -875,6 +885,201 @@ static void Gsc_ScaleOverTime(scr_entref_t hudelem)
     // otherwise.. you get a 'jumpy' scaleovertime
     hudelem_t->elem.fromAlignOrg = hudelem_t->elem.alignOrg;
     hudelem_t->elem.fromAlignScreen = hudelem_t->elem.alignScreen;
+}
+
+static void Gsc_GetConfigStringByIndex()
+{
+    char buf[MAX_STRING_CHARS] = {0};
+    if (Scr_GetNumParam() != 1)
+    {
+        Scr_ObjectError("GetConfigStringByIndex expected 1 arg: index");
+        return;   
+    }
+
+    int index = Scr_GetInt(0);
+    SV_GetConfigstring(index, buf, sizeof(buf));
+
+    if (buf[0] == '\0')
+    {
+        Scr_AddUndefined();
+    }
+    else
+    {
+        Scr_AddString(buf);
+    }
+}
+
+static void Gsc_CustomSpawn(scr_entref_t ref)
+{
+    if (ref.classnum != 0)
+    {
+        Scr_Error("CustomSpawn called on something that is not an entity");
+        return;
+    }
+
+    if (Scr_GetNumParam() < 2)
+    {
+        Scr_Error("CustomSpawn expects 2 arguments: <origin> <angles>");
+        return;
+    }
+
+    if (Scr_GetType(0) != VAR_VECTOR)
+    {
+        Scr_ObjectError("CustomSpawn origin is not a vector");
+        return;
+    }
+
+    if (Scr_GetType(0) != VAR_VECTOR)
+    {
+        Scr_ObjectError("CustomSpawn angles is not a vector");
+        return;
+    }
+
+    // Gather the variables
+    vec3_t origin = {0};
+    Scr_GetVector(0, origin);
+    vec3_t angles = {0};
+    Scr_GetVector(1, angles);
+
+    gentity_t *ent = &g_entities[ref.entnum];
+    gclient_s *client = ent->client;
+
+    ent->s.groundEntityNum = 1023;
+
+    G_SetOrigin(ent, origin); // Change the client's origin
+
+	VectorCopy(origin, ent->r.currentOrigin);
+    memset(client->ps.velocity, 0, sizeof(client->ps.velocity)); // Clear the player's velocity
+    SetClientViewAngle(ent, angles); // Set the client's angles
+    VectorCopy(origin, client->ps.origin); // Make sure we process the change immediately
+
+    // This basically gets rid of the lerp, and is what makes Spawn faster then SetOrigin alone
+    //int orig1 = client->sess.cmd.serverTime;
+    //int orig2 = client->ps.commandTime;
+    int cmdTimeDiff = level.time - client->sess.cmd.serverTime;
+    client->sess.cmd.serverTime = level.time;
+    client->ps.commandTime = level.time;
+    /*
+    client->ps.sprintState.sprintButtonUpRequired = 0;
+    client->ps.pm_flags &= 0xFFFFFE7F;
+    client->ps.pm_time = 0;
+    client->ps.pm_type = 0;
+    */
+   /*
+    pmove_t pm;
+    memset(&pm, 0, sizeof(pm));
+    pm.ps = &client->ps;
+    pm.cmd = client->sess.cmd;
+    ent->nextthink = level.time - 1;
+
+    extern void Pmove(pmove_t *);
+    Pmove(&pm);
+    ent->eventTime = level.time;
+
+    BG_PlayerStateToEntityState(&ent->client->ps, &ent->s, 1, 1);
+    VectorCopy(ent->s.lerp.pos.trBase, ent->r.currentOrigin);
+	VectorCopy(pm.mins, ent->r.mins);
+	VectorCopy(pm.maxs, ent->r.maxs);
+    */
+    
+//#include "bg.h"
+    //BG_AddPredictableEventToPlayerstate(EV_STANCE_FORCE_STAND, 0, client);
+   // BG_AddPredictableEventToPlayerstate(EV_EMPTY_OFFHAND, 0, client);
+    //BG_AddPredictableEventToPlayerstate(EV_RAISE_WEAPON, 0, client);
+    //BG_AddPredictableEventToPlayerstate(EV_FIRST_RAISE_WEAPON, 0, client);
+   // BG_AddPredictableEventToPlayerstate(EV_WEAPON_ALT, 0, client);
+  //  BG_AddPredictableEventToPlayerstate(EV_PULLBACK_WEAPON, 0, client);
+ //   BG_AddPredictableEventToPlayerstate(EV_PREP_OFFHAND, 0, client);
+//    BG_AddPredictableEventToPlayerstate(EV_LANDING_DEFAULT, 0, client);
+//    BG_AddPredictableEventToPlayerstate(EV_FIRE_WEAPON, 0, client);
+    // Clear sprinting state
+    /*
+    client->ps.sprintState.lastSprintStart = level.time - 200;
+    client->ps.sprintState.lastSprintEnd = level.time - 100;
+    client->ps.pm_flags &= 0x8000;
+    client->buttons &= KEY_MASK_SPRINT;
+    */
+    //client->sess.cmd.buttons &= KEY_MASK_SPRINT;
+
+    //client->ps.pm_flags &= 0xFFFEFFEF;
+    //client->ps.weapFlags = 0;
+    //client->ps.otherFlags = 0;
+
+    // Make sure we have no remaining weapon anims
+    /*
+    client->ps.pm_flags &= 0x8000; // Clear sprinting state
+    client->previouslySprinting = true;
+    client->weapIdleTime = 0;
+    client->ps.eFlags = 0;
+    client->buttons = 1024;
+    client->sess.cmd.buttons = 1024;
+    client->sess.cmd.forwardmove = 0;
+    client->ps.bobCycle = 0;
+    //client->ps.sprintState.lastSprintEnd = 0;
+    client->ps.sprintState.lastSprintStart = 0;
+    client->ps.sprintState.sprintDelay = 0;
+    */
+    Com_Printf(CON_CHANNEL_SERVER, "Anims: %d, %d, %d (dur %d, %d), weap: %d, %d, %d)\n", client->ps.legsAnim, client->ps.torsoAnim, client->ps.weapAnim,
+                client->ps.legsAnimDuration, client->ps.torsoAnimDuration,
+                client->ps.weaponDelay, client->ps.weaponTime, client->ps.weaponstate);
+
+    if (client->ps.sprintState.lastSprintEnd < client->ps.sprintState.lastSprintStart)
+    {
+        int animBitHigh = client->ps.legsAnim & 0x80;
+        if (animBitHigh)
+        {
+            client->ps.legsAnim = (client->ps.legsAnim == 0x80) ? client->ps.legsAnim : 0;
+        }
+        animBitHigh = client->ps.torsoAnim & 0x80;
+        if (animBitHigh)
+        {
+            client->ps.torsoAnim = (client->ps.torsoAnim == 0x80) ? client->ps.torsoAnim : 0;
+        }
+        animBitHigh = client->ps.weapAnim & 0x80;
+        if (animBitHigh)
+        {
+            client->ps.weapAnim = (client->ps.weapAnim == 0x80) ? client->ps.weapAnim : 0;
+        }
+
+/*
+        const int ANIM_TOGGLE_BIT = 0x80;
+        client->ps.legsAnim = (client->ps.legsAnim == ANIM_TOGGLE_BIT) ? 0 : ANIM_TOGGLE_BIT;
+        client->ps.torsoAnim = (client->ps.torsoAnim == ANIM_TOGGLE_BIT) ? 0 : ANIM_TOGGLE_BIT;
+        client->ps.weapAnim = (client->ps.weapAnim == ANIM_TOGGLE_BIT) ? 0 : ANIM_TOGGLE_BIT;
+*/
+        // If sprint flag is set, then clear it and set the animation toggle bit. If not, don't change it.
+        //client->ps.weapAnim = (client->ps.weapAnim & 0x10) ? ((client->ps.weapAnim & 0x10) | 0x80) : client->ps.weapAnim;
+        //if (client->ps.torsoAnim != 0x80) client->ps.legsAnim = 0x80;
+        //if (client->ps.legsAnim != 0x80) client->ps.legsAnim = 0x80;
+
+        //client->ps.legsAnimDuration = 0;
+        //client->ps.torsoAnimDuration = 0;
+    }
+/*
+    int orgWeapAnim = client->ps.weapAnim;
+
+    if (client->ps.legsAnimDuration > 0)
+    {
+        client->ps.legsAnimDuration += cmdTimeDiff;
+    }
+    if (client->ps.torsoAnimDuration > 0)
+    {
+        client->ps.torsoAnimDuration += cmdTimeDiff;
+    }
+    */
+
+    //client->sess.cmd.weapon = client->ps.weapon;
+
+    // Get the command times and changed player variables processed a bit more quickly
+    //ClientEndFrame(ent);
+    //ClientThink_real(ent, &client->sess.cmd);
+
+    // extern void PlayerCmd_switchToWeapon(scr_entref_t);
+    // PlayerCmd_switchToWeapon
+    // client->ps.weap
+    // if (BG_GetWeaponDef(client->ps.we))
+
+    //BG_PlayerStateToEntityState(&ent->client->ps, &ent->s, 1, 1);
 }
 
 /**************************************************************************
