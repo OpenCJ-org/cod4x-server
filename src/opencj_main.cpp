@@ -956,7 +956,7 @@ static void Gsc_CustomSpawn(scr_entref_t ref)
     // This basically gets rid of the lerp, and is what makes Spawn faster then SetOrigin alone
     //int orig1 = client->sess.cmd.serverTime;
     //int orig2 = client->ps.commandTime;
-    int cmdTimeDiff = level.time - client->sess.cmd.serverTime;
+    //int cmdTimeDiff = level.time - client->sess.cmd.serverTime;
     client->sess.cmd.serverTime = level.time;
     client->ps.commandTime = level.time;
     /*
