@@ -432,6 +432,7 @@ void renameClient(gclient_t *client, char *s)
         i++;
     }
     ClientCleanName(s, client->sess.cs.netname, sizeof(client->sess.cs.netname) , qtrue);
+    CS_SetPlayerName(&client->sess.cs, client->sess.cs.netname);
     Q_strncpyz(client->sess.newnetname, client->sess.cs.netname, sizeof( client->sess.newnetname));
 }
 
