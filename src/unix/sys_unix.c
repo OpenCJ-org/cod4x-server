@@ -1065,9 +1065,9 @@ signed int __cdecl Sys_ResetEvent(HANDLE handle)
     if ( yi )
     {
 #ifdef __MACH__
-      pthread_yield_np();
+      sched_yield_np();
 #else
-      pthread_yield();
+      sched_yield();
 #endif
     }
     return 1;
