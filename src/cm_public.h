@@ -152,7 +152,7 @@ int __cdecl CM_PointTraceStaticModelsComplete(const float *start, const float *e
 qboolean CM_TraceBox(TraceExtents *extents, const float *mins, const float *maxs, float fraction);
 void REGPARM(3) CM_Trace(trace_t *results, const float *start, const float *end, const float *mins, const float *maxs, unsigned int model, int brushmask);
 
-clipHandle_t __cdecl CM_TempBoxModel(const float* mins, const float* maxs, int capsule);
+clipHandle_t __cdecl CM_TempBoxModel(const float mins[3], const float maxs[3], int capsule);
 void __cdecl CM_TransformedBoxTrace(trace_t* trace, const float* start, const float* end, const float* mins, const float* maxs,
 			clipHandle_t cliphandle, int contentmask, const float* origin, const float* angle);
 void CM_BoxTrace( trace_t *results, const vec3_t start, const vec3_t end,

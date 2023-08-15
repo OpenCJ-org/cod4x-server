@@ -55,7 +55,7 @@ endif
 
 WIN_LFLAGS=-m32 -g -Wl,--nxcompat,--stack,0x800000 -mwindows -static-libgcc -static -lm
 WIN_LLIBS=tomcrypt mbedtls mbedcrypto mbedx509 ws2_32 wsock32 iphlpapi gdi32 winmm crypt32 stdc++
-LINUX_LFLAGS=-m32 -g -static-libgcc -rdynamic -Wl,-rpath=./ -fcommon
+LINUX_LFLAGS=-m32 -g -static-libgcc -rdynamic -Wl,-rpath=./ -fcommon -no-pie
 LINUX_LLIBS=tomcrypt mbedtls mbedcrypto mbedx509 dl pthread m stdc++
 OPENCJ_LLIBS=mysqlclient
 BSD_LLIBS=tomcrypt mbedtls mbedcrypto mbedx509 pthread m execinfo stdc++
