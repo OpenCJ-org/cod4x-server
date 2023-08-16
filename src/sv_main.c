@@ -3618,8 +3618,9 @@ qboolean SV_Map( const char *levelname ) {
     Com_sprintf(mapname_loadff, sizeof(mapname_loadff), "%s_load", mapname);
     if(!DB_FileExists(mapname_loadff, 0) && !DB_FileExists(mapname_loadff, 2))
     {
-        Com_PrintError(CON_CHANNEL_SERVER,"Can't find file %s.ff\n", mapname_loadff);
-        return qfalse;
+        // OpenCJ: prevent error upon missing load ff
+        Com_PrintWarning(CON_CHANNEL_SERVER,"Can't find file %s.ff\n", mapname_loadff);
+        //return qfalse;
     }
 //	Cbuf_ExecuteBuffer(0, 0, "selectStringTableEntryInDvar mp/didyouknow.csv 0 didyouknow");
 
