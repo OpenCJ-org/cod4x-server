@@ -1092,9 +1092,10 @@ void Ext_RPGFiredCallback(gentity_t *player, gentity_t *rpg)
     int callback = opencj_callbacks[OPENCJ_CB_RPGFIRED];
     if (callback != 0)
     {
+        Scr_AddInt(player->client->lastServerTime);
         Scr_AddString(BG_GetWeaponDef(rpg->s.weapon)->szInternalName);
         Scr_AddEntity(rpg);
-        int threadId = Scr_ExecEntThread(player, callback, 2);
+        int threadId = Scr_ExecEntThread(player, callback, 3);
         Scr_FreeThread(threadId);
     }
 }
