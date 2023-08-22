@@ -342,41 +342,41 @@ typedef struct entityState_s {//Confirmed names and offsets but not types
 
 typedef struct {
     //entityState_t	s;				//Duplicated struct is removed
-    byte linked; //0xf4 qfalse if not in any good cluster
+    byte linked; //0x00 qfalse if not in any good cluster
 
-    byte bmodel; //0xf5 if false, assume an explicit mins / maxs bounding box
+    byte bmodel; //0x01 if false, assume an explicit mins / maxs bounding box
     // only set by trap_SetBrushModel
-    byte svFlags;
-    byte pad1;
+    byte svFlags; // 0x02
+    byte pad1; // 0x03
 
-    int clientMask[2];
-    byte inuse;
-    byte pad2[3];
-    int broadcastTime;
+    int clientMask[2]; // 0x04
+    byte inuse; // 0x0C
+    byte pad2[3]; // 0x0D
+    int broadcastTime; // 0x10
 
-    vec3_t mins, maxs; //0x108  //0x114  from SharedEntity_t
+    vec3_t mins, maxs; // 0x14  from SharedEntity_t
 
-    int contents; // CONTENTS_TRIGGER, CONTENTS_SOLID, CONTENTS_BODY, etc
+    int contents; // 0x2C CONTENTS_TRIGGER, CONTENTS_SOLID, CONTENTS_BODY, etc
     // a non-solid entity should set to 0
 
-    vec3_t absmin, absmax; //0x124  //0x130 derived from mins/maxs and origin + rotation
+    vec3_t absmin, absmax; //0x30 derived from mins/maxs and origin + rotation
 
     // currentOrigin will be used for all collision detection and world linking.
     // it will not necessarily be the same as the trajectory evaluation for the current
     // time, because each entity must be moved one at a time after time is advanced
     // to avoid simultanious collision issues
-    vec3_t currentOrigin; //0x13c
-    vec3_t currentAngles; //0x148
+    vec3_t currentOrigin; //0x48
+    vec3_t currentAngles; //0x54
 
     // when a trace call is made and passEntityNum != ENTITYNUM_NONE,
     // an ent will be excluded from testing if:
     // ent->s.number == passEntityNum	(don't interact with self)
     // ent->r.ownerNum == passEntityNum	(don't interact with your own missiles)
     // entity[ent->r.ownerNum].r.ownerNum == passEntityNum	(don't interact with other missiles from owner)
-    uint16_t ownerNum; //0x154
-    uint16_t pad3;
-    int eventTime;
-} entityShared_t;
+    uint16_t ownerNum; //0x60
+    uint16_t pad3;//0x62
+    int eventTime;//0x64
+} entityShared_t; // sizeof(entityShared_t) == 0x68
 
 typedef struct {
     int sprintButtonUpRequired;
@@ -688,8 +688,8 @@ typedef struct playerState_s {
 typedef struct gentity_s gentity_t;
 
 struct gentity_s {
-    entityState_t s;
-    entityShared_t r; // shared by both the server system and game
+    entityState_t s; // size = 0xf4
+    entityShared_t r; // size = 0x80, shared by both the server system and game
 
     // DO NOT MODIFY ANYTHING ABOVE THIS, THE SERVER
     // EXPECTS THE FIELDS IN THAT ORDER!

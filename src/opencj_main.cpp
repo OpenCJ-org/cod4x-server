@@ -445,6 +445,7 @@ void opencj_init(void)
     // Init callbacks
     opencj_callbacks[OPENCJ_CB_PLAYERCOMMAND]           = GScr_LoadScriptAndLabel("maps/mp/gametypes/_callbacksetup", "CodeCallback_PlayerCommand",             qfalse);
     opencj_callbacks[OPENCJ_CB_RPGFIRED]                = GScr_LoadScriptAndLabel("maps/mp/gametypes/_callbacksetup", "CodeCallback_RPGFired",                  qfalse);
+    opencj_callbacks[OPENCJ_CB_WEAPONFIRED]             = GScr_LoadScriptAndLabel("maps/mp/gametypes/_callbacksetup", "CodeCallback_WeaponFired",               qfalse);
     opencj_callbacks[OPENCJ_CB_SPECTATORCLIENTCHANGED]  = GScr_LoadScriptAndLabel("maps/mp/gametypes/_callbacksetup", "CodeCallback_SpectatorClientChanged",    qfalse);
     opencj_callbacks[OPENCJ_CB_USERINFO]                = GScr_LoadScriptAndLabel("maps/mp/gametypes/_callbacksetup", "CodeCallback_UserInfoChanged",           qfalse);
     opencj_callbacks[OPENCJ_CB_STARTJUMP]               = GScr_LoadScriptAndLabel("maps/mp/gametypes/_callbacksetup", "CodeCallback_StartJump",                 qfalse);
@@ -1095,6 +1096,19 @@ void Ext_RPGFiredCallback(gentity_t *player, gentity_t *rpg)
         Scr_AddInt(player->client->lastServerTime);
         Scr_AddString(BG_GetWeaponDef(rpg->s.weapon)->szInternalName);
         Scr_AddEntity(rpg);
+        int threadId = Scr_ExecEntThread(player, callback, 3);
+        Scr_FreeThread(threadId);
+    }
+}
+
+void Ext_WeaponFiredCallback(gentity_t *player, gentity_t *weapon)
+{
+    int callback = opencj_callbacks[OPENCJ_CB_WEAPONFIRED];
+    if (callback != 0)
+    {
+        Scr_AddInt(player->client->lastServerTime);
+        Scr_AddString(BG_GetWeaponDef(weapon->s.weapon)->szInternalName);
+        Scr_AddEntity(weapon);
         int threadId = Scr_ExecEntThread(player, callback, 3);
         Scr_FreeThread(threadId);
     }
