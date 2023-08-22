@@ -54,6 +54,7 @@
 	extern G_AntiLagRewindClientPos
 	extern G_AntiLag_RestoreClientPos
 	extern Ext_RPGFiredCallback
+	extern Ext_WeaponFiredCallback
 
 ;Exports of g_weapon:
 	global _ZZ11Melee_TraceP9gentity_sP11weaponParmsifffP7trace_tPfE12traceOffsets
@@ -559,7 +560,7 @@ FireWeapon:
 	push ebx
 	sub esp, 0x9c
 	mov ebx, [ebp+0x8]
-	mov eax, [ebx+0x15c]
+	mov eax, [ebx+0x15c] ; ent->client
 	test dword [eax+0xb0], 0x300
 	jz FireWeapon_10
 	cmp byte [ebx+0x16c], 0x0
@@ -575,17 +576,17 @@ FireWeapon_10:
 	mov [esp], eax
 	call BG_GetWeaponDef
 	mov [ebp-0x30], eax
-	mov edx, [ebx+0x15c]
-	lea ecx, [edx+0x108]
-	mov eax, [edx+0x108]
+	mov edx, [ebx+0x15c] ; ent->client
+	lea ecx, [edx+0x108] ; ent->client->ps.viewangles
+	mov eax, [edx+0x108] ; ent->client->ps.viewangles[0]
 	mov [ebp-0x2c], eax
-	mov eax, [ecx+0x4]
+	mov eax, [ecx+0x4] ; ent->client->ps.viewangles[1]
 	mov [ebp-0x28], eax
-	mov eax, [ecx+0x8]
+	mov eax, [ecx+0x8] ; ent->client->ps.viewangles[2]
 	mov [ebp-0x24], eax
-	mov eax, [edx+0x30a4]
+	mov eax, [edx+0x30a4] ; ent->client->fGunPitch
 	mov [ebp-0x2c], eax
-	mov eax, [edx+0x30a8]
+	mov eax, [edx+0x30a8] ; ent->client->fGunYaw
 	mov [ebp-0x28], eax
 	lea esi, [ebp-0x6c]
 	lea eax, [ebp-0x54]
@@ -598,11 +599,11 @@ FireWeapon_10:
 	call AngleVectors
 	lea eax, [ebp-0x48]
 	mov [esp+0x4], eax
-	mov eax, [ebx+0x15c]
+	mov eax, [ebx+0x15c] ; ent->client
 	mov [esp], eax
 	call G_GetPlayerViewOrigin
-	mov edx, [ebx+0x15c]
-	movss xmm0, dword [edx+0x30dc]
+	mov edx, [ebx+0x15c] ; ent->client
+	movss xmm0, dword [edx+0x30dc] ; ent->client->unk
 	movss [ebp-0x7c], xmm0
 	lea eax, [ebp-0x20]
 	mov [esp+0xc], eax
@@ -612,9 +613,9 @@ FireWeapon_10:
 	mov [esp+0x4], eax
 	mov [esp], edx
 	call BG_GetSpreadForWeapon
-	mov eax, [ebx+0x15c]
+	mov eax, [ebx+0x15c] ; ent->client
 	movss xmm0, dword [_float_1_00000000]
-	ucomiss xmm0, [eax+0xf4]
+	ucomiss xmm0, [eax+0xf4] ; if (ent->client->ps.fWeaponPosFrac == 1.0)
 	jnz FireWeapon_30
 	jp FireWeapon_30
 	mov eax, [ebp-0x30]
@@ -648,7 +649,7 @@ FireWeapon_80:
 	mov [esp], ebx
 	call Weapon_RocketLauncher_Fire
 ; Ridgepig marker for convenient searches (callback for RPG fired)
-    mov edx, ebx              ; Move the gentity_s* (player) into edx (eax contains the newly created RPG)
+    mov edx, ebx                ; Move the gentity_s* (player) into edx (eax contains the newly created RPG)
     push eax                    ; Pass gentity_s* (RPG) to our callback function (reverse order)
     push edx                    ; Pass gentity_s* (player) to our callback function
     call Ext_RPGFiredCallback   ; Call our callback function
@@ -674,12 +675,20 @@ FireWeapon_30:
 	jnz FireWeapon_80
 FireWeapon_40:
 	mov eax, [ebp+0xc]
-	mov [esp+0x10], eax
-	mov [esp+0xc], ebx
-	mov [esp+0x8], esi
-	movss [esp+0x4], xmm1
-	mov [esp], ebx
+	mov [esp+0x10], eax ; gametime
+	mov [esp+0xc], ebx ; ent
+	mov [esp+0x8], esi ; &weaponDef or weaponEnt?
+	movss [esp+0x4], xmm1 ; spread
+	mov [esp], ebx ; ent
 	call Bullet_Fire
+; Ridgepig marker for convenient searches (callback for normal weapon fired)
+    mov edx, ebx                ; Move the gentity_s* (player) into edx
+    push eax                    ; Pass gentity_s* (weapon) to our callback function (reverse order)
+    push edx                    ; Pass gentity_s* (player) to our callback function
+    call Ext_WeaponFiredCallback; Call our callback function
+    pop edx                     ; Clean up stack
+    pop eax                     ; Clean up stack
+; End marker (callback for RPG fired)
 	add esp, 0x9c
 	pop ebx
 	pop esi
