@@ -14,6 +14,7 @@ typedef enum
     OPENCJ_CB_UNKNOWN = 0, // Always 0, so handlers can see if no handler was found
     OPENCJ_CB_PLAYERCOMMAND,
     OPENCJ_CB_RPGFIRED,
+    OPENCJ_CB_WEAPONFIRED,
     OPENCJ_CB_SPECTATORCLIENTCHANGED,
     OPENCJ_CB_USERINFO,
     OPENCJ_CB_STARTJUMP,
@@ -47,6 +48,7 @@ int opencj_getCallback(opencj_callback_t);
 void opencj_clearPlayerMovementCheckVars(int);
 
 void Ext_RPGFiredCallback(gentity_t *, gentity_t *);
+void Ext_WeaponFiredCallback(gentity_t *, gentity_t *);
 int Ext_IsPlayerAllowedToEle(struct pmove_t *);
 void Ext_PlayerTryingToEle(struct pmove_t *);
 void Ext_PlayerNotEle(struct pmove_t *);
