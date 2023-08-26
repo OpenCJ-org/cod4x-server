@@ -178,14 +178,19 @@ static void PlayerCmd_RenameClient(scr_entref_t arg)
         {
             gentity = g_entities + entityNum;
             gclient_t *client = gentity->client;
-            if(Scr_GetNumParam() != 1){
-                    Scr_Error("Usage: self renameClient(<string>)\n");
+            if (Scr_GetNumParam() != 1)
+            {
+                Scr_Error("Usage: (cleanedName =) self renameClient(<string>)\n");
             }
 
             char *s = Scr_GetString(0);
             renameClient(client, s);
+            Scr_AddString(client->sess.newnetname);
+            return;
         }
     }
+
+    Scr_AddUndefined();
 }
 
 static void PlayerCmd_StartRecord(scr_entref_t arg)
@@ -424,15 +429,25 @@ void renameClient(gclient_t *client, char *s)
     if (!client || !s || (s[0] == '\0')) return;
 
     int i = 0;
-    while (s[i] != '\0')
+    // Strip leading spaces
+    while (s[i] == ' ')
     {
-        if ((unsigned char)s[i] < 0xa)
-            s[i] = '?';
+        s++; // Skip over the space
         i++;
     }
-    ClientCleanName(s, client->sess.cs.netname, sizeof(client->sess.cs.netname) , qtrue);
+
+    i = 0;
+    while (s[i] != '\0')
+    {
+        if (((unsigned char)s[i] < 0x1F) || ((unsigned char)s[i] == 0x7F))
+        {
+            s[i] = '?';
+        }
+        i++;
+    }
+    ClientCleanName(s, client->sess.cs.netname, sizeof(client->sess.cs.netname), qtrue);
     CS_SetPlayerName(&client->sess.cs, client->sess.cs.netname);
-    Q_strncpyz(client->sess.newnetname, client->sess.cs.netname, sizeof( client->sess.newnetname));
+    Q_strncpyz(client->sess.newnetname, client->sess.cs.netname, sizeof(client->sess.newnetname));
 }
 
 /**************************************************************************
