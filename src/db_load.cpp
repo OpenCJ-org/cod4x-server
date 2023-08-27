@@ -2083,26 +2083,43 @@ void DB_ReferencedFastFiles(char* g_zoneSumList, char* g_zoneNameList, int maxsi
 			continue;
 		}
 */
-		Com_sprintf(fileName, sizeof(fileName), "%s_load", zone->zoneinfo.name);
+        // OpenCJ: at this point it tries to make use of the load file of the map which may not exist
+        // Technically it *needs* to exist, but we can get around this since stock CoD4 does so too.
+        Com_sprintf(fileName, sizeof(fileName), "%s_load", zone->zoneinfo.name);
+        int loadFileExists = 1;
         filesize = DB_FileSize(fileName, 2);
-        if ( !filesize )
+        if (filesize == 0)
         {
-			continue;
-		}
+            // Load file does not exist. If regular map ff exists, still continue with loading it
+            loadFileExists = 0;
+            Com_sprintf(fileName, sizeof(fileName), "%s", zone->zoneinfo.name);
+            filesize = DB_FileSize(fileName, 2);
+            if (filesize == 0)
+            {
+                continue;
+            }
+        }
 
-		if ( g_zoneSumList[0] )
-		{
-			Q_strncat(g_zoneSumList, maxsize, " ");
-		}
-		Com_sprintf(checkSum, sizeof(checkSum), "%u %u", zone->zoneSize, filesize);
-		Q_strncat(g_zoneSumList, maxsize, checkSum);
+        if ( g_zoneSumList[0] )
+        {
+            Q_strncat(g_zoneSumList, maxsize, " ");
+        }
 
-
-		Q_strncat(g_zoneNameList, maxsize, " usermaps/");
-		Q_strncat(g_zoneNameList, maxsize, zone->zoneinfo.name);
-		Q_strncat(g_zoneNameList, maxsize, " usermaps/");
-		Q_strncat(g_zoneNameList, maxsize, zone->zoneinfo.name);
-		Q_strncat(g_zoneNameList, maxsize, "_load");
+        Q_strncat(g_zoneNameList, maxsize, " usermaps/");
+        Q_strncat(g_zoneNameList, maxsize, zone->zoneinfo.name);
+        if (loadFileExists != 0)
+        {
+            Q_strncat(g_zoneNameList, maxsize, " usermaps/");
+            Q_strncat(g_zoneNameList, maxsize, zone->zoneinfo.name);
+            Q_strncat(g_zoneNameList, maxsize, "_load");
+            Com_sprintf(checkSum, sizeof(checkSum), "%u %u", zone->zoneSize, filesize);
+        }
+        else
+        {
+            // Don't add checksum for load file that doesn't exist
+            Com_sprintf(checkSum, sizeof(checkSum), "%u", filesize);
+        }
+        Q_strncat(g_zoneSumList, maxsize, checkSum);
 	}
 }
 
