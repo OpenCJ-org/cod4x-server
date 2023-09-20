@@ -49,7 +49,7 @@ void Ext_RPGFiredCallback(gentity_t *, gentity_t *);
 int Ext_IsPlayerAllowedToEle(struct pmove_t *);
 void Ext_PlayerTryingToEle(struct pmove_t *);
 void Ext_PlayerNotEle(struct pmove_t *);
-void Ext_SpectatorClientChanged(gentity_t *, int);
+void Ext_SpectatorClientChanged(gentity_t *, int, int);
 
 #ifdef __cplusplus
 }

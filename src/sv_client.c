@@ -718,21 +718,7 @@ void SV_UserinfoChanged( client_t *cl ) {
 	char	ip[128];
 	int	len;
 
-	if(cl->state == CS_CONNECTED) // OpenCJ: clean names
-	{
-		if (strcmp(cl->name, cl->userinfo) != 0)
-		{
-			Q_strncpyz(cl->name, Info_ValueForKey (cl->userinfo, "name"), sizeof(cl->name));
-			if (!Q_isprintstring(cl->name) || strstr(cl->name, "&&") || strstr(cl->name, "///") || (strlen(cl->name) <= 3)) // OpenCJ: don't allow small names
-			{
-				Com_sprintf(cl->name, 16, "CID_%i", cl - svs.clients);
-				Info_SetValueForKey(cl->userinfo, "name", cl->name);
-			}
-
-			gclient_t *gclient = (&g_entities[cl - svs.clients])->client;
-			Q_strncpyz(gclient->sess.newnetname, cl->name, sizeof(gclient->sess.newnetname));
-		}
-	}
+    // Cleaning names is done by GSC
 
 	// Begin OpenCJ: prevent snaps and rate abuse
 	cl->rate = sv_maxRate->integer;
@@ -1168,6 +1154,7 @@ void SV_ClientEnterWorld( client_t *client, usercmd_t *cmd ) {
 	ent = SV_GentityNum( clientNum );
 	ent->s.number = clientNum;
 	client->gentity = ent;
+    client->gentity->client->lastFollowedClient = -1; // Otherwise this stays stuck at 0 which can be a client
 
 	client->deltaMessage = -1;
 	client->nextSnapshotTime = svs.time;    // generate a snapshot immediately
