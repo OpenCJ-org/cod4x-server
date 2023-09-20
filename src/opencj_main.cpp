@@ -421,7 +421,7 @@ void PlayerCmd_SetMoveSpeed_Wrap(scr_entref_t id)
 }
 
 /**************************************************************************
- * Global unctions                                                        *
+ * Global functions                                                       *
  **************************************************************************/
 
 void renameClient(gclient_t *client, char *s)
@@ -445,7 +445,22 @@ void renameClient(gclient_t *client, char *s)
         }
         i++;
     }
-    ClientCleanName(s, client->sess.cs.netname, sizeof(client->sess.cs.netname), qtrue);
+
+    // Enforce a minimum name length. Since this could require more characters than were allocated, allocate a new buffer
+    char buf[64] = {0};
+    Q_strncpyz(buf, s, sizeof(buf));
+    char *pCleanedNewName = (char *)buf;
+    int newNameLen = strlen(pCleanedNewName);
+    int minNameLen = 3;
+    if (newNameLen < minNameLen)
+    {
+        for (int i = 0; i < (minNameLen - newNameLen); i++)
+        {
+            pCleanedNewName[newNameLen + i] = (i % 10) + '0'; // Limit to 0-9
+        }
+    }
+
+    ClientCleanName(pCleanedNewName, client->sess.cs.netname, sizeof(client->sess.cs.netname), qtrue);
     CS_SetPlayerName(&client->sess.cs, client->sess.cs.netname);
     Q_strncpyz(client->sess.newnetname, client->sess.cs.netname, sizeof(client->sess.newnetname));
 }
@@ -976,21 +991,30 @@ void Ext_PlayerNotEle(struct pmove_t *pmove)
     }
 }
 
-void Ext_SpectatorClientChanged(gentity_t *player, int beingSpectatedClientNum)
+void Ext_SpectatorClientChanged(gentity_t *player, int prevSpectateeClientNum, int newSpectateeClientNum)
 {
     int callback = opencj_callbacks[OPENCJ_CB_SPECTATORCLIENTCHANGED];
     if(callback)
     {
-        if (beingSpectatedClientNum != -1)
+        if (prevSpectateeClientNum != -1)
         {
-            gentity_t *ent = SV_GentityNum(beingSpectatedClientNum);
+            gentity_t *ent = SV_GentityNum(prevSpectateeClientNum);
             Scr_AddEntity(ent);
         }
         else
         {
             Scr_AddUndefined();
         }
-        int threadId = Scr_ExecEntThread(player, callback, 1);
+        if (newSpectateeClientNum != -1)
+        {
+            gentity_t *ent = SV_GentityNum(newSpectateeClientNum);
+            Scr_AddEntity(ent);
+        }
+        else
+        {
+            Scr_AddUndefined();
+        }
+        int threadId = Scr_ExecEntThread(player, callback, 2);
         Scr_FreeThread(threadId);
     }
 }

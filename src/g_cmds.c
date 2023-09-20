@@ -760,7 +760,7 @@ int __cdecl Cmd_FollowCycle_f(gentity_t *ent, int dir)
           if ( G_ClientCanSpectateTeamOrLocalPlayer(ent->client, &archcs) )
           {
             // Begin OpenCJ: spectatorClient changed
-            Ext_SpectatorClientChanged(ent, clientNum);
+            Ext_SpectatorClientChanged(ent, ent->client->spectatorClient, clientNum);
             // End OpenCJ
             ent->client->spectatorClient = clientNum;
             ent->client->sess.sessionState = SESS_STATE_SPECTATOR;
@@ -807,7 +807,7 @@ void __cdecl StopFollowing(gentity_t *ent)
   // Begin OpenCJ
   if (client->spectatorClient != -1)
   {
-    Ext_SpectatorClientChanged(ent, -1);
+    Ext_SpectatorClientChanged(ent, client->spectatorClient, -1);
   }
   // End OpenCJ
 

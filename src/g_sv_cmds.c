@@ -33,9 +33,9 @@
 #include "scr_vm.h"
 #include "misc.h"
 #include "cscr_stringlist.h"
-
-
 #include <string.h>
+
+#include "opencj_main.hpp" // OpenCJ
 
 extern cvar_t *g_deadChat;
 static cvar_t *g_voteTime;
@@ -396,6 +396,12 @@ qboolean Cmd_FollowClient_f(gentity_t *ent, int clientnum)
 
     if (ClientCanSpectateTeam(ent->client, level.clients[clientnum].sess.cs.team))
     {
+        // Begin OpenCJ
+        if (ent->client->sess.sessionState == SESS_STATE_SPECTATOR)
+        {
+            Ext_SpectatorClientChanged(ent, ent->client->spectatorClient, clientnum);
+        }
+        // End OpenCJ
         // this is good, we can use it
         ent->client->spectatorClient = clientnum;
         return qtrue;
