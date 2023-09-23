@@ -155,16 +155,16 @@ extern "C" void __cdecl ClientSpawn(gentity_s *ent, const float *spawn_origin, c
 
   ClearAllSpectators(ent);
 
-	PHandler_Event(PLUGINS_ONCLIENTSPAWN, ent);
+  PHandler_Event(PLUGINS_ONCLIENTSPAWN, ent);
 
-
-
-
-	if(ent->client->sess.sessionState == SESS_STATE_PLAYING)
-	{
+  if(ent->client->sess.sessionState == SESS_STATE_PLAYING)
+  {
     SV_GameSetUndercoverState(index, false);
-	}
+  }
 
+  // Prevent players from being able able to walk around without starting a run (because WASD callback is only called)
+  extern void opencj_clearPlayerMovementCheckVars(int);
+  opencj_clearPlayerMovementCheckVars(client->ps.clientNum);
 }
 
 const char *__cdecl CS_DisplayName(clientState_t *cs, int type)

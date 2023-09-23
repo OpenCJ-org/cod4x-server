@@ -44,6 +44,7 @@ void opencj_onUserInfoChanged(gentity_t *);
 void opencj_onClientMoveCommand(client_t *, usercmd_t *);
 void opencj_addMethodsAndFunctions(void);
 int opencj_getCallback(opencj_callback_t);
+void opencj_clearPlayerMovementCheckVars(int);
 
 void Ext_RPGFiredCallback(gentity_t *, gentity_t *);
 int Ext_IsPlayerAllowedToEle(struct pmove_t *);

@@ -500,6 +500,12 @@ int opencj_getCallback(opencj_callback_t callbackType)
     return opencj_callbacks[callbackType];
 }
 
+void opencj_clearPlayerMovementCheckVars(int clientNum)
+{
+    opencj_playerMovement[clientNum].forward = 0;
+    opencj_playerMovement[clientNum].right = 0;
+}
+
 void opencj_addMethodsAndFunctions(void)
 {
     #include "../../server-ext/shared.hpp"
