@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <float.h>
+#include <math.h>
 
 #include "opencj_main.hpp"
 
@@ -68,6 +69,8 @@ bool opencj_clientOnGround[MAX_CLIENTS];
 // Bounce monitoring
 bool opencj_clientCanBounce[MAX_CLIENTS];
 float opencj_clientBouncePrevVelocity[MAX_CLIENTS];
+// Height monitoring
+static float opencj_clientMaxHeight[MAX_CLIENTS] = {0};
 
 // Player objectives
 objective_t opencj_playerObjectives[MAX_CLIENTS][16];
@@ -79,6 +82,8 @@ objective_t opencj_playerObjectives[MAX_CLIENTS][16];
 static void opencj_onConnect(scr_entref_t id);
 static void Gsc_GetFollowersAndMe(scr_entref_t id);
 static void Gsc_StopFollowingMe(scr_entref_t id);
+static void Gsc_GetMaxHeight(scr_entref_t id);
+static void Gsc_ResetMaxHeight(scr_entref_t id);
 static void Gsc_ClientUserInfoChanged(scr_entref_t id);
 static void Gsc_ScaleOverTime(scr_entref_t hudelem);
 static void Gsc_GetConfigStringByIndex();
@@ -562,6 +567,8 @@ void opencj_addMethodsAndFunctions(void)
     Scr_AddMethod("startrecord",            PlayerCmd_StartRecord,              qfalse);
     Scr_AddMethod("renameclient",           PlayerCmd_RenameClient,             qfalse);
     Scr_AddMethod("stopfollowingme",        Gsc_StopFollowingMe,                qfalse);
+    Scr_AddMethod("getmaxheight",           Gsc_GetMaxHeight,                   qfalse);
+    Scr_AddMethod("resetmaxheight",         Gsc_ResetMaxHeight,                 qfalse);
     Scr_AddMethod("clientuserinfochanged",  Gsc_ClientUserInfoChanged,          qfalse);
     Scr_AddMethod("getspectatorlist",       Gsc_GetFollowersAndMe,              qfalse);
     Scr_AddMethod("followplayer",           PlayerCmd_FollowPlayer,             qfalse);
@@ -791,12 +798,41 @@ void opencj_onClientMoveCommand(client_t *client, usercmd_t *ucmd)
 
         // Always update the previous velocity
         opencj_clientBouncePrevVelocity[clientNum] = gclient->ps.velocity[2];
+        // And the maximum height they reached
+        opencj_clientMaxHeight[clientNum] = std::fmax(gclient->ps.origin[2], opencj_clientMaxHeight[clientNum]);
     }
 }
 
 /**************************************************************************
  * GSC commands                                                           *
  **************************************************************************/
+
+static void Gsc_GetMaxHeight(scr_entref_t ref)
+{
+    if (ref.classnum) return;
+
+    if (ref.entnum >= MAX_CLIENTS)
+    {
+        Scr_Error("gsc_getmaxheight() entity is not a player");
+        Scr_AddUndefined();
+        return;
+    }
+
+    Scr_AddFloat(opencj_clientMaxHeight[ref.entnum]);
+}
+
+static void Gsc_ResetMaxHeight(scr_entref_t ref)
+{
+    if (ref.classnum) return;
+
+    if (ref.entnum >= MAX_CLIENTS)
+    {
+        Scr_Error("gsc_resetmaxheight() entity is not a player");
+        return;
+    }
+
+    opencj_clientMaxHeight[ref.entnum] = (float)INT32_MIN;
+}
 
 static void Gsc_ClientUserInfoChanged(scr_entref_t ref)
 {
@@ -806,7 +842,7 @@ static void Gsc_ClientUserInfoChanged(scr_entref_t ref)
 
 	if (ref.entnum >= MAX_CLIENTS)
 	{
-		Scr_Error("gsc_player_clientuserinfochanged() entity is not a player");
+		Scr_Error("gsc_clientuserinfochanged() entity is not a player");
 		Scr_AddUndefined();
 		return;
 	}
@@ -955,9 +991,10 @@ void Ext_RPGFiredCallback(gentity_t *player, gentity_t *rpg)
     if (callback != 0)
     {
         Scr_AddInt(player->client->lastServerTime);
+        Scr_AddFloat(player->client->ps.viewangles[0]);
         Scr_AddString(BG_GetWeaponDef(rpg->s.weapon)->szInternalName);
         Scr_AddEntity(rpg);
-        int threadId = Scr_ExecEntThread(player, callback, 3);
+        int threadId = Scr_ExecEntThread(player, callback, 4);
         Scr_FreeThread(threadId);
     }
 }
