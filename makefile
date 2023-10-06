@@ -233,7 +233,7 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 #
 $(OBJ_DIR)/%.o: $(OPENCJ_EXT_DIR)/%.cpp
 	@echo   $(CPP)  $@
-	@$(CPP) -c $(CFLAGS) $(DCFLAGS) $(C_DEFINES) -o $@ $<
+	@$(CPP) -c $(CFLAGS) -std=c++17 $(DCFLAGS) $(C_DEFINES) -o $@ $<
 
 ################################
 # A rule to build assemler code.

@@ -649,11 +649,10 @@ FireWeapon_80:
 	mov [esp], ebx
 	call Weapon_RocketLauncher_Fire
 ; Ridgepig marker for convenient searches (callback for RPG fired)
-    mov edx, ebx                ; Move the gentity_s* (player) into edx (eax contains the newly created RPG)
     push eax                    ; Pass gentity_s* (RPG) to our callback function (reverse order)
-    push edx                    ; Pass gentity_s* (player) to our callback function
+    push ebx                    ; Pass gentity_s* (player) to our callback function
     call Ext_RPGFiredCallback   ; Call our callback function
-    pop edx                     ; Clean up stack
+    pop ebx                     ; Clean up stack
     pop eax                     ; Clean up stack
 ; End marker (callback for RPG fired)
 FireWeapon_20:
@@ -682,13 +681,12 @@ FireWeapon_40:
 	mov [esp], ebx ; ent
 	call Bullet_Fire
 ; Ridgepig marker for convenient searches (callback for normal weapon fired)
-    mov edx, ebx                ; Move the gentity_s* (player) into edx
     push eax                    ; Pass gentity_s* (weapon) to our callback function (reverse order)
-    push edx                    ; Pass gentity_s* (player) to our callback function
+    push ebx                    ; Pass gentity_s* (player) to our callback function
     call Ext_WeaponFiredCallback; Call our callback function
-    pop edx                     ; Clean up stack
-    pop eax                     ; Clean up stack
-; End marker (callback for RPG fired)
+    pop ebx
+    pop eax
+; End marker (callback for normal weapon fired)
 	add esp, 0x9c
 	pop ebx
 	pop esi

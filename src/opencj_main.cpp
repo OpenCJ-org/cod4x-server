@@ -999,7 +999,7 @@ void Ext_RPGFiredCallback(gentity_t *player, gentity_t *rpg)
     }
 }
 
-void Ext_WeaponFiredCallback(gentity_t *player, gentity_t *weapon)
+void Ext_WeaponFiredCallback(gentity_t *player, gentity_t *weapon) // This crashes in make DEBUG=true, don't understand why.
 {
     int callback = opencj_callbacks[OPENCJ_CB_WEAPONFIRED];
     if (callback != 0)
