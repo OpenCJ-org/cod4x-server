@@ -47,8 +47,8 @@ void opencj_addMethodsAndFunctions(void);
 int opencj_getCallback(opencj_callback_t);
 void opencj_clearPlayerMovementCheckVars(int);
 
-void Ext_RPGFiredCallback(gentity_t *, gentity_t *);
-void Ext_WeaponFiredCallback(gentity_t *, gentity_t *);
+void Ext_RPGFiredCallback(gentity_t *);
+void Ext_WeaponFiredCallback(gentity_t *);
 int Ext_IsPlayerAllowedToEle(struct pmove_t *);
 void Ext_PlayerTryingToEle(struct pmove_t *);
 void Ext_PlayerNotEle(struct pmove_t *);
