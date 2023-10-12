@@ -649,12 +649,12 @@ FireWeapon_80:
 	mov [esp], ebx
 	call Weapon_RocketLauncher_Fire
 ; Ridgepig marker for convenient searches (callback for RPG fired)
-    mov edx, ebx                ; Move the gentity_s* (player) into edx (eax contains the newly created RPG)
-    push eax                    ; Pass gentity_s* (RPG) to our callback function (reverse order)
-    push edx                    ; Pass gentity_s* (player) to our callback function
+; So, for some reason the player ent (ebx) is being pushed twice. It's not actually the weaponEnt.
+    pushad                      ; Make sure function won't thrash important registers
+    push ebx                    ; Pass gentity_s* (player) to our callback function
     call Ext_RPGFiredCallback   ; Call our callback function
-    pop edx                     ; Clean up stack
-    pop eax                     ; Clean up stack
+    pop ebx                     ; Clean up arguments
+    popad                       ; Restore registers
 ; End marker (callback for RPG fired)
 FireWeapon_20:
 	add esp, 0x9c
@@ -677,18 +677,18 @@ FireWeapon_40:
 	mov eax, [ebp+0xc]
 	mov [esp+0x10], eax ; gametime
 	mov [esp+0xc], ebx ; ent
-	mov [esp+0x8], esi ; &weaponDef or weaponEnt?
+	mov [esp+0x8], esi ; &weaponDef
 	movss [esp+0x4], xmm1 ; spread
 	mov [esp], ebx ; ent
 	call Bullet_Fire
 ; Ridgepig marker for convenient searches (callback for normal weapon fired)
-    mov edx, ebx                ; Move the gentity_s* (player) into edx
-    push eax                    ; Pass gentity_s* (weapon) to our callback function (reverse order)
-    push edx                    ; Pass gentity_s* (player) to our callback function
+; So, for some reason the player ent (ebx) is being pushed twice. It's not actually the weaponEnt.
+    pushad                      ; Make sure function won't thrash important registers
+    push ebx                    ; Pass gentity_s* (player) to our callback function
     call Ext_WeaponFiredCallback; Call our callback function
-    pop edx                     ; Clean up stack
-    pop eax                     ; Clean up stack
-; End marker (callback for RPG fired)
+    pop ebx                     ; Clean up arguments
+    popad                       ; Restore registers
+; End marker (callback for normal weapon fired)
 	add esp, 0x9c
 	pop ebx
 	pop esi
