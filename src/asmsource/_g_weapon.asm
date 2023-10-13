@@ -649,11 +649,13 @@ FireWeapon_80:
 	mov [esp], ebx
 	call Weapon_RocketLauncher_Fire
 ; Ridgepig marker for convenient searches (callback for RPG fired)
-; So, for some reason the player ent (ebx) is being pushed twice. It's not actually the weaponEnt.
+; The function Weapon_RocketLauncher_Fire puts the RPG entity into eax
     pushad                      ; Make sure function won't thrash important registers
+    push eax                    ; Pass gentity_s* (RPG) to our callback function (reverse order)
     push ebx                    ; Pass gentity_s* (player) to our callback function
     call Ext_RPGFiredCallback   ; Call our callback function
     pop ebx                     ; Clean up arguments
+    pop eax                     ; Clean up arguments
     popad                       ; Restore registers
 ; End marker (callback for RPG fired)
 FireWeapon_20:
