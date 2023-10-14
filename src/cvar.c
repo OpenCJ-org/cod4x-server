@@ -2084,7 +2084,82 @@ void Cvar_Restart_f( void ) {
 
 /*
 =====================
-Cvar_InfoString
+Cvar_ShouldCensorInfo - check if client is authenticated (correct password) and as such can receive real mapname info
+=====================
+*/
+#include "sys_net.h"
+#include "server.h"
+bool Cvar_ShouldCensorInfo(netadr_t *pFrom)
+{
+    if (!*sv_password->string)
+    {
+        return false; // Server not password protected, so no need to censor
+    }
+
+    for (int i = 0; i < sv_maxclients->integer; i++)
+    {
+        client_t *cl = &svs.clients[i];
+        if (cl->state >= CS_CONNECTED)
+        {
+            const char *szUserInfo = cl->userinfo;
+            if (NET_CompareBaseAdr(pFrom, &cl->netchan.remoteAddress) && (pFrom->port == cl->netchan.remoteAddress.port))
+            {
+                const char *szPassword = Info_ValueForKey(szUserInfo, "password");
+                if (*sv_password->string && (Q_strncmp(sv_password->string, szPassword, 32) == 0))
+                {
+                    return false;
+                }
+            }
+        }
+    }
+
+    return true;
+}
+
+/*
+=====================
+Cvar_InfoStringCensored - gives a hidden map name
+=====================
+*/
+char *Cvar_InfoStringCensored(int bit)
+{
+    static char	info[MAX_INFO_STRING];
+    char value[8192];
+
+    info[0] = 0;
+    Sys_EnterCriticalSection(CRITSECT_CVAR);
+
+    for (cvar_t *var = cvar_vars; var != NULL; var = var->next)
+    {
+        if (var->flags & bit)
+        {
+            if (Q_stricmp(var->name, "mapname") == 0)
+            {
+                // This function censors the mapname
+                Info_SetValueForKey(info, var->name, "Hidden");
+            }
+            else
+            {
+                if (var->type != CVAR_BOOL)
+                {
+                    Cvar_ValueToStr(var, value, sizeof(value), NULL, 0, NULL, 0);
+                }
+                else
+                {
+                    Com_sprintf(value, sizeof(value), "%d", var->boolean);
+                }
+
+                Info_SetValueForKey(info, var->name, value);
+            }
+        }
+    }
+    Sys_LeaveCriticalSection(CRITSECT_CVAR);
+    return info;
+}
+
+/*
+=====================
+Cvar_InfoString - gives real map name
 =====================
 */
 char	*Cvar_InfoString( int bit ) {

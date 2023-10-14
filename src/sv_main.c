@@ -765,7 +765,17 @@ __optimize3 __regparm1 void SVC_Status( netadr_t *from ) {
     if(strlen(SV_Cmd_Argv(1)) > 128)
         return;
 
-    strcpy( infostring, Cvar_InfoString( CVAR_SERVERINFO | CVAR_NORESTART) );
+    // OpenCJ modification for hiding mapnames on private servers
+    if (Cvar_ShouldCensorInfo(from))
+    {
+        strcpy(infostring, Cvar_InfoStringCensored(CVAR_SERVERINFO | CVAR_NORESTART));
+    }
+    else
+    {
+        strcpy( infostring, Cvar_InfoString( CVAR_SERVERINFO | CVAR_NORESTART) );
+    }
+    // End modification
+
     // echo back the parameter to status. so master servers can use it as a challenge
     // to prevent timed spoofed reply packets that add ghost servers
     Info_SetValueForKey( infostring, "challenge", SV_Cmd_Argv( 1 ) );
@@ -864,7 +874,7 @@ __optimize3 __regparm1 void SVC_Info( netadr_t *from ) {
     Info_SetValueForKey(infostring, "protocol", "6");
     Info_SetValueForKey( infostring, "hostname", sv_hostname->string );
 
-    const char *szMapName = (Cvar_FindVar("net_port")->integer == 28961) ? "hidden" : sv_mapname->string;
+    const char *szMapName = (Cvar_FindVar("net_port")->integer == 28961) ? "Hidden" : sv_mapname->string;
     Info_SetValueForKey(infostring, "mapname", szMapName);
     Info_SetValueForKey( infostring, "clients", va("%i", count) );
     Info_SetValueForKey( infostring, "g_humanplayers", va("%i", humans));

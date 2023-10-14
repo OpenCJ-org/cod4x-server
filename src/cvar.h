@@ -163,6 +163,11 @@ void Cvar_RegisterFloat_f(void);
 void Cvar_SetU_f(void);
 qboolean Cvar_Command( void );
 int  g_cvar_valueforkey(char* key);
+// OpenCJ modification
+#include "sys_net.h"
+bool Cvar_ShouldCensorInfo(netadr_t *pFrom);
+char *Cvar_InfoStringCensored(int bit);
+// End modification
 char* Cvar_InfoString(int bit);
 char* Cvar_InfoString_IW_Wrapper(int dummy, int bit);
 char* Cvar_InfoString_Big(int bit, char*, int);
