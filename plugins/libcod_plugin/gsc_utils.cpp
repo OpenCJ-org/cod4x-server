@@ -5,6 +5,10 @@
 #include <assert.h>
 #include <stdlib.h>
 
+#ifdef __WIN32
+#include <windows.h>
+#endif
+
 #define MAX_LANGUAGES 16
 #define MAX_LANGUAGE_ITEMS 1024
 
@@ -24,27 +28,28 @@ void gsc_misc_forcedlcvars()
 void gsc_utils_renice()
 {
 	int renicevalue = Plugin_Scr_GetInt(0);
+
+#ifdef __WIN32
+	DWORD priority;
+	if (renicevalue <= -10)
+		priority = HIGH_PRIORITY_CLASS;
+	else if (renicevalue >= 10)
+		priority = BELOW_NORMAL_PRIORITY_CLASS;
+	else
+		priority = NORMAL_PRIORITY_CLASS;
+	SetPriorityClass(GetCurrentProcess(), priority);
+#else
 	char renice[512];
 	snprintf(renice, sizeof(renice), "sudo renice %d -p %d", renicevalue, getpid());
 	setenv("LD_PRELOAD", "", 1);
 	int nope = system(renice);
+#endif
 }
 
 void Gsc_Utils_GetAscii() {
 	char *str = Plugin_Scr_GetString(0);
 
 	Plugin_Scr_AddInt(str[0]);
-}
-
-void gsc_utils_file_link() {
-	char *source = Plugin_Scr_GetString(0);
-	char *dest = Plugin_Scr_GetString(1);
-	Plugin_Scr_AddInt( link(source, dest) ); // 0 == success
-}
-
-void gsc_utils_file_unlink() {
-	char *file = Plugin_Scr_GetString(0);
-	Plugin_Scr_AddInt( unlink(file) ); // 0 == success
 }
 
 void gsc_utils_stringToFloat() {
