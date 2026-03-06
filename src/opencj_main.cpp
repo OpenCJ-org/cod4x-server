@@ -314,7 +314,7 @@ void PlayerCmd_Objective_Add(scr_entref_t id)
 		obj->entNum = 1023;
 	}
 
-	ushort index = Scr_GetConstString(1);
+	unsigned short index = Scr_GetConstString(1);
     objectiveState_t state;
 	if (index == scr_const.empty)
 	{

@@ -164,7 +164,8 @@ void Cvar_SetU_f(void);
 qboolean Cvar_Command( void );
 int  g_cvar_valueforkey(char* key);
 // OpenCJ modification
-#include "sys_net.h"
+struct netadr_s;
+typedef struct netadr_s netadr_t;
 bool Cvar_ShouldCensorInfo(netadr_t *pFrom);
 char *Cvar_InfoStringCensored(int bit);
 // End modification
