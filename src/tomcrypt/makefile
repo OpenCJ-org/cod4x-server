@@ -54,6 +54,6 @@ clean:
 ifeq ($(OS),Windows_NT)
 	@del $(subst /,\,$(OBJECTS)) $(subst /,\,$(MATHOBJECTS))
 else
-	@rm $(OBJECTS) $(MATHOBJECTS)
+	@rm -f $(OBJECTS) $(MATHOBJECTS)
 endif
 	@echo Clean done
