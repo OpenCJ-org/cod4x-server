@@ -1942,7 +1942,8 @@ __optimize3 __regparm2 void SV_PacketEvent( netadr_t *from, msg_t *msg ) {
 
     client_t    *cl;
     unsigned short qport;
-    int seq, csack;
+    int seq, csack, incomingSequence;
+    int serverId, messageAcknowledge, reliableAcknowledge;
 
     if(!com_sv_running->boolean)
             return;
@@ -1998,38 +1999,49 @@ __optimize3 __regparm2 void SV_PacketEvent( netadr_t *from, msg_t *msg ) {
         return;
     }
 #endif
-    // make sure it is a valid, in sequence packet
+    // Netchan_Process advances the transport sequence before the header is
+    // validated. A delayed packet from an earlier connection can have a much
+    // larger sequence; do not let a rejected header make current packets look old.
+    incomingSequence = cl->netchan.incomingSequence;
     if ( !Netchan_Process( &cl->netchan, msg ) )
     {
         return;
     }
+    cl->netchan.incomingSequence = incomingSequence;
 
-    // zombie clients still need to do the Netchan_Process
-    // to make sure they don't need to retransmit the final
-    // reliable message, but they don't do any other processing
-    cl->serverId = MSG_ReadLong( msg );
-    cl->messageAcknowledge = MSG_ReadLong( msg );
-
-    if(cl->messageAcknowledge < 0){
-        Com_Printf(CON_CHANNEL_SERVER,"Invalid reliableAcknowledge message from %s - reliableAcknowledge is %i\n", cl->name, cl->reliableAcknowledge);
-        return;
-    }
-
-    cl->reliableAcknowledge = MSG_ReadLong( msg );
-
-    if((cl->reliableSequence - cl->reliableAcknowledge) > (MAX_RELIABLE_COMMANDS - 1) || (cl->reliableSequence - cl->reliableAcknowledge) < 0){
-        Com_Printf(CON_CHANNEL_SERVER,"Out of range reliableAcknowledge message from %s - reliableSequence is %i, reliableAcknowledge is %i\n",
-        cl->name, cl->reliableSequence, cl->reliableAcknowledge);
-        cl->reliableAcknowledge = cl->reliableSequence;
-        return;
-    }
-
-    //New info for configdata
-
-
+    serverId = MSG_ReadLong( msg );
+    messageAcknowledge = MSG_ReadLong( msg );
+    reliableAcknowledge = MSG_ReadLong( msg );
     csack = MSG_ReadLong( msg );
-    if(csack > cl->configDataAcknowledge)
-    { //csack can be lower than cl->configDataAcknowledge in case when server wrote gamestate the client has not yet parsed. Ignoring this data here.
+    if ( msg->overflowed )
+    {
+        return;
+    }
+
+    if ( messageAcknowledge < 0 || messageAcknowledge >= cl->netchan.outgoingSequence )
+    {
+        Com_Printf(CON_CHANNEL_SERVER, "Invalid messageAcknowledge from %s - outgoingSequence is %i, messageAcknowledge is %i\n",
+                   cl->name, cl->netchan.outgoingSequence, messageAcknowledge);
+        return;
+    }
+
+    if ( reliableAcknowledge < 0 || reliableAcknowledge > cl->reliableSequence ||
+         cl->reliableSequence - reliableAcknowledge > MAX_RELIABLE_COMMANDS - 1 )
+    {
+        Com_Printf(CON_CHANNEL_SERVER, "Out of range reliableAcknowledge message from %s - reliableSequence is %i, reliableAcknowledge is %i\n",
+                   cl->name, cl->reliableSequence, reliableAcknowledge);
+        return;
+    }
+
+    // Commit only a complete, valid header, including for zombie clients that
+    // still need to acknowledge their final reliable message.
+    cl->netchan.incomingSequence = seq & 0x7fffffff;
+    cl->serverId = serverId;
+    cl->messageAcknowledge = messageAcknowledge;
+    cl->reliableAcknowledge = reliableAcknowledge;
+    if ( csack > cl->configDataAcknowledge )
+    {
+        // Older config acknowledgments can arrive while a gamestate is pending.
         cl->configDataAcknowledge = csack;
     }
 
