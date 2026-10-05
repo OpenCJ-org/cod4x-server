@@ -2724,6 +2724,7 @@ void MSG_WriteDeltaPlayerstate(struct snapshotInfo_s *snapInfo, msg_t *msg, cons
 	int i, j, lc;
 	playerState_t dummy;
 	qboolean sendOriginAndVel;
+	qboolean hasDeltaBase = from != NULL;
 	netField_t* field;
 	int ammobits[8];
 	int clipbits;
@@ -2755,7 +2756,9 @@ void MSG_WriteDeltaPlayerstate(struct snapshotInfo_s *snapInfo, msg_t *msg, cons
 if(dist < 200)
 VectorCopy(predictedOrigin, to->origin);
 */
-		if ( from && svsHeader.clientArchive && MSG_WithinAllowedPredictionError(dist, to) && predictedTime == to->commandTime )
+		// Recovery snapshots must be self-contained: the client may have lost
+		// its prediction cache along with the acknowledged snapshot baseline.
+		if ( hasDeltaBase && svsHeader.clientArchive && MSG_WithinAllowedPredictionError(dist, to) && predictedTime == to->commandTime )
 		{
 			sendOriginAndVel = 0;
 			MSG_WriteBit0(msg);
