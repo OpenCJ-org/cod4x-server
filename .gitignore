@@ -59,3 +59,6 @@ plugins/mysql
 
 # Wth this is here?
 sys_error.txt
+
+# Generated OpenCJ regression-test executables (including nested make output)
+cod4x18_*_test
