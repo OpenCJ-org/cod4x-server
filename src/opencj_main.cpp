@@ -474,9 +474,51 @@ void renameClient(gclient_t *client, char *s)
  * OpenCJ functions                                                       *
  **************************************************************************/
 
+// Find a clear standing-player destination on the visible side of an aimed
+// collision surface. Use the movement mask, including playerclip, not bullets.
+static void GScr_AimTeleportDestination()
+{
+    vec3_t start, end;
+    Scr_GetVector(0, start);
+    Scr_GetVector(1, end);
+    int ignore = Scr_GetInt(2);
+    if (ignore < 0 || ignore >= MAX_GENTITIES) { Scr_AddUndefined(); return; }
+    const vec3_t zero = {0, 0, 0};
+    const vec3_t mins = {-15, -15, 0}, maxs = {15, 15, 70};
+    const int mask = 42008593;
+    trace_t hit;
+    G_TraceCapsule(&hit, start, zero, zero, end, ignore, mask);
+    if (hit.startsolid || hit.allsolid || hit.fraction >= 1.0f ||
+        (hit.sflags & 4)) { Scr_AddUndefined(); return; } // sky
+    vec3_t point, outside;
+    for (int i=0;i<3;++i) {
+        point[i] = start[i] + hit.fraction * (end[i]-start[i]);
+        outside[i] = point[i] + hit.normal[i];
+    }
+    // Support distance of a standing hull centered 35 units above its feet.
+    float support = 15*(fabsf(hit.normal[0])+fabsf(hit.normal[1])) + 35*fabsf(hit.normal[2]);
+    for (int extra=0;extra<=64;extra+=2) {
+        vec3_t center, origin;
+        for (int i=0;i<3;++i) center[i] = point[i]+hit.normal[i]*(support+1+extra);
+        VectorCopy(center, origin);
+        origin[2] -= 35;
+        trace_t path, clearance;
+        // Never search through another wall into a disconnected empty space.
+        G_TraceCapsule(&path, outside, zero, zero, center, ignore, mask);
+        if (path.startsolid || path.allsolid || path.fraction < 1.0f) break;
+        G_TraceCapsule(&clearance, origin, mins, maxs, origin, ignore, mask);
+        if (!clearance.startsolid && !clearance.allsolid) {
+            Scr_AddVector(origin);
+            return;
+        }
+    }
+    Scr_AddUndefined();
+}
+
 void opencj_init(void)
 {
     // Init callbacks
+    opencj_callbacks[OPENCJ_CB_FRAGBUTTONPRESSED] = GScr_LoadScriptAndLabel("maps/mp/gametypes/_callbacksetup", "CodeCallback_FragButton", qfalse);
     opencj_callbacks[OPENCJ_CB_PLAYERCOMMAND]           = GScr_LoadScriptAndLabel("maps/mp/gametypes/_callbacksetup", "CodeCallback_PlayerCommand",             qfalse);
     opencj_callbacks[OPENCJ_CB_RPGFIRED]                = GScr_LoadScriptAndLabel("maps/mp/gametypes/_callbacksetup", "CodeCallback_RPGFired",                  qfalse);
     opencj_callbacks[OPENCJ_CB_WEAPONFIRED]             = GScr_LoadScriptAndLabel("maps/mp/gametypes/_callbacksetup", "CodeCallback_WeaponFired",               qfalse);
@@ -549,6 +591,8 @@ void opencj_addMethodsAndFunctions(void)
     {
         Scr_AddMethod(scriptMethods[i].name, (xmethod_t)scriptMethods[i].call, (scriptMethods[i].developer == 0) ? qfalse : qtrue);
     }
+
+    Scr_AddFunction("aimteleportdestination", GScr_AimTeleportDestination, qfalse);
 
     // FUNCTIONS
     // Extra
@@ -669,6 +713,15 @@ void opencj_onClientMoveCommand(client_t *client, usercmd_t *ucmd)
 	}
 
     // 2. Buttons pressed reporting
+    if ((ucmd->buttons & KEY_MASK_FRAG) && !(opencj_previousButtons[clientNum] & KEY_MASK_FRAG))
+    {
+        if (opencj_callbacks[OPENCJ_CB_FRAGBUTTONPRESSED])
+        {
+            short ret = Scr_ExecEntThread(client->gentity, opencj_callbacks[OPENCJ_CB_FRAGBUTTONPRESSED], 0);
+            Scr_FreeThread(ret);
+        }
+    }
+
 	if(ucmd->buttons & KEY_MASK_MELEE && !(opencj_previousButtons[clientNum] & KEY_MASK_MELEE))
 	{
 		if(opencj_callbacks[OPENCJ_CB_MELEEBUTTONPRESSED])
