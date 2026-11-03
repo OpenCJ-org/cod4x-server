@@ -498,16 +498,35 @@ static void GScr_AimTeleportDestination()
     // Support distance of a standing hull centered 35 units above its feet.
     float support = 15*(fabsf(hit.normal[0])+fabsf(hit.normal[1])) + 35*fabsf(hit.normal[2]);
     for (int extra=0;extra<=64;extra+=2) {
-        vec3_t center, origin;
-        for (int i=0;i<3;++i) center[i] = point[i]+hit.normal[i]*(support+1+extra);
-        VectorCopy(center, origin);
-        origin[2] -= 35;
-        trace_t path, clearance;
-        // Never search through another wall into a disconnected empty space.
-        G_TraceCapsule(&path, outside, zero, zero, center, ignore, mask);
-        if (path.startsolid || path.allsolid || path.fraction < 1.0f) break;
-        G_TraceCapsule(&clearance, origin, mins, maxs, origin, ignore, mask);
-        if (!clearance.startsolid && !clearance.allsolid) {
+        vec3_t base;
+        for (int i=0;i<3;++i) base[i] = point[i]+hit.normal[i]*(support+1+extra);
+        base[2] -= 35;
+        // A low wall hit can put the feet inside the platform below it.
+        // Search upward on the visible side before moving farther from the wall.
+        const int maxLift = fabsf(hit.normal[2]) < 0.7f ? 72 : 0;
+        for (int lift=0;lift<=maxLift;lift+=2) {
+            vec3_t origin, center;
+            VectorCopy(base, origin);
+            origin[2] += lift;
+            VectorCopy(origin, center);
+            center[2] += 35;
+            trace_t path, clearance;
+            // Every candidate must be reachable from the visible face without
+            // crossing another surface (including overhangs).
+            G_TraceCapsule(&path, outside, zero, zero, center, ignore, mask);
+            if (path.startsolid || path.allsolid || path.fraction < 1.0f) continue;
+            G_TraceCapsule(&clearance, origin, mins, maxs, origin, ignore, mask);
+            if (clearance.startsolid || clearance.allsolid) continue;
+            if (lift > 0) {
+                // Settle the lifted hull onto the platform, rather than leaving
+                // its feet at an arbitrary search step above the surface.
+                trace_t floor;
+                G_TraceCapsule(&floor, origin, mins, maxs, base, ignore, mask);
+                if (floor.startsolid || floor.allsolid || floor.fraction >= 1.0f || floor.normal[2] < 0.7f) continue;
+                origin[2] += (base[2]-origin[2])*floor.fraction + 0.125f;
+                G_TraceCapsule(&clearance, origin, mins, maxs, origin, ignore, mask);
+                if (clearance.startsolid || clearance.allsolid) continue;
+            }
             Scr_AddVector(origin);
             return;
         }
