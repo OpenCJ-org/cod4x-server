@@ -3,6 +3,7 @@
 	extern PM_playerTrace
 	extern Trace_GetEntityHitId
 	extern PM_AddTouchEnt
+	extern OpenCJ_StickyWallRecovery
 	extern PM_ClipVelocity
 	extern PM_ProjectVelocity
 	extern floorf
@@ -240,6 +241,21 @@ PM_SlideMove_100:
 	mov eax, [ebp-0x138]
 	addss xmm0, [eax]
 	movss [ecx+0x8], xmm0
+	; Precision recovery, only after the existing repeated-plane push.
+	pushad
+	sub esp, 16
+	mov eax, [ebp-0x140]
+	add eax, 0x1c
+	mov [esp], eax
+	mov eax, [ebp-0x14c]
+	mov [esp+4], eax
+	lea eax, [ebp-0xb0]
+	mov [esp+8], eax
+	mov eax, [ebp-0x144]
+	mov [esp+12], eax
+	call OpenCJ_StickyWallRecovery
+	add esp, 16
+	popad
 PM_SlideMove_240:
 	add dword [ebp-0x148], 0x1
 	cmp dword [ebp-0x148], 0x4
