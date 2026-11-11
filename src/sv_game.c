@@ -785,6 +785,12 @@ void __cdecl SV_InitGameVM(int restart, int registerDvars)
 
 /*  Sys_LoadingKeepAlive();*/
 
+  // #201: publish the mapper's strength through codinfo, including late joins.
+  // Keep the client's cheat protection; reset before scripts on every map/restart.
+  cvar_t *specularScale = Cvar_RegisterFloat("r_specularColorScale", 1.0f,
+      0.0f, 100.0f, CVAR_CHEAT | CVAR_CONFIG, "Map specular highlight strength");
+  Cvar_SetFloat(specularScale, 1.0f);
+
   time = Sys_MillisecondsRaw();
   G_InitGame(svs.time, time, restart, registerDvars, sv_fps->integer);
 /*
