@@ -311,3 +311,7 @@ plugins:
 
 
 .PHONY: plugins
+
+# OpenCJ native registration and worker-pool interface dependencies.
+$(OBJ_DIR)/opencj_main.o: $(OPENCJ_EXT_DIR)/functions.hpp $(OPENCJ_EXT_DIR)/gsc_custom_mysql.hpp
+$(OBJ_DIR)/gsc_custom_mysql.o $(OBJ_DIR)/mysql_async_pool.o: $(OPENCJ_EXT_DIR)/mysql_async_pool.hpp
