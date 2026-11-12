@@ -528,6 +528,10 @@ static void GScr_AimTeleportDestination()
 
 void opencj_init(void)
 {
+    // Initial systeminfo reaches clients before map loading and the first frame.
+    // Camera enablement is session-only; later chat commands use per-client dvars.
+    cvar_t *cameraDefault=Cvar_RegisterBool("cg_thirdPerson",qfalse,CVAR_SYSTEMINFO|CVAR_ROM,"Start new connections in first-person");
+    Cvar_SetBool(cameraDefault,qfalse);
     memset(opencj_historyInputValid,0,sizeof(opencj_historyInputValid));
     for(int i=0;i<MAX_CLIENTS;++i)opencj_initMovement(i);
     // Init callbacks

@@ -5,6 +5,7 @@
 #include "qcommon_io.h"
 
 #include "opencj_main.hpp" // OpenCJ
+#include "../server-ext/opencj_demo.hpp"
 
 extern "C"{
 
@@ -88,6 +89,8 @@ void __cdecl G_PlayerStateToEntityStateExtrapolate(playerState_s *ps, entityStat
 
 void G_UpdateEntityStateFromPlayerState(struct gclient_s *client, struct gentity_s *ent)
 {
+      // Linked/frozen demo viewers otherwise receive the stock idle body pose.
+      OpenCJ_Demo_ApplyBody(ent - g_entities);
       if ( g_smoothClients->boolean )
       {
         G_PlayerStateToEntityStateExtrapolate(&client->ps, &ent->s, client->ps.commandTime, 1);
