@@ -539,6 +539,7 @@ static void GScr_AimTeleportDestination()
 void opencj_init(void)
 {
     memset(opencj_historyInputValid,0,sizeof(opencj_historyInputValid));
+    for(int i=0;i<MAX_CLIENTS;++i)opencj_initMovement(i);
     // Init callbacks
     opencj_callbacks[OPENCJ_CB_MOVEMENTSTATE] = GScr_LoadScriptAndLabel("maps/mp/gametypes/_callbacksetup", "CodeCallback_MovementState", qfalse);
     opencj_callbacks[OPENCJ_CB_FRAGBUTTONPRESSED] = GScr_LoadScriptAndLabel("maps/mp/gametypes/_callbacksetup", "CodeCallback_FragButton", qfalse);
@@ -672,6 +673,7 @@ static void opencj_onConnect(scr_entref_t id)
 
     int clientNum = gent->client->ps.clientNum;
     opencj_clearPlayerFPS(clientNum);
+    opencj_initMovement(clientNum);
     opencj_historyInputValid[clientNum]=false;
 
     opencj_previousButtons[id.entnum] = 0;
@@ -743,6 +745,7 @@ void opencj_onClientMoveCommand(client_t *client, usercmd_t *ucmd)
 
     // Complete input state includes releases, unlike the legacy WASD presses.
     if(gclient->sess.sessionState==SESS_STATE_PLAYING) {
+        opencj_observeMovement(&gclient->ps,ucmd);
         int f=(ucmd->forwardmove>0)-(ucmd->forwardmove<0);
         int r=(ucmd->rightmove>0)-(ucmd->rightmove<0);
         int ground=gclient->ps.groundEntityNum!=1023;

@@ -1,4 +1,5 @@
 ;Imports of bg_pmove:
+	extern opencj_airAccelerate
 	extern AngleDelta
 	extern AngleNormalize360
 	extern BG_CheckProne
@@ -108,6 +109,7 @@
 	global PM_Footsteps
 	global PM_ViewHeightAdjust
 	global PM_CheckDuck
+	global OpenCJ_PM_Accelerate
 	global PM_Accelerate
 	global PM_AirMove
 	global BG_GetSpeed
@@ -3387,6 +3389,21 @@ PM_CheckDuck_460:
 	nop
 
 
+; C ABI adapter to the unmodified engine acceleration function.
+OpenCJ_PM_Accelerate:
+    push ebp
+    mov ebp, esp
+    and esp, 0xfffffff0
+    mov eax, [ebp+0x8]
+    mov edx, [ebp+0xc]
+    mov ecx, [ebp+0x10]
+    movss xmm0, [ebp+0x14]
+    movss xmm1, [ebp+0x18]
+    call PM_Accelerate
+    mov esp, ebp
+    pop ebp
+    ret
+
 ;PM_Accelerate(playerState_s*, pml_t const*, float const*, float, float)
 PM_Accelerate:
 	push ebp
@@ -3763,7 +3780,12 @@ PM_AirMove_130:
 	mulss xmm0, xmm3
 	mov edx, esi
 	mov eax, edi
-	call PM_Accelerate
+	mov eax, [ebp-0x40]
+	mov [esp], eax
+	mov [esp+0x4], esi
+	mov [esp+0x8], ecx
+	movss [esp+0xc], xmm0
+	call opencj_airAccelerate
 	mov eax, [esi+0x30]
 	test eax, eax
 	jz PM_AirMove_90
