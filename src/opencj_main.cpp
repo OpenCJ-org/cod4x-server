@@ -63,6 +63,8 @@ static bool opencj_playerWASDCallbackEnabled[MAX_CLIENTS] = {0};
 // For button monitoring
 static int opencj_previousButtons[MAX_CLIENTS] = {0};
 static playermovement_t opencj_playerMovement[MAX_CLIENTS] = {{0}};
+static int opencj_historyInput[MAX_CLIENTS][3];
+static bool opencj_historyInputValid[MAX_CLIENTS];
 
 // Ground monitoring
 bool opencj_clientOnGround[MAX_CLIENTS];
@@ -536,7 +538,9 @@ static void GScr_AimTeleportDestination()
 
 void opencj_init(void)
 {
+    memset(opencj_historyInputValid,0,sizeof(opencj_historyInputValid));
     // Init callbacks
+    opencj_callbacks[OPENCJ_CB_MOVEMENTSTATE] = GScr_LoadScriptAndLabel("maps/mp/gametypes/_callbacksetup", "CodeCallback_MovementState", qfalse);
     opencj_callbacks[OPENCJ_CB_FRAGBUTTONPRESSED] = GScr_LoadScriptAndLabel("maps/mp/gametypes/_callbacksetup", "CodeCallback_FragButton", qfalse);
     opencj_callbacks[OPENCJ_CB_PLAYERCOMMAND]           = GScr_LoadScriptAndLabel("maps/mp/gametypes/_callbacksetup", "CodeCallback_PlayerCommand",             qfalse);
     opencj_callbacks[OPENCJ_CB_RPGFIRED]                = GScr_LoadScriptAndLabel("maps/mp/gametypes/_callbacksetup", "CodeCallback_RPGFired",                  qfalse);
@@ -668,12 +672,18 @@ static void opencj_onConnect(scr_entref_t id)
 
     int clientNum = gent->client->ps.clientNum;
     opencj_clearPlayerFPS(clientNum);
+    opencj_historyInputValid[clientNum]=false;
 
     opencj_previousButtons[id.entnum] = 0;
     memset(&opencj_playerMovement[id.entnum], 0, sizeof(opencj_playerMovement[id.entnum]));
     opencj_clientOnGround[id.entnum] = false;
     opencj_clientCanBounce[id.entnum] = false;
     opencj_clientBouncePrevVelocity[id.entnum] = 0.0f;
+}
+
+void opencj_invalidateMovementInput(int client)
+{
+    if(client>=0&&client<MAX_CLIENTS)opencj_historyInputValid[client]=false;
 }
 
 void opencj_onFrame(void)
@@ -730,6 +740,22 @@ void opencj_onClientMoveCommand(client_t *client, usercmd_t *ucmd)
 			Scr_FreeThread(ret);
 		}
 	}
+
+    // Complete input state includes releases, unlike the legacy WASD presses.
+    if(gclient->sess.sessionState==SESS_STATE_PLAYING) {
+        int f=(ucmd->forwardmove>0)-(ucmd->forwardmove<0);
+        int r=(ucmd->rightmove>0)-(ucmd->rightmove<0);
+        int ground=gclient->ps.groundEntityNum!=1023;
+        int *previous=opencj_historyInput[clientNum];
+        if(!opencj_historyInputValid[clientNum]||previous[0]!=f||previous[1]!=r||previous[2]!=ground) {
+            previous[0]=f;previous[1]=r;previous[2]=ground;opencj_historyInputValid[clientNum]=true;
+            if(opencj_callbacks[OPENCJ_CB_MOVEMENTSTATE]) {
+                Scr_AddBool(ground);Scr_AddInt(ucmd->serverTime);Scr_AddInt(r);Scr_AddInt(f);
+                short ret=Scr_ExecEntThread(client->gentity,opencj_callbacks[OPENCJ_CB_MOVEMENTSTATE],4);
+                Scr_FreeThread(ret);
+            }
+        }
+    }
 
     // 2. Buttons pressed reporting
     if ((ucmd->buttons & KEY_MASK_FRAG) && !(opencj_previousButtons[clientNum] & KEY_MASK_FRAG))

@@ -31,6 +31,7 @@ typedef enum
     OPENCJ_CB_ON_PLAYER_ELE,
 
     OPENCJ_CB_FRAGBUTTONPRESSED,
+    OPENCJ_CB_MOVEMENTSTATE,
     OPENCJ_CB_COUNT, // Always keep this as last entry
 } opencj_callback_t;
 
