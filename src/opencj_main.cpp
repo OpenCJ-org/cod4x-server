@@ -165,6 +165,27 @@ static void PlayerCmd_FollowPlayer(scr_entref_t arg)
     }
 }
 
+// Pure name cleanup lets scripts validate before publishing a new name.
+// Never mutate Scr_GetString's interned input buffer.
+static void cleanOpenCJPlayerName(const char *input, char *output, int outputSize)
+{
+    char buffer[64]={0};
+    Q_strncpyz(buffer,input ? input : "",sizeof(buffer));
+    for(char *p=buffer;*p;++p)
+        if((unsigned char)*p<0x20 || (unsigned char)*p==0x7f)*p='?';
+    int length=strlen(buffer);
+    for(int i=length;i<3;++i)buffer[i]='0'+(i-length);
+    ClientCleanName(buffer,output,outputSize,qtrue);
+}
+
+static void GScr_CleanPlayerName()
+{
+    if(Scr_GetNumParam()!=1){Scr_Error("Usage: cleanPlayerName(name)");return;}
+    char result[MAX_NETNAME]={0};
+    cleanOpenCJPlayerName(Scr_GetString(0),result,sizeof(result));
+    Scr_AddString(result);
+}
+
 static void PlayerCmd_RenameClient(scr_entref_t arg)
 {
     mvabuf;
@@ -433,43 +454,12 @@ void PlayerCmd_SetMoveSpeed_Wrap(scr_entref_t id)
 
 void renameClient(gclient_t *client, char *s)
 {
-    if (!client || !s || (s[0] == '\0')) return;
-
-    int i = 0;
-    // Strip leading spaces
-    while (s[i] == ' ')
-    {
-        s++; // Skip over the space
-        i++;
-    }
-
-    i = 0;
-    while (s[i] != '\0')
-    {
-        if (((unsigned char)s[i] < 0x1F) || ((unsigned char)s[i] == 0x7F))
-        {
-            s[i] = '?';
-        }
-        i++;
-    }
-
-    // Enforce a minimum name length. Since this could require more characters than were allocated, allocate a new buffer
-    char buf[64] = {0};
-    Q_strncpyz(buf, s, sizeof(buf));
-    char *pCleanedNewName = (char *)buf;
-    int newNameLen = strlen(pCleanedNewName);
-    int minNameLen = 3;
-    if (newNameLen < minNameLen)
-    {
-        for (int i = 0; i < (minNameLen - newNameLen); i++)
-        {
-            pCleanedNewName[newNameLen + i] = (i % 10) + '0'; // Limit to 0-9
-        }
-    }
-
-    ClientCleanName(pCleanedNewName, client->sess.cs.netname, sizeof(client->sess.cs.netname), qtrue);
+    if(!client || !s)return;
+    char cleaned[MAX_NETNAME]={0};
+    cleanOpenCJPlayerName(s,cleaned,sizeof(cleaned));
+    Q_strncpyz(client->sess.cs.netname,cleaned,sizeof(client->sess.cs.netname));
     CS_SetPlayerName(&client->sess.cs, client->sess.cs.netname);
-    Q_strncpyz(client->sess.newnetname, client->sess.cs.netname, sizeof(client->sess.newnetname));
+    Q_strncpyz(client->sess.newnetname,client->sess.cs.netname,sizeof(client->sess.newnetname));
 }
 
 /**************************************************************************
@@ -633,6 +623,7 @@ void opencj_addMethodsAndFunctions(void)
     Scr_AddMethod("clientcommand",          PlayerCmd_ClientCommand,            qfalse); 
     Scr_AddMethod("stoprecord",             PlayerCmd_StopRecord,               qfalse);
     Scr_AddMethod("startrecord",            PlayerCmd_StartRecord,              qfalse);
+    Scr_AddFunction("cleanplayername", GScr_CleanPlayerName, qfalse);
     Scr_AddMethod("renameclient",           PlayerCmd_RenameClient,             qfalse);
     Scr_AddMethod("stopfollowingme",        Gsc_StopFollowingMe,                qfalse);
     Scr_AddMethod("getmaxheight",           Gsc_GetMaxHeight,                   qfalse);
