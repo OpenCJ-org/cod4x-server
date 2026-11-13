@@ -533,7 +533,7 @@ void opencj_init(void)
     cvar_t *cameraDefault=Cvar_RegisterBool("cg_thirdPerson",qfalse,CVAR_SYSTEMINFO|CVAR_ROM,"Start new connections in first-person");
     Cvar_SetBool(cameraDefault,qfalse);
     memset(opencj_historyInputValid,0,sizeof(opencj_historyInputValid));
-    for(int i=0;i<MAX_CLIENTS;++i)opencj_initMovement(i);
+    for(int i=0;i<MAX_CLIENTS;++i){opencj_initMovement(i);gsc_saveposition_initclient(i);}
     // Init callbacks
     opencj_callbacks[OPENCJ_CB_MOVEMENTSTATE] = GScr_LoadScriptAndLabel("maps/mp/gametypes/_callbacksetup", "CodeCallback_MovementState", qfalse);
     opencj_callbacks[OPENCJ_CB_FRAGBUTTONPRESSED] = GScr_LoadScriptAndLabel("maps/mp/gametypes/_callbacksetup", "CodeCallback_FragButton", qfalse);
