@@ -2317,3 +2317,26 @@ int SV_GetArchivedClientInfo(int clientNum, int *pArchiveTime, playerState_t *ps
   }
   return 0;
 }
+
+// Begin OpenCJ: tutorial auto-FPS
+/*
+Builds and sends one client's snapshot now, outside the server frame, so reliable
+commands queued while handling this client's packet (a com_maxfps change) reach it
+without waiting up to one server frame (50 ms). Builds the frame first, like
+SV_SendClientMessages, so later snapshots can delta from it. Does nothing for bots,
+inactive clients, or while a large message is still being sent in fragments.
+*/
+void SV_SendClientSnapshotNow( client_t *client )
+{
+	if ( client->state != CS_ACTIVE || client->netchan.remoteAddress.type == NA_BOT )
+	{
+		return;
+	}
+	if ( client->netchan.unsentFragments )
+	{
+		return;
+	}
+	SV_BuildClientSnapshot( client );
+	SV_SendClientSnapshot( client );
+}
+// End OpenCJ

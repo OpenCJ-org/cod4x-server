@@ -634,6 +634,9 @@ void SV_Heartbeat_f( void );
 void SV_ExecuteClientCommand( client_t *cl, const char *s, qboolean clientOK, qboolean inDl );
 
 void SV_SendClientSnapshot( client_t *cl );
+// Begin OpenCJ: tutorial auto-FPS delivers com_maxfps changes without waiting for the next frame
+void SV_SendClientSnapshotNow( client_t *client );
+// End OpenCJ
 
 qboolean SV_Acceptclient(int);
 client_t* SV_ReadPackets(netadr_t *from, unsigned short qport);
