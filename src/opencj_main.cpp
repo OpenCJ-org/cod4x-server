@@ -167,23 +167,25 @@ static void PlayerCmd_FollowPlayer(scr_entref_t arg)
 
 // Pure name cleanup lets scripts validate before publishing a new name.
 // Never mutate Scr_GetString's interned input buffer.
-static void cleanOpenCJPlayerName(const char *input, char *output, int outputSize)
+static void cleanOpenCJPlayerName(const char *input, char *output, int outputSizeBytes)
 {
-    char buffer[64] = {0};
-    Q_strncpyz(buffer, input ? input : "", sizeof(buffer));
-    for (char *p = buffer; *p; ++p)
+    const int minimumNameLength = 3;
+    char inputName[64] = {0};
+    Q_strncpyz(inputName, input ? input : "", sizeof(inputName));
+    for (char *character = inputName; *character; ++character)
     {
-        if ((unsigned char)*p < 0x20 || (unsigned char)*p == 0x7f)
+        // Replace ASCII control characters before applying the engine's name rules.
+        if ((unsigned char)*character < 0x20 || (unsigned char)*character == 0x7f)
         {
-            *p = '?';
+            *character = '?';
         }
     }
-    int length = strlen(buffer);
-    for (int i = length; i < 3; ++i)
+    int inputLength = strlen(inputName);
+    for (int index = inputLength; index < minimumNameLength; ++index)
     {
-        buffer[i] = '0' + (i - length);
+        inputName[index] = '0' + (index - inputLength);
     }
-    ClientCleanName(buffer, output, outputSize, qtrue);
+    ClientCleanName(inputName, output, outputSizeBytes, qtrue);
 }
 
 static void GScr_CleanPlayerName()
@@ -464,15 +466,16 @@ void PlayerCmd_SetMoveSpeed_Wrap(scr_entref_t id)
  * Global functions                                                       *
  **************************************************************************/
 
-void renameClient(gclient_t *client, char *s)
+// Publish one cleaned name consistently to the session and network-visible state.
+void renameClient(gclient_t *client, char *requestedName)
 {
-    if (!client || !s)
+    if (!client || !requestedName)
     {
         return;
     }
-    char cleaned[MAX_NETNAME] = {0};
-    cleanOpenCJPlayerName(s, cleaned, sizeof(cleaned));
-    Q_strncpyz(client->sess.cs.netname, cleaned, sizeof(client->sess.cs.netname));
+    char cleanedName[MAX_NETNAME] = {0};
+    cleanOpenCJPlayerName(requestedName, cleanedName, sizeof(cleanedName));
+    Q_strncpyz(client->sess.cs.netname, cleanedName, sizeof(client->sess.cs.netname));
     CS_SetPlayerName(&client->sess.cs, client->sess.cs.netname);
     Q_strncpyz(client->sess.newnetname, client->sess.cs.netname, sizeof(client->sess.newnetname));
 }

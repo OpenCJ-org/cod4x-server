@@ -36,7 +36,7 @@ typedef enum
 } opencj_callback_t;
 
 // Prototypes
-void renameClient(gclient_t *, char *);
+void renameClient(gclient_t *client, char *requestedName);
 
 void opencj_init(void);
 void opencj_onFrame(void);
