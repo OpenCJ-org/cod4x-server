@@ -1942,8 +1942,12 @@ __optimize3 __regparm2 void SV_PacketEvent( netadr_t *from, msg_t *msg ) {
 
     client_t    *cl;
     unsigned short qport;
-    int seq, csack, incomingSequence;
-    int serverId, messageAcknowledge, reliableAcknowledge;
+    int packetSequence;
+    int configDataAcknowledge;
+    int incomingSequenceBeforePacket;
+    int serverId;
+    int messageAcknowledge;
+    int reliableAcknowledge;
 
     if(!com_sv_running->boolean)
             return;
@@ -1953,10 +1957,10 @@ __optimize3 __regparm2 void SV_PacketEvent( netadr_t *from, msg_t *msg ) {
         return;
     }
     MSG_BeginReading( msg );
-    seq = MSG_ReadLong( msg );           // sequence number
+    packetSequence = MSG_ReadLong( msg );           // sequence number
 
     // check for connectionless packet (0xffffffff) first
-    if ( seq == -1 )
+    if ( packetSequence == -1 )
     {
         SV_ConnectionlessPacket( from, msg );
         return;
@@ -1967,7 +1971,7 @@ __optimize3 __regparm2 void SV_PacketEvent( netadr_t *from, msg_t *msg ) {
     // stupid address translating routers
 
 #ifdef COD4X18UPDATE
-    if(seq == 0xfffffffe)
+    if(packetSequence == 0xfffffffe)
     {
         SV_ReceiveFromUpdateProxy( msg );
         return;
@@ -1986,7 +1990,7 @@ __optimize3 __regparm2 void SV_PacketEvent( netadr_t *from, msg_t *msg ) {
         return;
     }
 
-    if(seq == 0xfffffff0)
+    if(packetSequence == 0xfffffff0)
     {
         ReliableMessagesReceiveNextFragment( cl->reliablemsg.netstate , msg );
         return;
@@ -2002,17 +2006,17 @@ __optimize3 __regparm2 void SV_PacketEvent( netadr_t *from, msg_t *msg ) {
     // Netchan_Process advances the transport sequence before the header is
     // validated. A delayed packet from an earlier connection can have a much
     // larger sequence; do not let a rejected header make current packets look old.
-    incomingSequence = cl->netchan.incomingSequence;
+    incomingSequenceBeforePacket = cl->netchan.incomingSequence;
     if ( !Netchan_Process( &cl->netchan, msg ) )
     {
         return;
     }
-    cl->netchan.incomingSequence = incomingSequence;
+    cl->netchan.incomingSequence = incomingSequenceBeforePacket;
 
     serverId = MSG_ReadLong( msg );
     messageAcknowledge = MSG_ReadLong( msg );
     reliableAcknowledge = MSG_ReadLong( msg );
-    csack = MSG_ReadLong( msg );
+    configDataAcknowledge = MSG_ReadLong( msg );
     if ( msg->overflowed )
     {
         return;
@@ -2035,14 +2039,16 @@ __optimize3 __regparm2 void SV_PacketEvent( netadr_t *from, msg_t *msg ) {
 
     // Commit only a complete, valid header, including for zombie clients that
     // still need to acknowledge their final reliable message.
-    cl->netchan.incomingSequence = seq & 0x7fffffff;
+    // The high packet bit marks fragments; the remaining bits hold the sequence.
+    const int packetSequenceMask = 0x7fffffff;
+    cl->netchan.incomingSequence = packetSequence & packetSequenceMask;
     cl->serverId = serverId;
     cl->messageAcknowledge = messageAcknowledge;
     cl->reliableAcknowledge = reliableAcknowledge;
-    if ( csack > cl->configDataAcknowledge )
+    if ( configDataAcknowledge > cl->configDataAcknowledge )
     {
         // Older config acknowledgments can arrive while a gamestate is pending.
-        cl->configDataAcknowledge = csack;
+        cl->configDataAcknowledge = configDataAcknowledge;
     }
 
     SV_Netchan_Decode(cl, &msg->data[msg->readcount], msg->cursize - msg->readcount);

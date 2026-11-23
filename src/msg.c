@@ -2758,7 +2758,8 @@ VectorCopy(predictedOrigin, to->origin);
 */
 		// Recovery snapshots must be self-contained: the client may have lost
 		// its prediction cache along with the acknowledged snapshot baseline.
-		if ( hasDeltaBase && svsHeader.clientArchive && MSG_WithinAllowedPredictionError(dist, to) && predictedTime == to->commandTime )
+		if ( hasDeltaBase && svsHeader.clientArchive &&
+		     MSG_WithinAllowedPredictionError(dist, to) && predictedTime == to->commandTime )
 		{
 			sendOriginAndVel = 0;
 			MSG_WriteBit0(msg);
