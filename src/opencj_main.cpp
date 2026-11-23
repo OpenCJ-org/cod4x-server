@@ -484,109 +484,155 @@ void renameClient(gclient_t *client, char *requestedName)
  * OpenCJ functions                                                       *
  **************************************************************************/
 
-// Find a clear standing-player destination on the visible side of an aimed
-// collision surface. Use the movement mask, including playerclip, not bullets.
+// Keep the established standing hull and bounded search used by aim teleport.
+static const vec3_t TELEPORT_HULL_MINS = {-15, -15, 0};
+static const vec3_t TELEPORT_HULL_MAXS = {15, 15, 70};
+static const vec3_t POINT_TRACE_BOUNDS = {0, 0, 0};
+static const int PLAYER_MOVEMENT_CONTENTS = 42008593;
+static const int SKY_SURFACE_FLAG = 4;
+static const float TELEPORT_HULL_HALF_WIDTH = 15;
+static const float TELEPORT_HULL_HALF_HEIGHT = 35;
+static const float TELEPORT_SURFACE_CLEARANCE = 1;
+static const float TELEPORT_FLOOR_CLEARANCE = 0.125f;
+static const float MIN_TELEPORT_FLOOR_NORMAL_Z = 0.7f;
+static const int MAX_TELEPORT_OUTWARD_SEARCH = 64;
+static const int MAX_TELEPORT_WALL_LIFT = 72;
+static const int TELEPORT_SEARCH_STEP = 2;
+
+static bool isStandingTeleportOriginClear(const vec3_t origin, int ignoredEntityNum)
+{
+    trace_t clearance;
+    G_TraceCapsule(&clearance, origin, TELEPORT_HULL_MINS, TELEPORT_HULL_MAXS,
+                   origin, ignoredEntityNum, PLAYER_MOVEMENT_CONTENTS);
+    return !clearance.startsolid && !clearance.allsolid;
+}
+
+// A lifted candidate must settle onto a floor and still leave the full hull clear.
+static bool settleTeleportOrigin(vec3_t origin, const vec3_t baseOrigin, int ignoredEntityNum)
+{
+    trace_t floor;
+    G_TraceCapsule(&floor, origin, TELEPORT_HULL_MINS, TELEPORT_HULL_MAXS,
+                   baseOrigin, ignoredEntityNum, PLAYER_MOVEMENT_CONTENTS);
+    if (floor.startsolid || floor.allsolid || floor.fraction >= 1.0f ||
+        floor.normal[2] < MIN_TELEPORT_FLOOR_NORMAL_Z)
+    {
+        return false;
+    }
+    origin[2] += (baseOrigin[2] - origin[2]) * floor.fraction + TELEPORT_FLOOR_CLEARANCE;
+    return isStandingTeleportOriginClear(origin, ignoredEntityNum);
+}
+
+// Search only the visible side. Publish a destination only after path and hull checks pass.
+static bool findVisibleTeleportDestination(const trace_t &hit, const vec3_t start,
+                                           const vec3_t end, int ignoredEntityNum,
+                                           vec3_t destination)
+{
+    vec3_t surfacePoint;
+    vec3_t visiblePoint;
+    for (int axis = 0; axis < 3; ++axis)
+    {
+        surfacePoint[axis] = start[axis] + hit.fraction * (end[axis] - start[axis]);
+        visiblePoint[axis] = surfacePoint[axis] + hit.normal[axis];
+    }
+    float hullSupport = TELEPORT_HULL_HALF_WIDTH * (fabsf(hit.normal[0]) + fabsf(hit.normal[1]))
+                        + TELEPORT_HULL_HALF_HEIGHT * fabsf(hit.normal[2]);
+    const bool isWall = fabsf(hit.normal[2]) < MIN_TELEPORT_FLOOR_NORMAL_Z;
+    const int maximumLift = isWall ? MAX_TELEPORT_WALL_LIFT : 0;
+    for (int outwardOffset = 0; outwardOffset <= MAX_TELEPORT_OUTWARD_SEARCH;
+         outwardOffset += TELEPORT_SEARCH_STEP)
+    {
+        vec3_t baseOrigin;
+        for (int axis = 0; axis < 3; ++axis)
+        {
+            baseOrigin[axis] = surfacePoint[axis] + hit.normal[axis]
+                              * (hullSupport + TELEPORT_SURFACE_CLEARANCE + outwardOffset);
+        }
+        baseOrigin[2] -= TELEPORT_HULL_HALF_HEIGHT;
+        // A low wall hit can put the feet inside its platform. Try lifting before moving out.
+        for (int lift = 0; lift <= maximumLift; lift += TELEPORT_SEARCH_STEP)
+        {
+            vec3_t origin;
+            vec3_t center;
+            VectorCopy(baseOrigin, origin);
+            origin[2] += lift;
+            VectorCopy(origin, center);
+            center[2] += TELEPORT_HULL_HALF_HEIGHT;
+
+            // Reject candidates behind another surface, including overhangs.
+            trace_t path;
+            G_TraceCapsule(&path, visiblePoint, POINT_TRACE_BOUNDS, POINT_TRACE_BOUNDS,
+                           center, ignoredEntityNum, PLAYER_MOVEMENT_CONTENTS);
+            if (path.startsolid || path.allsolid || path.fraction < 1.0f ||
+                !isStandingTeleportOriginClear(origin, ignoredEntityNum))
+            {
+                continue;
+            }
+            bool usableOrigin = true;
+            if (lift > 0)
+            {
+                usableOrigin = settleTeleportOrigin(origin, baseOrigin, ignoredEntityNum);
+            }
+            if (!usableOrigin)
+            {
+                continue;
+            }
+            VectorCopy(origin, destination);
+            return true;
+        }
+    }
+    return false;
+}
+
+// Find a clear standing-player destination using movement collision, including playerclip.
 static void GScr_AimTeleportDestination()
 {
     vec3_t start;
     vec3_t end;
     Scr_GetVector(0, start);
     Scr_GetVector(1, end);
-    int ignore = Scr_GetInt(2);
-    if (ignore < 0 || ignore >= MAX_GENTITIES)
+    int ignoredEntityNum = Scr_GetInt(2);
+    if (ignoredEntityNum < 0 || ignoredEntityNum >= MAX_GENTITIES)
     {
         Scr_AddUndefined();
         return;
     }
-    const vec3_t zero = {0, 0, 0};
-    const vec3_t mins = {-15, -15, 0};
-    const vec3_t maxs = {15, 15, 70};
-    const int mask = 42008593;
     trace_t hit;
-    G_TraceCapsule(&hit, start, zero, zero, end, ignore, mask);
-    if (hit.startsolid || hit.allsolid || hit.fraction >= 1.0f || (hit.sflags & 4))
+    G_TraceCapsule(&hit, start, POINT_TRACE_BOUNDS, POINT_TRACE_BOUNDS,
+                   end, ignoredEntityNum, PLAYER_MOVEMENT_CONTENTS);
+    if (hit.startsolid || hit.allsolid || hit.fraction >= 1.0f || (hit.sflags & SKY_SURFACE_FLAG))
     {
         Scr_AddUndefined();
         return;
-    } // sky
-    vec3_t point;
-    vec3_t outside;
-    for (int i = 0; i < 3; ++i)
-    {
-        point[i] = start[i] + hit.fraction * (end[i] - start[i]);
-        outside[i] = point[i] + hit.normal[i];
     }
-    // Support distance of a standing hull centered 35 units above its feet.
-    float support = 15 * (fabsf(hit.normal[0]) + fabsf(hit.normal[1])) + 35 * fabsf(hit.normal[2]);
-    for (int extra = 0; extra <= 64; extra += 2)
+    vec3_t destination;
+    bool foundDestination =
+        findVisibleTeleportDestination(hit, start, end, ignoredEntityNum, destination);
+    if (!foundDestination)
     {
-        vec3_t base;
-        for (int i = 0; i < 3; ++i)
-        {
-            base[i] = point[i] + hit.normal[i] * (support + 1 + extra);
-        }
-        base[2] -= 35;
-        // A low wall hit can put the feet inside the platform below it.
-        // Search upward on the visible side before moving farther from the wall.
-        const int maxLift = fabsf(hit.normal[2]) < 0.7f ? 72 : 0;
-        for (int lift = 0; lift <= maxLift; lift += 2)
-        {
-            vec3_t origin;
-            vec3_t center;
-            VectorCopy(base, origin);
-            origin[2] += lift;
-            VectorCopy(origin, center);
-            center[2] += 35;
-            trace_t path;
-            trace_t clearance;
-            // Every candidate must be reachable from the visible face without
-            // crossing another surface (including overhangs).
-            G_TraceCapsule(&path, outside, zero, zero, center, ignore, mask);
-            if (path.startsolid || path.allsolid || path.fraction < 1.0f)
-            {
-                continue;
-            }
-            G_TraceCapsule(&clearance, origin, mins, maxs, origin, ignore, mask);
-            if (clearance.startsolid || clearance.allsolid)
-            {
-                continue;
-            }
-            if (lift > 0)
-            {
-                // Settle the lifted hull onto the platform, rather than leaving
-                // its feet at an arbitrary search step above the surface.
-                trace_t floor;
-                G_TraceCapsule(&floor, origin, mins, maxs, base, ignore, mask);
-                if (floor.startsolid || floor.allsolid || floor.fraction >= 1.0f ||
-                    floor.normal[2] < 0.7f)
-                {
-                    continue;
-                }
-                origin[2] += (base[2] - origin[2]) * floor.fraction + 0.125f;
-                G_TraceCapsule(&clearance, origin, mins, maxs, origin, ignore, mask);
-                if (clearance.startsolid || clearance.allsolid)
-                {
-                    continue;
-                }
-            }
-            Scr_AddVector(origin);
-            return;
-        }
+        Scr_AddUndefined();
+        return;
     }
-    Scr_AddUndefined();
+    Scr_AddVector(destination);
 }
 
 void opencj_init(void)
 {
     // Initial systeminfo reaches clients before map loading and the first frame.
     // Camera enablement is session-only; later chat commands use per-client dvars.
-    cvar_t *cameraDefault=Cvar_RegisterBool("cg_thirdPerson",qfalse,CVAR_SYSTEMINFO|CVAR_ROM,"Start new connections in first-person");
-    Cvar_SetBool(cameraDefault,qfalse);
-    memset(opencj_historyInputValid,0,sizeof(opencj_historyInputValid));
-    for(int i=0;i<MAX_CLIENTS;++i){opencj_initMovement(i);gsc_saveposition_initclient(i);}
+    cvar_t *cameraDefault = Cvar_RegisterBool(
+        "cg_thirdPerson", qfalse, CVAR_SYSTEMINFO | CVAR_ROM, "Start new connections in first-person");
+    Cvar_SetBool(cameraDefault, qfalse);
+    memset(opencj_historyInputValid, 0, sizeof(opencj_historyInputValid));
+    for (int clientNum = 0; clientNum < MAX_CLIENTS; ++clientNum)
+    {
+        opencj_initMovement(clientNum);
+        gsc_saveposition_initclient(clientNum);
+    }
     // Init callbacks
-    opencj_callbacks[OPENCJ_CB_MOVEMENTSTATE] = GScr_LoadScriptAndLabel("maps/mp/gametypes/_callbacksetup", "CodeCallback_MovementState", qfalse);
-    opencj_callbacks[OPENCJ_CB_FRAGBUTTONPRESSED] = GScr_LoadScriptAndLabel("maps/mp/gametypes/_callbacksetup", "CodeCallback_FragButton", qfalse);
+    opencj_callbacks[OPENCJ_CB_MOVEMENTSTATE] = GScr_LoadScriptAndLabel(
+        "maps/mp/gametypes/_callbacksetup", "CodeCallback_MovementState", qfalse);
+    opencj_callbacks[OPENCJ_CB_FRAGBUTTONPRESSED] = GScr_LoadScriptAndLabel(
+        "maps/mp/gametypes/_callbacksetup", "CodeCallback_FragButton", qfalse);
     opencj_callbacks[OPENCJ_CB_PLAYERCOMMAND]           = GScr_LoadScriptAndLabel("maps/mp/gametypes/_callbacksetup", "CodeCallback_PlayerCommand",             qfalse);
     opencj_callbacks[OPENCJ_CB_RPGFIRED]                = GScr_LoadScriptAndLabel("maps/mp/gametypes/_callbacksetup", "CodeCallback_RPGFired",                  qfalse);
     opencj_callbacks[OPENCJ_CB_WEAPONFIRED]             = GScr_LoadScriptAndLabel("maps/mp/gametypes/_callbacksetup", "CodeCallback_WeaponFired",               qfalse);
