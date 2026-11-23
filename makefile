@@ -316,4 +316,7 @@ plugins:
 $(OBJ_DIR)/opencj_main.o: $(OPENCJ_EXT_DIR)/functions.hpp $(OPENCJ_EXT_DIR)/gsc_custom_mysql.hpp
 $(OBJ_DIR)/gsc_custom_mysql.o $(OBJ_DIR)/mysql_async_pool.o: $(OPENCJ_EXT_DIR)/mysql_async_pool.hpp
 
-$(OBJ_DIR)/opencj_main.o $(OBJ_DIR)/opencj_movement.o: $(OPENCJ_EXT_DIR)/opencj_movement.hpp $(OPENCJ_EXT_DIR)/opencj_strafe_logic.hpp $(OPENCJ_EXT_DIR)/methods.hpp $(OPENCJ_EXT_DIR)/functions.hpp
+$(OBJ_DIR)/opencj_main.o $(OBJ_DIR)/opencj_movement.o: \
+	$(OPENCJ_EXT_DIR)/opencj_movement.hpp \
+	$(OPENCJ_EXT_DIR)/opencj_strafe_logic.hpp \
+	$(OPENCJ_EXT_DIR)/methods.hpp $(OPENCJ_EXT_DIR)/functions.hpp

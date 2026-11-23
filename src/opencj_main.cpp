@@ -63,7 +63,13 @@ static bool opencj_playerWASDCallbackEnabled[MAX_CLIENTS] = {0};
 // For button monitoring
 static int opencj_previousButtons[MAX_CLIENTS] = {0};
 static playermovement_t opencj_playerMovement[MAX_CLIENTS] = {{0}};
-static int opencj_historyInput[MAX_CLIENTS][3];
+struct MovementInputState
+{
+    int forwardDirection;
+    int rightDirection;
+    bool onGround;
+};
+static MovementInputState opencj_historyInput[MAX_CLIENTS];
 static bool opencj_historyInputValid[MAX_CLIENTS];
 
 // Ground monitoring
@@ -765,7 +771,7 @@ static void opencj_onConnect(scr_entref_t id)
     int clientNum = gent->client->ps.clientNum;
     opencj_clearPlayerFPS(clientNum);
     opencj_initMovement(clientNum);
-    opencj_historyInputValid[clientNum]=false;
+    opencj_historyInputValid[clientNum] = false;
 
     opencj_previousButtons[id.entnum] = 0;
     memset(&opencj_playerMovement[id.entnum], 0, sizeof(opencj_playerMovement[id.entnum]));
@@ -774,11 +780,11 @@ static void opencj_onConnect(scr_entref_t id)
     opencj_clientBouncePrevVelocity[id.entnum] = 0.0f;
 }
 
-void opencj_invalidateMovementInput(int client)
+void opencj_invalidateMovementInput(int clientNum)
 {
-    if (client >= 0 && client < MAX_CLIENTS)
+    if (clientNum >= 0 && clientNum < MAX_CLIENTS)
     {
-        opencj_historyInputValid[client] = false;
+        opencj_historyInputValid[clientNum] = false;
     }
 }
 
@@ -816,9 +822,45 @@ void opencj_onUserInfoChanged(gentity_t *ent)
 	}
 }
 
+// Report complete input changes, including releases that legacy WASD callbacks omit.
+static void reportMovementInput(client_t *client, const usercmd_t *movementCommand)
+{
+    int clientNum = client - svs.clients;
+    MovementInputState current = {
+        (movementCommand->forwardmove > 0) - (movementCommand->forwardmove < 0),
+        (movementCommand->rightmove > 0) - (movementCommand->rightmove < 0),
+        client->gentity->client->ps.groundEntityNum != ENTITYNUM_NONE,
+    };
+    const MovementInputState &previous = opencj_historyInput[clientNum];
+    bool inputChanged = !opencj_historyInputValid[clientNum]
+                        || previous.forwardDirection != current.forwardDirection
+                        || previous.rightDirection != current.rightDirection
+                        || previous.onGround != current.onGround;
+    if (!inputChanged)
+    {
+        return;
+    }
+    opencj_historyInput[clientNum] = current;
+    opencj_historyInputValid[clientNum] = true;
+    if (opencj_callbacks[OPENCJ_CB_MOVEMENTSTATE])
+    {
+        // Script arguments are pushed in reverse order.
+        Scr_AddBool(current.onGround);
+        Scr_AddInt(movementCommand->serverTime);
+        Scr_AddInt(current.rightDirection);
+        Scr_AddInt(current.forwardDirection);
+        short callbackThread = Scr_ExecEntThread(
+            client->gentity, opencj_callbacks[OPENCJ_CB_MOVEMENTSTATE], 4);
+        Scr_FreeThread(callbackThread);
+    }
+}
+
 void opencj_onClientMoveCommand(client_t *client, usercmd_t *ucmd)
 {
-    if (!client || !ucmd || !client->gentity || !client->gentity->client) return;
+    if (!client || !ucmd || !client->gentity || !client->gentity->client)
+    {
+        return;
+    }
 
     gclient_t *gclient = client->gentity->client;
 
@@ -837,21 +879,10 @@ void opencj_onClientMoveCommand(client_t *client, usercmd_t *ucmd)
 		}
 	}
 
-    // Complete input state includes releases, unlike the legacy WASD presses.
-    if(gclient->sess.sessionState==SESS_STATE_PLAYING) {
-        opencj_observeMovement(&gclient->ps,ucmd);
-        int f=(ucmd->forwardmove>0)-(ucmd->forwardmove<0);
-        int r=(ucmd->rightmove>0)-(ucmd->rightmove<0);
-        int ground=gclient->ps.groundEntityNum!=1023;
-        int *previous=opencj_historyInput[clientNum];
-        if(!opencj_historyInputValid[clientNum]||previous[0]!=f||previous[1]!=r||previous[2]!=ground) {
-            previous[0]=f;previous[1]=r;previous[2]=ground;opencj_historyInputValid[clientNum]=true;
-            if(opencj_callbacks[OPENCJ_CB_MOVEMENTSTATE]) {
-                Scr_AddBool(ground);Scr_AddInt(ucmd->serverTime);Scr_AddInt(r);Scr_AddInt(f);
-                short ret=Scr_ExecEntThread(client->gentity,opencj_callbacks[OPENCJ_CB_MOVEMENTSTATE],4);
-                Scr_FreeThread(ret);
-            }
-        }
+    if (gclient->sess.sessionState == SESS_STATE_PLAYING)
+    {
+        opencj_observeMovement(&gclient->ps, ucmd);
+        reportMovementInput(client, ucmd);
     }
 
     // 2. Buttons pressed reporting
