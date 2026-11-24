@@ -874,7 +874,8 @@ __optimize3 __regparm1 void SVC_Info( netadr_t *from ) {
     Info_SetValueForKey(infostring, "protocol", "6");
     Info_SetValueForKey( infostring, "hostname", sv_hostname->string );
 
-    const char *szMapName = (Cvar_FindVar("net_port")->integer == 28961) ? "Hidden" : sv_mapname->string;
+    // OpenCJ: a password-protected server reveals its map only to clients that joined with the password.
+    const char *szMapName = Cvar_ShouldCensorInfo(from) ? "Hidden" : sv_mapname->string;
     Info_SetValueForKey(infostring, "mapname", szMapName);
     Info_SetValueForKey( infostring, "clients", va("%i", count) );
     Info_SetValueForKey( infostring, "g_humanplayers", va("%i", humans));
@@ -1142,7 +1143,8 @@ void CLC_SourceEngineQuery_ReadRules(msg_t* msg, queryrules_t* query)
 }
 #endif
 
-void SVC_SourceEngineQuery_WriteInfo( msg_t* msg, const char* challengeStr, qboolean masterserver)
+// hideMapName: OpenCJ password-protected servers do not reveal their map to Source-engine queries.
+void SVC_SourceEngineQuery_WriteInfo( msg_t* msg, const char* challengeStr, qboolean masterserver, qboolean hideMapName)
 {
     int i, humans, bots;
     char cleanhostname[1024];
@@ -1160,7 +1162,7 @@ void SVC_SourceEngineQuery_WriteInfo( msg_t* msg, const char* challengeStr, qboo
         MSG_WriteString(msg, cleanhostname);
     }
 
-    MSG_WriteString(msg, sv_mapname->string);
+    MSG_WriteString(msg, hideMapName ? "Hidden" : sv_mapname->string);
 
     if(fs_gameDirVar->string[0] == '\0')
     {
@@ -1258,7 +1260,7 @@ void SVC_SourceEngineQuery_Info( netadr_t* from, const char* challengeStr)
 
     MSG_Init(&msg, buf, sizeof(buf));
 
-    SVC_SourceEngineQuery_WriteInfo( &msg, challengeStr, qfalse);
+    SVC_SourceEngineQuery_WriteInfo( &msg, challengeStr, qfalse, Cvar_ShouldCensorInfo(from) ? qtrue : qfalse);
 
     NET_SendPacket(NS_SERVER, msg.cursize, msg.data, from);
 
@@ -1399,6 +1401,7 @@ struct sourceEngineCvars_s
 {
     msg_t* msg;
     int num;
+    qboolean hideMapName;
 };
 
 void	SVC_SourceEngineQuery_WriteCvars(cvar_t const* cvar, void *var ){
@@ -1407,7 +1410,14 @@ void	SVC_SourceEngineQuery_WriteCvars(cvar_t const* cvar, void *var ){
     if(cvar->flags & (CVAR_SERVERINFO | CVAR_NORESTART) )
     {
         MSG_WriteString(data->msg, cvar->name);
-        MSG_WriteString(data->msg, Cvar_DisplayableValue(cvar));
+        if (data->hideMapName && Q_stricmp(cvar->name, "mapname") == 0)
+        {
+            MSG_WriteString(data->msg, "Hidden");
+        }
+        else
+        {
+            MSG_WriteString(data->msg, Cvar_DisplayableValue(cvar));
+        }
         data->num++;
     }
 }
@@ -1447,6 +1457,7 @@ void SVC_SourceEngineQuery_Rules( netadr_t* from, msg_t* recvmsg )
     /* Write each cvar */
     data.msg = &msg;
     data.num = 0;
+    data.hideMapName = Cvar_ShouldCensorInfo(from) ? qtrue : qfalse;
     Cvar_ForEach( SVC_SourceEngineQuery_WriteCvars, &data );
 
     *(short*)&msg.data[5] = data.num;
@@ -2480,7 +2491,7 @@ void SV_CreateAndSendMasterheartbeatMessage(const char* message, masterserver_t*
 
     MSG_BeginWriteMessageLength(&msg); //Messagelength
     MSG_WriteLong(&msg, 1); //Command sourceenginequery
-    SVC_SourceEngineQuery_WriteInfo(&msg, "", qtrue);
+    SVC_SourceEngineQuery_WriteInfo(&msg, "", qtrue, *sv_password->string ? qtrue : qfalse);
     MSG_EndWriteMessageLength(&msg);
 
 
