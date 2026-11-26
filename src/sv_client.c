@@ -233,6 +233,14 @@ __optimize3 __regparm1 void SV_DirectConnect( netadr_t *from ) {
 	    return;
 	}
 
+	// OpenCJ: refuse banned addresses before ClientConnect, so the game never sees
+	// the player's name and nothing about them reaches other players.
+	if(opencj_getAddressBanMessage(from, denied, sizeof(denied))){
+		NET_OutOfBandPrint( NS_SERVER, from, "error\n%s\n", denied);
+		Com_Printf(CON_CHANNEL_SERVER,"Rejecting a connection from an OpenCJ-banned network address: %s\n", NET_AdrToString(from));
+		return;
+	}
+
 	if ( version != sv_protocol->integer ) {
 
 #ifdef COD4X18UPDATE
@@ -1708,7 +1716,10 @@ void SV_SendClientGameState( client_t *client ) {
 		return;
 	}
 
-	if(banrejectmsg[0] || SV_PlayerIsBanned(client->playerid, client->steamid, &client->netchan.remoteAddress, client->name, banrejectmsg, sizeof(banrejectmsg)))
+	// OpenCJ: the player ID is only known after authentication, so banned player IDs
+	// are refused here, before the client receives a game state.
+	if(banrejectmsg[0] || SV_PlayerIsBanned(client->playerid, client->steamid, &client->netchan.remoteAddress, client->name, banrejectmsg, sizeof(banrejectmsg))
+	   || opencj_getClientBanMessage(client->playerid, client->steamid, banrejectmsg, sizeof(banrejectmsg)))
 	{
 		SV_DropClient(client, banrejectmsg);
 		return;

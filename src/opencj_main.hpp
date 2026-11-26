@@ -48,6 +48,12 @@ void opencj_onClientMoveCommand(client_t *, usercmd_t *);
 void opencj_addMethodsAndFunctions(void);
 int opencj_getCallback(opencj_callback_t);
 void opencj_clearPlayerMovementCheckVars(int);
+// Connection bans (server-ext/opencj_bans.cpp). Each returns 1 and writes the text
+// the refused player sees when the address or player ID is banned, else 0.
+struct netadr_s;
+int opencj_getAddressBanMessage(struct netadr_s *address, char *message, int messageLength);
+int opencj_getClientBanMessage(uint64_t playerID, uint64_t steamID, char *message,
+                               int messageLength);
 
 void Ext_RPGFiredCallback(gentity_t *, gentity_t *);
 void Ext_WeaponFiredCallback(gentity_t *);
