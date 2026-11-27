@@ -2911,6 +2911,8 @@ void __cdecl DB_UnloadXZoneInternal(unsigned int zoneIndex, bool createDefault)
   uint16_t *pOverrideAssetEntryIndex;
   unsigned int overrideAssetEntryIndex;
   const char* debugname;
+  unsigned int removedWithoutDefaultCount[ASSET_TYPE_COUNT] = { 0 };
+  int type;
 
   assert(zoneIndex);
 
@@ -3003,10 +3005,13 @@ void __cdecl DB_UnloadXZoneInternal(unsigned int zoneIndex, bool createDefault)
           }
           *pAssetEntryIndex = assetEntry->nextHash;
           DB_FreeXAssetEntry(assetEntry);
+          /* A dedicated server never loads the client-only fastfiles that hold some
+             defaults, such as CGAME_UNKNOWN for localized strings. A map that adds
+             such an asset must not stop the server at the next map change. The
+             entry is already freed, so later lookups simply miss it. */
           if ( *g_defaultAssetName[asset.type] )
           {
-            Sys_LeaveCriticalSection(CRITSECT_DBHASH);
-            Sys_Error("Could not load default asset for asset type '%s'", (&g_assetNames)[asset.type]);
+            ++removedWithoutDefaultCount[asset.type];
           }
         }
         else
@@ -3044,6 +3049,16 @@ LABEL_48:
         pAssetEntryIndex = &assetEntry->nextHash;
       }
 
+  }
+  /* One line per type: a single map can remove hundreds of such assets. */
+  for ( type = 0; type < ASSET_TYPE_COUNT; ++type )
+  {
+    if ( removedWithoutDefaultCount[type] )
+    {
+      Com_PrintWarning(CON_CHANNEL_SYSTEM, "Removed %u %s assets from fastfile '%s' without default '%s'\n",
+          removedWithoutDefaultCount[type], DB_GetXAssetTypeName(type),
+          &g_zones[zoneIndex].zoneinfo.name, g_defaultAssetName[type]);
+    }
   }
 //  R_StreamPopSyncDisable();
 }
