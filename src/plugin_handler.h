@@ -134,7 +134,7 @@ typedef struct{
 
 typedef struct{
     int (*OnInit)();            // Initialization function
-    void (*OnInfoRequest)();    // Info gathering function
+    void (*OnInfoRequest)(pluginInfo_t *info);    // Info gathering function
 
     void (*OnEvent[PLUGINS_ITEMCOUNT])();
     void (*OnUnload)();    // De-initialization function
