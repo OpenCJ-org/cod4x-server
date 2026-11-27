@@ -1034,14 +1034,12 @@ __optimize3 __regparm3 void SV_UserMove( client_t *cl, msg_t *msg, qboolean delt
 		oldcmd = cmd;
 	}
 
-	// Compiler warning that was originally here was technically valid, but since CoD4 client uses this same method when writing..
-	// ..the values properly arrive. So, because of this, we need to suppress the warning instead
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wstrict-aliasing"
-	*((uint32_t*)&cl->predictedOrigin[0]) = MSG_ReadLong(msg);
-	*((uint32_t*)&cl->predictedOrigin[1]) = MSG_ReadLong(msg);
-	*((uint32_t*)&cl->predictedOrigin[2]) = MSG_ReadLong(msg);
-#pragma GCC diagnostic pop
+	// Preserve the transmitted float bits without violating C's aliasing rules.
+	for (int axis = 0; axis < 3; ++axis)
+	{
+		uint32_t originBits = (uint32_t)MSG_ReadLong(msg);
+		memcpy(&cl->predictedOrigin[axis], &originBits, sizeof(originBits));
+	}
 	cl->predictedOriginServerTime = MSG_ReadLong(msg);
 
 
