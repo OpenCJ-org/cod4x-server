@@ -393,4 +393,14 @@ qboolean shouldSpamUseButton(gentity_t *bot)
     return is_alive == qfalse && ai->useSpamDelay == 0 ? qtrue : qfalse;
 }
 
+// Bots do not consume the weapon-selection command sent to real clients.
+void Bot_SetBotWeapon(int clientNum, unsigned int weaponIndex)
+{
+    if (clientNum < 0 || clientNum >= MAX_CLIENTS)
+    {
+        return;
+    }
+    g_botai[clientNum].weapon = static_cast<::byte>(weaponIndex);
+}
+
 }

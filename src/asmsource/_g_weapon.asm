@@ -53,6 +53,7 @@
 	extern G_FireRocket
 	extern G_AntiLagRewindClientPos
 	extern G_AntiLag_RestoreClientPos
+	extern Bot_SetBotWeapon
 	extern Ext_RPGFiredCallback
 	extern Ext_WeaponFiredCallback
 
@@ -1110,6 +1111,11 @@ G_SelectWeaponIndex:
 	mov eax, [ebp+0x8]
 	mov [esp], eax
 	call SV_GameSendServerCommand
+	mov eax, [ebp+0xc]
+	mov [esp+0x4], eax
+	mov eax, [ebp+0x8]
+	mov [esp], eax
+	call Bot_SetBotWeapon
 	leave
 	ret
 
