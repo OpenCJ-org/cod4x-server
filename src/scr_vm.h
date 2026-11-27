@@ -401,7 +401,16 @@ typedef struct scr_method_s
     qboolean developer;
 } scr_method_t;
 
-typedef byte PrecacheEntry[8192];
+/* The script compiler reserves one entry for every file::function call site and
+   #include in a script. It keeps that reservation while the files the script
+   references load recursively, so one buffer is shared by the whole nested load
+   chain. The limit therefore has to cover the deepest chain of scripts, not one
+   file. The stock 1024 entries left large mods close to a fatal
+   "MAX_PRECACHE_ENTRIES exceeded" error at map load. ScriptCompile in
+   asmsource/_scr_compiler.asm checks the same limit. */
+#define MAX_PRECACHE_ENTRIES 4096
+#define PRECACHE_ENTRY_SIZE_BYTES 8
+typedef byte PrecacheEntry[MAX_PRECACHE_ENTRIES * PRECACHE_ENTRY_SIZE_BYTES];
 typedef unsigned int sval_u;
 
 /**************** Additional *************************/

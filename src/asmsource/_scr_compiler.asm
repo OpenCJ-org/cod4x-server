@@ -10711,7 +10711,7 @@ ScriptCompile:
 	mov dword [ebp-0x6c], 0x0
 	add eax, edx
 	mov [ebp-0x40], eax
-	cmp eax, 0x400
+	cmp eax, 0x1000 ; MAX_PRECACHE_ENTRIES in scr_vm.h
 	jg ScriptCompile_20
 ScriptCompile_580:
 	mov ebx, [ebp-0x6c]
@@ -11238,7 +11238,7 @@ ScriptCompile_10:
 	mov [ebp-0x6c], ecx
 	add eax, edx
 	mov [ebp-0x40], eax
-	cmp eax, 0x400
+	cmp eax, 0x1000 ; MAX_PRECACHE_ENTRIES in scr_vm.h
 	jle ScriptCompile_580
 ScriptCompile_20:
 	mov dword [esp+0x4], _cstring_max_precache_ent
