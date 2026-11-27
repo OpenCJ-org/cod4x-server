@@ -327,8 +327,12 @@ void ReliableMessagesReceiveNextFragment(netreliablemsg_t *chan, msg_t* buf)
 {	
 	int sequence, acknowledge;
 	unsigned __attribute__((__unused__)) int windowsize;
-	unsigned int numselectiveack, fragmentsize, length, startack;
-	int i, j;
+	unsigned int numselectiveack;
+	unsigned int fragmentsize;
+	unsigned int length;
+	unsigned int startack;
+	unsigned int i;
+	unsigned int j;
 	int usedfragmentcnt;
 
 	if(chan == NULL)
@@ -373,8 +377,13 @@ void ReliableMessagesReceiveNextFragment(netreliablemsg_t *chan, msg_t* buf)
 	{
 		startack = MSG_ReadShort(buf) + acknowledge;
 		length = MSG_ReadShort(buf);
-		if(startack + length > acknowledge + chan->txwindow.windowsize){
-			Com_PrintError(CON_CHANNEL_NETWORK,"Selective acknowledge %d is out of windowsize acknowledge %d\n", startack + length, acknowledge);
+		// Check the length before adding it: a wrapped range can evade the window bound.
+		if(length > (unsigned int)chan->txwindow.windowsize ||
+		   startack > acknowledge + chan->txwindow.windowsize - length)
+		{
+			Com_PrintError(CON_CHANNEL_NETWORK,
+				"Selective acknowledge start %u length %u is out of windowsize acknowledge %d\n",
+				startack, length, acknowledge);
 			return;
 		}
 #ifdef RELIABLE_DEBUG
